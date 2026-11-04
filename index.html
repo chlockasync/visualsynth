@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.009</title>
+<title>Visual Synth | Input Lab v0.1.011</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -28,24 +28,12 @@
 @media(max-width:950px){.monitor-grid{grid-template-columns:minmax(0,1fr);row-gap:15px}.splitter{display:none}.control-grid{grid-template-columns:1fr}.shell{padding:14px}.header{align-items:start}.top-note{max-width:42%}.canvas-wrap{aspect-ratio:2.05}.signal-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:600px){.toolbar{gap:8px}.track-name{flex:1 1 100%;max-width:none;order:5}.transport-meta{min-width:0}.timeprogress{flex:1}.btn{min-width:0}.divider{display:none}.signal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.canvas-wrap{aspect-ratio:1.7}.header .top-note{display:none}.panelbottom{flex-wrap:wrap}}
 
-/* v0.1.009 — align monitor framing to supplied markup; preserve working controls.
-   A single section rule, used everywhere. No gradients, shadows or decorative divider lines. */
-:root {
-  color-scheme:dark;
-  --bg:#384254;
-  --panel:#384254;
-  --panel2:#384254;
-  --edge:#151916;
-  --text:#edf0f5;
-  --muted:#c5cbd7;
-  --blue:#82d6e2;
-  --gold:#e5b15d;
-  --green:#a3ddc1;
-  --pink:#ef9bc4;
-  --lav:#aea7fa;
-  --red:#e98b96;
-  --section-border:5px;
-  --section-radius:14px;
+/* Visual Synth v0.1.011: one consistent border system, no overlapping panel borders. */
+:root{
+ color-scheme:dark;--bg:#384254;--panel:#384254;--panel2:#384254;
+ --edge:#151916;--text:#edf0f5;--muted:#c5cbd7;--blue:#82d6e2;
+ --gold:#e5b15d;--green:#a3ddc1;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96;
+ --seam:5px;--radius:14px;
 }
 *,*::before,*::after{box-shadow:none!important;text-shadow:none!important;}
 html,body{background:#384254;color:var(--text);}
@@ -56,175 +44,89 @@ body{background-image:none!important;}
 .brand strong{display:block;color:#cfd4dc;font-family:'Trebuchet MS','Arial Narrow',Arial,sans-serif;font-size:36px;font-weight:700;letter-spacing:.07em;line-height:1;white-space:nowrap;}
 .brand-rule{height:35px;width:1px;flex:none;background:#b6bdc9;}
 .brand-tagline{font-size:12px;letter-spacing:.33em;color:#d0d6df;white-space:nowrap;}
-.top-note{color:#c8d0db;font-size:10px;}
-.version{opacity:.78;}
+.top-note{color:#c8d0db;font-size:10px;}.version{opacity:.78;}
 .mark,.brand small{display:none;}
-/* All the major areas use exactly the same solid border and radius. */
-.toolbar,.panel,.controlbox{background:#384254;background-image:none!important;border:var(--section-border) solid var(--edge);border-radius:var(--section-radius);}
-.toolbar{margin-bottom:0;padding:9px 11px;gap:7px;}
-/* One 5px seam between transport and monitor row. The row overlaps the
-   transport's bottom border instead of drawing a second dark stripe. */
-.monitor-grid{margin-top:calc(-1 * var(--section-border));grid-template-columns:minmax(0,var(--input-width,49%)) 6px minmax(0,1fr);}
-.panel{position:relative;overflow:visible;min-width:0;}
-.paneltop{border:0;border-radius:9px 9px 0 0;background:#384254;min-height:53px;padding:24px 12px 7px;}
+/* One outer border for transport. The monitor frame shares its bottom seam. */
+.toolbar{background:var(--panel);background-image:none;border:var(--seam) solid var(--edge);
+ border-radius:var(--radius) var(--radius) 0 0;padding:9px 11px;gap:7px;margin-bottom:0;}
+/* Dark backing, uniform 5px spacing between two BLUE rounded sections.
+   Each inner panel has NO border, so there is exactly one dark centre seam. */
+.monitor-grid{
+ position:relative;display:grid;align-items:stretch;
+ grid-template-columns:minmax(0,calc(var(--input-width,49%) - 2.5px)) minmax(0,1fr);
+ gap:var(--seam);padding:var(--seam);margin-top:calc(-1 * var(--seam));
+ background:var(--edge);border-radius:0 0 var(--radius) var(--radius);
+}
+.monitor-grid>.panel{display:flex;flex-direction:column;min-width:0;height:100%;
+ margin:0;border:0;border-radius:10px;background:var(--panel);background-image:none;overflow:visible;position:relative;}
+.monitor-grid .paneltop{border:0;border-radius:10px 10px 0 0;background:var(--panel);min-height:53px;padding:24px 12px 7px;}
 .paneltitle{font-size:12px;font-weight:600;}
-.panelbottom{background:#384254;border:0;border-radius:0 0 9px 9px;padding:8px 12px;min-height:42px;}
-/* Lower the centered border labels so they sit IN the header gap, not above it. */
-.eyebrow,.subheading{position:absolute;top:-3px;left:50%;transform:translateX(-50%);z-index:2;
-  display:flex;align-items:center;justify-content:center;min-height:20px;width:max-content;
-  max-width:calc(100% - 28px);margin:0;padding:2px 17px 1px;
-  background:#151916;color:#e5b15d;border:0;
-  clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,9px 100%);
-  font:700 11px/17px 'Arial Narrow','Segoe UI',Arial,sans-serif;
-  letter-spacing:.045em;text-align:center;text-transform:uppercase;white-space:nowrap;}
-.subheading{top:-3px;}
-/* Monitor display corners, including BOTH top corners, are visibly round. */
-.canvas-wrap{margin:0 9px;border:1px solid #151916;border-radius:12px;overflow:hidden;background:#0b1019;}
-.canvas-wrap canvas{border-radius:11px;}
-.monitor-grid.focus-input #inputCanvasWrap{height:clamp(330px,58vh,680px);}
-.splitter{border:0;border-radius:9px;min-height:260px;}
-.splitter:before{background:#151916;width:3px;height:72px;border-radius:4px;}
-.splitter:hover:before,.splitter:focus-visible:before,.resizing .splitter:before{background:#e5b15d;}
+.monitor-grid .panelbottom{border:0;border-radius:0 0 10px 10px;background:var(--panel);padding:8px 12px;min-height:42px;margin-top:auto;}
+/* Labels sit in the dark seam, as in the user's working prototype. */
+.eyebrow,.subheading{position:absolute;top:-5px;left:50%;transform:translateX(-50%);z-index:3;
+ display:flex;align-items:center;justify-content:center;min-height:20px;width:max-content;
+ max-width:calc(100% - 28px);margin:0;padding:2px 17px 1px;
+ background:var(--edge);color:var(--gold);border:0;
+ clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,9px 100%);
+ font:700 11px/17px 'Arial Narrow','Segoe UI',Arial,sans-serif;
+ letter-spacing:.045em;text-align:center;text-transform:uppercase;white-space:nowrap;}
+.canvas-wrap{flex:1 1 auto;position:relative;height:clamp(300px,28vw,450px);aspect-ratio:auto;min-height:0;
+ margin:0 9px;border:1px solid var(--edge);border-radius:12px;overflow:hidden;background:#0b1019;}
+.canvas-wrap canvas{width:100%;height:100%;display:block;}
+/* The drag handle overlays the single 5px seam; it cannot create more borders. */
+.monitor-grid .splitter{position:absolute;z-index:9;left:var(--input-width,49%);top:0;bottom:0;
+ transform:translateX(-50%);display:flex;align-items:center;justify-content:center;
+ width:18px;height:100%;min-height:0;padding:0;background:transparent;border:0;border-radius:0;
+ cursor:col-resize;touch-action:none;}
+.monitor-grid .splitter::before{content:'';display:block;width:2px;height:60px;
+ background:var(--gold);border-radius:2px;transition:none;}
+.monitor-grid .splitter:hover::before,.monitor-grid .splitter:focus-visible::before,.resizing .splitter::before{background:var(--gold);}
+.monitor-grid.focus-input{grid-template-columns:minmax(0,1fr)}
+.monitor-grid.focus-input #outputPanel,.monitor-grid.focus-input .splitter{display:none}
+.monitor-grid.focus-input #inputCanvasWrap{height:clamp(330px,58vh,680px)}
 .control-rail{margin:11px 0 9px;border:0;padding:0;gap:6px;}
-.controlbox{position:relative;padding:30px 13px 13px;}
-.control-grid{margin-top:0;gap:12px;}
-/* Quiet, consistent controls; readable like the original prototype. */
-.filelabel,.btn,.smallbtn,.speed-control select,.row select,.chip,.signal,.badge,.tab{box-shadow:none;border-radius:7px;}
-.filelabel{background:#d5dde8;color:#17212c;padding:9px 12px;}
-.filelabel:hover{background:#f0f3f7;}
-.btn,.smallbtn,.speed-control select,.row select,.chip,.signal,.badge{background:#2b3547;color:var(--text);border:1px solid #151916;}
-.btn.live{background:#334b61;border-color:#151916;}
-.btn.record{background:#453b45;color:#f1c8ce;border-color:#151916;}
+/* Same approach for lower two sections: backing supplies one seam. */
+.control-grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.35fr);
+ background:var(--edge);border-radius:var(--radius);gap:var(--seam);padding:var(--seam);margin-top:0;}
+.controlbox{min-width:0;position:relative;margin:0;padding:30px 13px 13px;
+ background:var(--panel);background-image:none;border:0;border-radius:10px;}
+.filelabel,.btn,.smallbtn,.speed-control select,.row select,.chip,.signal,.badge,.tab{border-radius:7px;box-shadow:none;}
+.filelabel{background:#d5dde8;color:#17212c;padding:9px 12px;}.filelabel:hover{background:#f0f3f7;}
+.btn,.smallbtn,.speed-control select,.row select,.chip,.signal,.badge{
+ background:#2b3547;color:var(--text);border:1px solid var(--edge);}
+.btn.live{background:#334b61;border-color:var(--edge);}
+.btn.record{background:#453b45;color:#f1c8ce;border-color:var(--edge);}
 .btn:not(:disabled):hover,.smallbtn:hover,.chip:hover{background:#455268;}
-.tab{background:transparent;border:1px solid #151916;color:#c9d0dc;}
-.tab.active{background:#151916;color:#e5b15d;}
-.row label{color:#f1f3f7;}
-.row select{color:#f2f4f8;}
-.signal{background:#384254;}
-.meter{background:#1b2533;}
-.future{background:#384254;color:#d2d9e2;border:1px dashed #151916;}
-.footer{margin-top:9px;color:#c1c8d2;}
-.divider{background:#151916;}
-.overlay{background:#111a28df;border-color:#354459;}
-.kbd{border-color:#151916;}
+.tab{background:transparent;border:1px solid var(--edge);color:#c9d0dc;}
+.tab.active{background:var(--edge);color:var(--gold);}
+.row label{color:#f1f3f7;}.row select{color:#f2f4f8;}
+.signal{background:#384254;}.meter{background:#1b2533;}
+.future{background:#384254;color:#d2d9e2;border:1px dashed var(--edge);}
+.footer{margin-top:9px;color:#c1c8d2;}.divider{background:var(--edge);}
+.overlay{background:#111a28df;border-color:#354459;}.kbd{border-color:var(--edge);}
 @media(max-width:950px){
-  .monitor-grid{grid-template-columns:minmax(0,1fr);row-gap:12px;}
-  .header{gap:8px;}
-  .brand strong{font-size:27px;}
-  .brand-rule{height:26px;}
-  .brand-tagline{font-size:10px;letter-spacing:.18em;}
-  .top-note{display:none;}
-  .shell{padding:10px 13px 18px;}
+ .monitor-grid{grid-template-columns:minmax(0,1fr);gap:var(--seam);}
+ .monitor-grid .splitter{display:none;}
+ .monitor-grid .canvas-wrap{height:clamp(280px,45vw,420px);}
+ .control-grid{grid-template-columns:1fr;}
+ .header{gap:8px;}.brand strong{font-size:27px;}.brand-rule{height:26px;}
+ .brand-tagline{font-size:10px;letter-spacing:.18em;}.top-note{display:none;}
+ .shell{padding:10px 13px 18px;}
 }
 @media(max-width:600px){
-  .header{min-height:44px;}
-  .brand{gap:9px;}
-  .brand strong{font-size:20px;letter-spacing:.04em;}
-  .brand-rule{height:23px;}
-  .brand-tagline{font-size:9px;letter-spacing:.07em;}
-  .paneltop{padding:25px 8px 8px;}
-  .canvas-wrap{margin:0 6px;}
-  .shell{padding:8px 10px 16px;}
+ .header{min-height:44px;}.brand{gap:9px;}
+ .brand strong{font-size:20px;letter-spacing:.04em;}.brand-rule{height:23px;}
+ .brand-tagline{font-size:9px;letter-spacing:.07em;}
+ .paneltop{padding:25px 8px 8px;}.canvas-wrap{margin:0 6px;}
+ .shell{padding:8px 10px 16px;}
 }
-
-
-/* v0.1.009: one solid 5px seam, including all rounded junctions.
-   Adjacent areas have no layout gap. The parent's dark colour fills the
-   exterior corner cutouts, so no blue triangles are left between them. */
-.monitor-grid {
-  position:relative;
-  display:grid;
-  grid-template-columns:minmax(0,var(--input-width,49%)) minmax(0,1fr);
-  gap:0;
-  align-items:stretch;
-  background:var(--edge);
-  margin-top:calc(-1 * var(--section-border));
-  border-radius:var(--section-radius);
-}
-.monitor-grid > .panel {
-  display:flex;
-  flex-direction:column;
-  min-width:0;
-  height:100%;
-}
-.monitor-grid > #outputPanel {
-  margin-left:calc(-1 * var(--section-border));
-}
-.monitor-grid .canvas-wrap {
-  flex:1 1 auto;
-  height:clamp(300px,28vw,450px);
-  aspect-ratio:auto;
-  min-height:0;
-}
-.monitor-grid .panelbottom { margin-top:auto; }
-.splitter {
-  position:absolute;
-  z-index:9;
-  top:0;
-  bottom:0;
-  left:var(--input-width,49%);
-  transform:translateX(-50%);
-  width:18px;
-  height:100%;
-  min-height:0;
-  display:flex;
-  background:transparent;
-  border:0;
-}
-.splitter::before {background:var(--edge);width:5px;height:64px;}
-.monitor-grid.focus-input {grid-template-columns:minmax(0,1fr);}
-.monitor-grid.focus-input > #outputPanel {display:none;}
-.monitor-grid.focus-input .splitter {display:none;}
-.monitor-grid.focus-input #inputCanvasWrap {height:clamp(330px,58vh,680px);}
-.control-grid {
-  display:grid;
-  grid-template-columns:minmax(260px,1fr) minmax(320px,1.35fr);
-  gap:0;
-  background:var(--edge);
-  border-radius:var(--section-radius);
-}
-.control-grid > .controlbox:nth-child(2) {
-  margin-left:calc(-1 * var(--section-border));
-}
-@media(max-width:950px){
-  .monitor-grid {grid-template-columns:minmax(0,1fr);row-gap:0;}
-  .monitor-grid > #outputPanel {margin-left:0;margin-top:calc(-1 * var(--section-border));}
-  .monitor-grid .canvas-wrap {height:clamp(280px,45vw,420px);}
-  .monitor-grid .splitter {display:none;}
-  .control-grid {grid-template-columns:1fr;gap:0;}
-  .control-grid > .controlbox:nth-child(2) {margin-left:0;margin-top:calc(-1 * var(--section-border));}
-}
-
-/* v0.1.009: clean outside junctions and a fine amber drag indicator.
-   The transport and monitor row form one continuous outside edge, so their
-   meeting corners are square rather than two opposing rounded cutouts. */
-.toolbar {border-radius:var(--section-radius) var(--section-radius) 0 0;}
-.monitor-grid {border-radius:0 0 var(--section-radius) var(--section-radius);}
-.monitor-grid > #inputPanel {border-top-left-radius:0;}
-.monitor-grid > #outputPanel {border-top-right-radius:0;}
-/* Deliberately centre a 2px orange marker over the dark 5px shared border. */
-.monitor-grid .splitter::before {
-  width:2px;
-  height:74px;
-  border-radius:2px;
-  background:var(--gold);
-  transition:none;
-}
-.monitor-grid .splitter:hover::before,
-.monitor-grid .splitter:focus-visible::before,
-.resizing .monitor-grid .splitter::before {background:var(--gold);}
-@media(max-width:950px){
-  .monitor-grid > #inputPanel {border-top-left-radius:0;}
-  .monitor-grid > #outputPanel {border-top-right-radius:var(--section-radius);}
-}
-
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
     <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span></div>
-    <div class="top-note">Local music in. Time-aligned control signals out.<span class="version">Prototype v0.1.009 · Local processing</span></div>
+    <div class="top-note">Local music in. Time-aligned control signals out.<span class="version">Prototype v0.1.011 · Local processing</span></div>
   </header>
   <div class="toolbar" role="group" aria-label="Audio transport">
     <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
