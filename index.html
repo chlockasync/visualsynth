@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.000</title>
+<title>Visual Synth | Input Lab v0.1.001</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -18,7 +18,7 @@
 <div class="shell">
   <header class="header">
     <div class="brand"><span class="mark" aria-hidden="true"></span><div><strong>VISUAL SYNTH</strong><small>Input laboratory · Stage 01</small></div></div>
-    <div class="top-note">Local music in. Time-aligned control signals out.<span class="version">Prototype v0.1.000 · No uploads to a server</span></div>
+    <div class="top-note">Local music in. Time-aligned control signals out.<span class="version">Prototype v0.1.001 · No uploads to a server</span></div>
   </header>
   <div class="toolbar" role="group" aria-label="Audio transport">
     <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -33,8 +33,8 @@
   </div>
   <div class="monitor-grid">
     <section class="panel" aria-label="Input monitor">
-      <div class="paneltop"><div><div class="eyebrow">01 / INPUT MONITOR</div><div class="paneltitle">Music timeline + extracted signals</div></div><div class="topright" id="rangeLabel">20-second window</div></div>
-      <div class="canvas-wrap"><canvas id="inputCanvas" aria-label="Scrollable music waveform and signal timeline"></canvas><div class="overlay">Click timeline to seek · Gold line = playhead</div></div>
+      <div class="paneltop"><div><div class="eyebrow">01 / INPUT MONITOR</div><div class="paneltitle">Waveform + individually scaled analysis signals</div></div><div class="topright" id="rangeLabel">8-second window</div></div>
+      <div class="canvas-wrap"><canvas id="inputCanvas" aria-label="Scrollable music waveform and signal timeline"></canvas><div class="overlay">Click to seek · Gold = playhead</div></div>
       <div class="panelbottom"><span class="status" id="inputStatus" aria-live="polite">Load an MP3 to start local analysis.</span><span id="analysisPill" class="badge">READY</span></div>
     </section>
     <section class="panel" aria-label="Output monitor">
@@ -53,20 +53,22 @@
     <section class="controlbox">
       <h2 class="subheading">Analysis controls</h2>
       <p class="explain">The whole track is analysed on import, independently of playback. These signals drive the diagnostic output and will feed the visual synthesiser later.</p>
-      <div class="row"><label for="window">Timeline window</label><select id="window"><option value="8">8 seconds</option><option value="16">16 seconds</option><option value="20" selected>20 seconds</option><option value="32">32 seconds</option><option value="60">60 seconds</option></select></div>
-      <div class="row"><label for="smoothing">Monitor smoothing</label><div><input type="range" id="smoothing" min="0" max="90" step="5" value="15"><small id="smoothingLabel">15%</small></div></div>
+      <div class="row"><label for="window">Timeline window</label><select id="window"><option value="8" selected>8 seconds</option><option value="16">16 seconds</option><option value="20">20 seconds</option><option value="32">32 seconds</option><option value="60">60 seconds</option></select></div>
+      <div class="row"><label for="beatGrid">Show estimated tempo grid</label><input id="beatGrid" type="checkbox" title="Estimated metronome positions, not observed drum hits"></div>
+      <div class="row"><label for="smoothing">Monitor smoothing</label><div><input type="range" id="smoothing" min="0" max="90" step="5" value="0"><small id="smoothingLabel">0%</small></div></div>
       <div class="row"><label>Estimated tempo</label><strong id="bpm">Not analysed</strong></div>
-      <div class="row"><label>Transients detected</label><strong id="events">Not analysed</strong></div>
-      <div class="row"><label>Analysis resolution</label><strong id="resolution">~32 ms</strong></div>
+      <div class="row"><label>Percussive hit candidates</label><strong id="events">Not analysed</strong></div>
+      <div class="row"><label>Low-frequency hits</label><strong id="lowEvents">Not analysed</strong></div>
+      <div class="row"><label>Analysis resolution</label><strong id="resolution">~21 ms</strong></div>
       <div class="row"><label>Processing</label><small id="process">Waiting for audio</small></div>
-      <p class="explain" style="margin:20px 0 8px">Show signal traces in the input timeline:</p>
+      <p class="explain" style="margin:20px 0 8px">Show separate signal lanes in the input timeline:</p>
       <div class="legend" id="toggles"></div>
     </section>
     <section class="controlbox">
       <h2 class="subheading">Live source signals</h2>
-      <p class="explain">Values follow the current song position. Each channel is available independently; levels are normalised for expressive use, not laboratory measurement.</p>
+      <p class="explain">Values follow the current song position. Each channel is independent. Signals are scaled against this recording; prominent peaks matter more than absolute measurements.</p>
       <div class="signal-grid" id="signals"></div>
-      <div class="future"><b>Not yet implemented:</b> actual melody tracking, bass-note tracking, harmony and longer-term song structure. Bass energy below is deliberately not labelled “bassline”. Tempo and beat timing are provisional heuristic estimates.</div>
+      <div class="future"><b>Not yet implemented:</b> actual melody tracking, bass-note tracking, harmony and longer-term song structure. Bass energy below is deliberately not labelled “bassline”. Hit detection is approximate, not instrument separation. The optional tempo grid is an estimate, not detected drum hits.</div>
     </section>
   </div>
   <div class="footer"><span>All audio decoding and analysis happens on this device. No external libraries or accounts.</span><span><span class="kbd">Space</span> Play / pause · <span class="kbd">←</span> / <span class="kbd">→</span> seek 5 s</span></div>
@@ -74,77 +76,172 @@
 <audio id="player" preload="metadata" style="display:none"></audio>
 <script id="workerSource" type="text/plain">
 'use strict';
-const N=1024,H=384;
-function clamp(v){return v<0?0:v>1?1:v}
-function quantile(a,p){const arr=Array.from(a).filter(Number.isFinite).sort((x,y)=>x-y);return arr.length?arr[Math.min(arr.length-1,Math.floor((arr.length-1)*p))]:1}
-function fft(real,imag){let n=real.length;for(let i=1,j=0;i<n;i++){let bit=n>>1;for(;j&bit;bit>>=1)j^=bit;j^=bit;if(i<j){let tr=real[i];real[i]=real[j];real[j]=tr;tr=imag[i];imag[i]=imag[j];imag[j]=tr}}for(let len=2;len<=n;len<<=1){let angle=-2*Math.PI/len,wr=Math.cos(angle),wi=Math.sin(angle);for(let i=0;i<n;i+=len){let ur=1,ui=0;for(let j=0;j<len/2;j++){let a=i+j,b=a+len/2;let vr=real[b]*ur-imag[b]*ui,vi=real[b]*ui+imag[b]*ur;real[b]=real[a]-vr;imag[b]=imag[a]-vi;real[a]+=vr;imag[a]+=vi;let nr=ur*wr-ui*wi;ui=ur*wi+ui*wr;ur=nr}}}}
-function normalize(a,p=0.96,curve=0.6){let q=quantile(a,p)||1;const b=new Float32Array(a.length);for(let i=0;i<a.length;i++)b[i]=clamp(Math.pow(Math.max(0,a[i])/q,curve));return b}
-function movingMean(a,radius){let b=new Float32Array(a.length),sum=0,start=0,end=0;for(let i=0;i<a.length;i++){let left=Math.max(0,i-radius),right=Math.min(a.length,i+radius+1);while(end<right)sum+=a[end++];while(start<left)sum-=a[start++];b[i]=sum/(end-start||1)}return b}
+// Visual Synth input lab: descriptive analysis, not instrument transcription.
+// Each feature is indexed by the CENTRE of its analysis window (t0 + i*dt).
+const N=1024,H=256;
+const clamp=v=>Math.max(0,Math.min(1,v));
+function quantile(values,p){
+ const a=Array.from(values).filter(Number.isFinite).sort((x,y)=>x-y);
+ return a.length?a[Math.min(a.length-1,Math.floor((a.length-1)*p))]:0;
+}
+function movingMean(a,radius){
+ const b=new Float32Array(a.length);let start=0,end=0,sum=0;
+ for(let i=0;i<a.length;i++){
+  const left=Math.max(0,i-radius),right=Math.min(a.length,i+radius+1);
+  while(end<right)sum+=a[end++];while(start<left)sum-=a[start++];
+  b[i]=sum/(end-start||1);
+ }return b;
+}
+function norm(a,p=.97,exp=.7){
+ const q=Math.max(1e-10,quantile(a,p));let result=new Float32Array(a.length);
+ for(let i=0;i<a.length;i++)result[i]=clamp(Math.pow(Math.max(0,a[i])/q,exp));
+ return result;
+}
+function fft(re,im){
+ const n=re.length;
+ for(let i=1,j=0;i<n;i++){
+  let bit=n>>1;for(;j&bit;bit>>=1)j^=bit;j^=bit;
+  if(i<j){let tr=re[i];re[i]=re[j];re[j]=tr;tr=im[i];im[i]=im[j];im[j]=tr;}
+ }
+ for(let len=2;len<=n;len<<=1){
+  const ang=-2*Math.PI/len,wr=Math.cos(ang),wi=Math.sin(ang);
+  for(let i=0;i<n;i+=len){let ur=1,ui=0;
+   for(let j=0;j<len/2;j++){
+    const a=i+j,b=a+len/2,vr=re[b]*ur-im[b]*ui,vi=re[b]*ui+im[b]*ur;
+    re[b]=re[a]-vr;im[b]=im[a]-vi;re[a]+=vr;im[a]+=vi;
+    const nr=ur*wr-ui*wi;ui=ur*wi+ui*wr;ur=nr;
+   }
+  }
+ }
+}
+function changeFeature(flux,dt,minChange){
+ // Subtract a local baseline, then scale relative peaks to this particular track.
+ const base=movingMean(flux,Math.max(2,Math.round(.17/dt)));
+ const difference=new Float32Array(flux.length);
+ for(let i=0;i<difference.length;i++)difference[i]=Math.max(0,flux[i]-base[i]-minChange);
+ return norm(difference,.985,.8);
+}
+function pickHits(signal,dt,t0,duration,threshold=.25,minGap=.115){
+ const result=[];
+ if(signal.length && signal[0]>=threshold && signal[0]>signal[1])result.push({t:0,strength:signal[0]});
+ for(let i=1;i<signal.length-1;i++){
+  if(signal[i]<threshold||signal[i]<signal[i-1]||signal[i]<=signal[i+1])continue;
+  const t=t0+i*dt;
+  if(t>=duration)break;
+  const hit={t,strength:signal[i]};
+  if(result.length && t-result[result.length-1].t<minGap){
+   if(hit.strength>result[result.length-1].strength)result[result.length-1]=hit;
+  }else result.push(hit);
+ }return result;
+}
+function eventEnvelope(events,n,dt,t0,decay){
+ const result=new Float32Array(n);let e=0;
+ for(let i=0;i<n;i++){
+  const t=t0+i*dt;
+  while(e<events.length && events[e].t<=t)e++;
+  if(e){const last=events[e-1],elapsed=t-last.t;
+   result[i]=last.strength*Math.exp(-elapsed/decay);
+  }
+ }
+ return result;
+}
+function tempoEstimate(onset,dt){
+ // Diagnostic tempo only. Never present these predicted beat-grid lines as observed hits.
+ const minLag=Math.ceil(60/(175*dt)),maxLag=Math.floor(60/(65*dt));
+ if(onset.length<maxLag*4)return {bpm:null,confidence:0,beats:[]};
+ let bestLag=0,bestScore=0;
+ for(let lag=minLag;lag<=maxLag;lag++){
+  let cross=0,p0=0,p1=0;
+  for(let i=lag;i<onset.length;i+=2){
+   const a=onset[i],b=onset[i-lag];cross+=a*b;p0+=a*a;p1+=b*b;
+  }
+  const score=cross/Math.sqrt(Math.max(1e-9,p0*p1));
+  if(score>bestScore){bestScore=score;bestLag=lag;}
+ }
+ if(!bestLag||bestScore<.14)return {bpm:null,confidence:bestScore,beats:[]};
+ let phase=0,maxSum=-Infinity;
+ for(let offset=0;offset<bestLag;offset++){
+  let sum=0;for(let i=offset;i<onset.length;i+=bestLag)sum+=onset[i];
+  if(sum>maxSum){maxSum=sum;phase=offset;}
+ }
+ const interval=bestLag*dt,beats=[];
+ for(let t=phase*dt;t<onset.length*dt;t+=interval)beats.push(t);
+ return {bpm:60/interval,confidence:Math.min(1,bestScore),beats};
+}
+function estimateFromRegularLowHits(events,duration){
+ // A regular low-end pulse is often a stronger metrical clue than hi-hat subdivisions.
+ if(events.length<8)return null;
+ const gaps=[];
+ for(let i=1;i<events.length;i++){
+  const gap=events[i].t-events[i-1].t;
+  if(gap>=.32 && gap<=1.10)gaps.push(gap);
+ }
+ if(gaps.length<Math.max(6,events.length*.65))return null;
+ const sorted=gaps.slice().sort((a,b)=>a-b);
+ const interval=sorted[Math.floor(sorted.length/2)];
+ const regular=gaps.filter(g=>Math.abs(g-interval)<Math.max(.045,interval*.095)).length/gaps.length;
+ if(regular<.75)return null;
+ const bpm=60/interval,beats=[];
+ for(let t=events[0].t;t<duration;t+=interval)beats.push(t);
+ return {bpm,confidence:regular,beats};
+}
 function calculate({samples,sampleRate}){
-const s=new Float32Array(samples),dt=H/sampleRate,nframes=Math.max(0,Math.floor((s.length-N)/H)+1);
-const rms=new Float32Array(nframes),bass=new Float32Array(nframes),mid=new Float32Array(nframes),high=new Float32Array(nframes),centroid=new Float32Array(nframes),flux=new Float32Array(nframes);
-const re=new Float32Array(N),im=new Float32Array(N),win=new Float32Array(N),prev=new Float32Array(N/2),binHz=sampleRate/N;
-for(let i=0;i<N;i++)win[i]=.5-.5*Math.cos(2*Math.PI*i/(N-1));
-for(let f=0;f<nframes;f++){
- const start=f*H;let power=0;
- for(let j=0;j<N;j++){let v=s[start+j];power+=v*v;re[j]=v*win[j];im[j]=0}rms[f]=Math.sqrt(power/N);
- fft(re,im);let bs=0,ms=0,hs=0,weighted=0,total=0,diff=0;
- for(let k=3;k<N/2;k++){
-  const hz=k*binHz,mag=Math.hypot(re[k],im[k]);
-  if(hz<160)bs+=mag*mag;else if(hz<2000)ms+=mag*mag;else hs+=mag*mag;
-  weighted+=mag*hz;total+=mag;
-  const positive=mag-prev[k];if(positive>0)diff+=positive;
-  prev[k]=mag;
+ const s=new Float32Array(samples),dt=H/sampleRate,t0=N/(2*sampleRate);
+ const nframes=Math.max(0,Math.floor((s.length-N)/H)+1);
+ if(nframes<5)throw new Error('The audio is too short for analysis.');
+ const rms=new Float32Array(nframes),low=new Float32Array(nframes),mid=new Float32Array(nframes),high=new Float32Array(nframes),centroid=new Float32Array(nframes);
+ const fluxLow=new Float32Array(nframes),fluxMid=new Float32Array(nframes),fluxHigh=new Float32Array(nframes);
+ const re=new Float32Array(N),im=new Float32Array(N),win=new Float32Array(N),previous=new Float32Array(N/2);
+ const hzPerBin=sampleRate/N;
+ for(let j=0;j<N;j++)win[j]=.5-.5*Math.cos(2*Math.PI*j/(N-1));
+ for(let frame=0;frame<nframes;frame++){
+  const st=frame*H;let energy=0;
+  for(let j=0;j<N;j++){
+   const v=s[st+j];energy+=v*v;re[j]=v*win[j];im[j]=0;
+  }
+  rms[frame]=Math.sqrt(energy/N);
+  fft(re,im);
+  let l=0,m=0,h=0,fl=0,fm=0,fh=0,weight=0,total=0;
+  for(let k=2;k<N/2;k++){
+   const frequency=k*hzPerBin,mag=Math.hypot(re[k],im[k]);
+   const old=previous[k],delta=Math.max(0,Math.log1p(5*mag)-Math.log1p(5*old));
+   previous[k]=mag;
+   if(frequency<180){l+=mag*mag;fl+=delta;}
+   else if(frequency<2000){m+=mag*mag;fm+=delta;}
+   else{h+=mag*mag;fh+=delta;}
+   weight+=mag*frequency;total+=mag;
+  }
+  low[frame]=Math.sqrt(l);mid[frame]=Math.sqrt(m);high[frame]=Math.sqrt(h);
+  centroid[frame]=total?weight/total:0;
+  // Averaging per bin keeps the 2–6 kHz range from drowning out kick energy.
+  fluxLow[frame]=fl/14;fluxMid[frame]=fm/155;fluxHigh[frame]=fh/340;
+  if(frame%480===0)postMessage({type:'progress',value:Math.round(frame/nframes*94)});
  }
- bass[f]=Math.sqrt(bs);mid[f]=Math.sqrt(ms);high[f]=Math.sqrt(hs);centroid[f]=total?weighted/total:0;flux[f]=diff/(total+1e-8);
- if(f%300===0)postMessage({type:'progress',value:Math.round(f/Math.max(1,nframes)*86)});
-}
-const loudness=normalize(rms,.98,.55),b=normalize(bass),m=normalize(mid),h=normalize(high);
-// Relative spectral change plus a local noise floor: sustained tones should not
-// generate a stream of false transients just because their tiny flux normalises to 1.
-const baseline=movingMean(flux,Math.max(2,Math.round(.5/dt)));
-const deviation=new Float32Array(nframes);
-for(let i=0;i<nframes;i++)deviation[i]=Math.abs(flux[i]-baseline[i]);
-const noise=movingMean(deviation,Math.max(2,Math.round(.5/dt)));
-const onset=new Float32Array(nframes);
-for(let i=0;i<nframes;i++)onset[i]=clamp((flux[i]-baseline[i]-1.5*noise[i]-.012)*5);
-const smoothOnset=movingMean(onset,Math.max(1,Math.round(.28/dt)));
-const activity=normalize(smoothOnset,.96,.75);
-const brightness=new Float32Array(nframes),intensity=new Float32Array(nframes);
-for(let i=0;i<nframes;i++){
- brightness[i]=clamp(centroid[i]/5200);
- intensity[i]=clamp(.68*loudness[i]+.24*activity[i]+.08*brightness[i]);
-}
-const events=[];let last=-1e6;
-for(let i=2;i<nframes-2;i++){
- if(onset[i]>.37&&onset[i]>=onset[i-1]&&onset[i]>onset[i+1]&&i*dt-last>.105){events.push({t:i*dt,strength:onset[i]});last=i*dt;}
-}
-// Autocorrelate novelty, looking for plausible beat intervals (rough; NOT a full beat tracker).
-let bestLag=0,bestScore=0;const minLag=Math.floor(60/(175*dt)),maxLag=Math.ceil(60/(68*dt));
-const ac=new Float32Array(maxLag+1);
-for(let lag=minLag;lag<=maxLag;lag++){
- let sum=0,denom=0;for(let i=lag;i<nframes;i+=2){sum+=onset[i]*onset[i-lag];denom+=onset[i]*onset[i]}
- ac[lag]=denom?sum/Math.sqrt(denom*(denom+.001)):0;
-}
-for(let lag=minLag;lag<=maxLag;lag++){
- const score=(ac[lag-1]||0)*.25+ac[lag]*.5+(ac[lag+1]||0)*.25;
- if(score>bestScore){bestScore=score;bestLag=lag}
-}
-const bpm=bestLag?60/(bestLag*dt):null;
-let beats=[];
-if(bpm&&bestScore>.055){
- const interval=bestLag*dt,offsetSteps=Math.max(1,Math.round(interval/dt));let winner=0,winScore=-1;
- const stride=Math.max(1,Math.floor(nframes/5000));
- for(let o=0;o<offsetSteps;o++){
-  let sum=0;for(let j=o;j<nframes;j+=bestLag*stride){sum+=onset[Math.min(nframes-1,Math.round(j))]||0}
-  if(sum>winScore){winScore=sum;winner=o}
+ const loudness=norm(rms,.985,.6),bass=norm(low,.985,.65),mids=norm(mid,.985,.65),highs=norm(high,.985,.65);
+ const nLow=changeFeature(fluxLow,dt,.035),nMid=changeFeature(fluxMid,dt,.018),nHigh=changeFeature(fluxHigh,dt,.018);
+ const broadRaw=new Float32Array(nframes),lowRaw=new Float32Array(nframes),brightness=new Float32Array(nframes);
+ const rmsFloor=Math.max(1e-8,quantile(rms,.85)*.012);
+ for(let i=0;i<nframes;i++){
+  const riseLow=Math.max(0,bass[i]-bass[Math.max(0,i-2)]-.065);
+  const riseLoud=Math.max(0,loudness[i]-loudness[Math.max(0,i-2)]-.045);
+  const gate=clamp((rms[i]-rmsFloor)/(rmsFloor*3));
+  broadRaw[i]=(nLow[i]*.37+nMid[i]*.38+nHigh[i]*.25+riseLoud*.20)*gate;
+  lowRaw[i]=(nLow[i]*.67+riseLow*.45)*gate;
+  brightness[i]=clamp(centroid[i]/5000);
  }
- const start=winner*dt;
- for(let t=start;t<s.length/sampleRate;t+=interval)beats.push(t);
+ const onset=norm(broadRaw,.985,.82),lowAttack=norm(lowRaw,.985,.82);
+ const events=pickHits(onset,dt,t0,s.length/sampleRate,.34,.105);
+ const lowEvents=pickHits(lowAttack,dt,t0,s.length/sampleRate,.39,.15);
+ const hits=eventEnvelope(events,nframes,dt,t0,.10),lowHits=eventEnvelope(lowEvents,nframes,dt,t0,.14);
+ const activity=norm(movingMean(onset,Math.max(1,Math.round(.22/dt))),.97,.7);
+ const intensity=new Float32Array(nframes);
+ for(let i=0;i<nframes;i++)intensity[i]=clamp(.70*loudness[i]+.22*activity[i]+.08*brightness[i]);
+ const tempo=estimateFromRegularLowHits(lowEvents,s.length/sampleRate) || tempoEstimate(onset,dt);
+ const signals={loudness,intensity,bass,mid:mids,high:highs,brightness,onset,activity,hits,lowHits};
+ postMessage({type:'done',dt,t0,signals,events,lowEvents,beats:tempo.beats,bpm:tempo.bpm,beatConfidence:tempo.confidence,count:nframes},
+  Object.values(signals).map(v=>v.buffer));
 }
-postMessage({type:'done',dt,signals:{loudness, bass:b,mid:m,high:h,brightness,onset,activity,intensity},events,beats,bpm,beatConfidence:Math.min(1,bestScore),count:nframes},[loudness.buffer,b.buffer,m.buffer,h.buffer,brightness.buffer,onset.buffer,activity.buffer,intensity.buffer]);
-}
-onmessage=(event)=>{if(event.data.type==='analyse'){try{calculate(event.data)}catch(e){postMessage({type:'error',message:String(e?.message||e)})}}}
+onmessage=(event)=>{if(event.data.type==='analyse'){try{calculate(event.data)}catch(err){postMessage({type:'error',message:String(err?.message||err)})}}};
 </script>
 <script>
 (()=>{'use strict';
@@ -152,16 +249,18 @@ const $=id=>document.getElementById(id);
 const audio=$('player'),input=$('inputCanvas'),output=$('outputCanvas');
 const srcList=[
  {id:'loudness',name:'Loudness',color:'#87cafa',desc:'Short-term audio level'},
- {id:'intensity',name:'Intensity',color:'#ffcf83',desc:'Level + musical activity'},
- {id:'bass',name:'Bass energy',color:'#ed9abc',desc:'Energy below 160 Hz'},
- {id:'mid',name:'Mid energy',color:'#acb7fb',desc:'160 Hz – 2 kHz'},
+ {id:'bass',name:'Low energy',color:'#ed9abc',desc:'Sound energy below 180 Hz, not identified bass notes'},
+ {id:'hits',name:'Percussive hits',color:'#f5aa89',desc:'Triggered envelopes at measured attack candidates (NOT an invented tempo grid)'},
+ {id:'lowHits',name:'Low hits',color:'#f3cf87',desc:'Percussive events with low-frequency energy, often kicks, not guaranteed'},
+ {id:'onset',name:'Attack strength',color:'#ef9b91',desc:'Short musical changes measured across low, mid and high bands'},
+ {id:'activity',name:'Activity',color:'#a9d5aa',desc:'Short-window density of musical changes'},
+ {id:'intensity',name:'Intensity',color:'#ffcf83',desc:'Audio level + activity + brightness'},
+ {id:'mid',name:'Mid energy',color:'#acb7fb',desc:'180 Hz – 2 kHz'},
  {id:'high',name:'High energy',color:'#9bd9b9',desc:'Above 2 kHz'},
- {id:'brightness',name:'Brightness',color:'#e5b98b',desc:'Spectral centroid estimate'},
- {id:'onset',name:'Transient',color:'#ef9b91',desc:'Sudden spectral change'},
- {id:'activity',name:'Activity',color:'#a9d5aa',desc:'Density of changing sound'}
+ {id:'brightness',name:'Brightness',color:'#e5b98b',desc:'Spectral centroid estimate'}
 ];
-let chosen=new Set(['intensity','bass','onset']),vals={},smoothVals={},dataset=null,waveform=null,worker=null,url=null;
-let fileToken=0,windowSec=20,playing=false,raf=0,lastFrame=0,fpsSamples=[],lastDisplay={start:0,end:20},started=false;
+let chosen=new Set(['loudness','bass','hits','lowHits']),vals={},smoothVals={},dataset=null,waveform=null,worker=null,url=null;
+let fileToken=0,windowSec=8,playing=false,raf=0,lastFrame=0,fpsSamples=[],lastDisplay={start:0,end:20},started=false;
 let canvasWidth=0,canvasHeight=0,diagWidth=0,diagHeight=0;
 const fmt=(v)=>{if(!Number.isFinite(v))return '0:00';let h=Math.floor(v/3600),m=Math.floor(v%3600/60),s=Math.floor(v%60);return (h?h+':'+String(m).padStart(2,'0'):String(m))+':'+String(s).padStart(2,'0')};
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
@@ -175,35 +274,88 @@ function createSources(){
  }
 }
 function fit(canvas){const rect=canvas.getBoundingClientRect();const dpr=Math.min(devicePixelRatio||1,1.7);const width=Math.max(1,Math.floor(rect.width*dpr)),height=Math.max(1,Math.floor(rect.height*dpr));if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}return [width,height]}
-function value(id,t){if(!dataset)return 0;const arr=dataset.signals[id];if(!arr||!arr.length)return 0;let pos=clamp(t/dataset.dt,0,arr.length-1),i=pos|0,f=pos-i;return (arr[i]||0)*(1-f)+(arr[Math.min(arr.length-1,i+1)]||0)*f}
+function value(id,t){if(!dataset)return 0;const arr=dataset.signals[id];if(!arr||!arr.length)return 0;let pos=clamp((t-dataset.t0)/dataset.dt,0,arr.length-1),i=pos|0,f=pos-i;return (arr[i]||0)*(1-f)+(arr[Math.min(arr.length-1,i+1)]||0)*f}
 function updateLive(){const t=audio.currentTime||0,smooth=Number($('smoothing').value)/100;for(let s of srcList){let v=value(s.id,t);const last=smoothVals[s.id]??v;v=smooth*last+(1-smooth)*v;smoothVals[s.id]=v;vals[s.id]=v;$('num-'+s.id).textContent=v.toFixed(2);$('bar-'+s.id).style.width=(100*v).toFixed(1)+'%'}}
-function clearData(){dataset=null;waveform=null;Object.keys(vals).forEach(x=>{vals[x]=0;delete smoothVals[x]});$('bpm').textContent='Not analysed';$('events').textContent='Not analysed';$('process').textContent='Waiting for audio';$('fpsLabel').textContent='Preview · idle';updateLive();drawInput();drawOutput(0)}
+function clearData(){dataset=null;waveform=null;Object.keys(vals).forEach(x=>{vals[x]=0;delete smoothVals[x]});$('bpm').textContent='Not analysed';$('events').textContent='Not analysed';$('lowEvents').textContent='Not analysed';$('process').textContent='Waiting for audio';$('fpsLabel').textContent='Preview · idle';updateLive();drawInput();drawOutput(0)}
 function stopWorker(){if(worker){worker.terminate();worker=null}}
-function drawInput(){let [w,h]=fit(input),ctx=input.getContext('2d');canvasWidth=w;canvasHeight=h;ctx.clearRect(0,0,w,h);ctx.fillStyle='#0c1422';ctx.fillRect(0,0,w,h);
- const sec=audio.currentTime||0,dur=audio.duration||0,windowWidth=windowSec;let start=clamp(sec-windowWidth*.48,0,Math.max(0,dur-windowWidth)),end=start+windowWidth;lastDisplay={start,end};
- let left=43,right=w-12,plotw=right-left;
- for(let k=0;k<7;k++){let y=h*(.1+k*.125);ctx.strokeStyle='#253246';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke()}
- const pixelsPerSec=plotw/windowWidth;
- // time ticks
- let step=windowSec<=8?1:windowSec<=20?2:windowSec<=32?4:10;
- ctx.fillStyle='#8190a9';ctx.font=`${Math.max(10,Math.floor(h*.036))}px system-ui`;
- for(let t=Math.ceil(start/step)*step;t<=end;t+=step){let x=left+(t-start)*pixelsPerSec;ctx.strokeStyle='#293448';ctx.beginPath();ctx.moveTo(x,20);ctx.lineTo(x,h-12);ctx.stroke();ctx.fillText(fmt(t),Math.min(w-42,x+4),15)}
- ctx.fillStyle='#9aa9bd';ctx.fillText('WAVE',8,h*.25);ctx.fillText('DATA',8,h*.74);
- if(waveform){let ymid=h*.35,amp=h*.185;ctx.strokeStyle='#90a8d9';ctx.globalAlpha=.84;ctx.lineWidth=1;ctx.beginPath();for(let x=Math.floor(left);x<right;x++){
- const t=start+(x-left)/plotw*windowWidth,idx=Math.floor(t*waveform.hz),a=waveform.min[idx]??0,b=waveform.max[idx]??0;ctx.moveTo(x,ymid-amp*b);ctx.lineTo(x,ymid-amp*a)
- }ctx.stroke();ctx.globalAlpha=1}
+function drawInput(){
+ const [w,h]=fit(input),ctx=input.getContext('2d');canvasWidth=w;canvasHeight=h;
+ ctx.fillStyle='#0c1422';ctx.fillRect(0,0,w,h);
+ const sec=audio.currentTime||0,dur=audio.duration||0;
+ const start=clamp(sec-windowSec*.48,0,Math.max(0,dur-windowSec)),end=start+windowSec;
+ lastDisplay={start,end};
+ const left=Math.max(72,Math.round(w*.10)),right=w-12,plotw=right-left,pixelsPerSec=plotw/windowSec;
+ // Shared time axis, but separate vertical axes. Trace overlap in v0.1.000
+ // made even correct signals almost impossible to interpret.
+ const clockStep=windowSec<=8?1:windowSec<=20?2:windowSec<=32?4:10;
+ ctx.font=`${Math.max(10,Math.floor(h*.032))}px system-ui`;
+ for(let t=Math.ceil(start/clockStep)*clockStep;t<=end;t+=clockStep){
+  const x=left+(t-start)*pixelsPerSec;
+  ctx.strokeStyle='#263348';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,17);ctx.lineTo(x,h-9);ctx.stroke();
+  ctx.fillStyle='#95a4b9';ctx.fillText(fmt(t),Math.min(w-41,x+3),14);
+ }
+ const waveTop=h*.10,waveBottom=h*.32,waveMid=(waveTop+waveBottom)*.5;
+ ctx.fillStyle='#111d2c';ctx.fillRect(left,waveTop,plotw,waveBottom-waveTop);
+ ctx.fillStyle='#b0c2d7';ctx.font=`${Math.max(10,Math.floor(h*.034))}px system-ui`;ctx.fillText('Wave',11,waveMid+4);
+ if(waveform){
+  const amp=(waveBottom-waveTop)*.44;ctx.strokeStyle='#8ba9d9';ctx.globalAlpha=.92;
+  ctx.beginPath();for(let x=Math.floor(left);x<right;x++){
+   const t=start+(x-left)/plotw*windowSec,idx=Math.floor(t*waveform.hz);
+   const a=waveform.min[idx]??0,b=waveform.max[idx]??0;
+   ctx.moveTo(x,waveMid-b*amp);ctx.lineTo(x,waveMid-a*amp);
+  }ctx.stroke();ctx.globalAlpha=1;
+ }
  if(dataset){
- // event markers are intentionally thin so dense passages remain readable
- ctx.fillStyle='#f29d95';ctx.globalAlpha=.67;
- for(let e of dataset.events){if(e.t<start)continue;if(e.t>end)break;let x=left+(e.t-start)*pixelsPerSec;ctx.fillRect(x,h*.51,1.5,5+e.strength*9)}ctx.globalAlpha=1;
- ctx.strokeStyle='#e3b177';ctx.globalAlpha=.38;for(let t of dataset.beats){if(t<start)continue;if(t>end)break;let x=left+(t-start)*pixelsPerSec;ctx.beginPath();ctx.moveTo(x,h*.13);ctx.lineTo(x,h*.96);ctx.stroke()}ctx.globalAlpha=1;
- for(let s of srcList){if(!chosen.has(s.id))continue;ctx.strokeStyle=s.color;ctx.lineWidth=Math.max(1.4,w/850);ctx.beginPath();for(let x=Math.floor(left);x<right;x+=2){let t=start+(x-left)/plotw*windowWidth,v=value(s.id,t),y=h*.94-v*h*.36;if(x===Math.floor(left))ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.stroke()}
- }else{ctx.fillStyle='#8491a8';ctx.textAlign='center';ctx.font=`${Math.max(14,Math.floor(h*.05))}px system-ui`;ctx.fillText(waveform?'Computing musical signals…':'Load an MP3 to see its waveform and analysis.',w/2,h*.77);ctx.textAlign='start'}
- const px=left+(sec-start)*pixelsPerSec;ctx.strokeStyle='#ffdc99';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,h*.085);ctx.lineTo(px,h*.975);ctx.stroke();ctx.fillStyle='#ffdc99';ctx.beginPath();ctx.moveTo(px-5,h*.085);ctx.lineTo(px+5,h*.085);ctx.lineTo(px,h*.085+7);ctx.fill();
- ctx.strokeStyle='#46556b';ctx.strokeRect(left+.5,h*.09,plotw,h*.88)
+  const active=srcList.filter(src=>chosen.has(src.id));
+  const bandsTop=h*.34,bandsBottom=h*.965,each=(bandsBottom-bandsTop)/Math.max(1,active.length);
+  if(!active.length){ctx.fillStyle='#a6b6cc';ctx.fillText('Select a signal to examine its timeline.',left+20,h*.69)}
+  active.forEach((src,i)=>{
+   const top=bandsTop+i*each,bottom=top+each,labelY=top+each*.55;
+   ctx.fillStyle=i%2?'#101b2b':'#162235';ctx.fillRect(left,top,plotw,each-1);
+   ctx.font=`${Math.max(10,Math.min(12,Math.round(each*.22)))}px system-ui`;
+   ctx.fillStyle=src.color;
+   // Small left label so even four lanes fit side by side.
+   const labels={loudness:'Loud',bass:'Low',hits:'Hits',lowHits:'Low hits',onset:'Attack',activity:'Activity',intensity:'Energy',mid:'Mids',high:'High',brightness:'Bright'};
+   ctx.fillText(labels[src.id]||src.name,7,labelY);
+   const pad=Math.min(6,each*.15),height=each-pad*2,baseline=bottom-pad;
+   if(src.id==='hits'||src.id==='lowHits'){
+    const list=src.id==='hits'?dataset.events:dataset.lowEvents;
+    ctx.strokeStyle=src.color;ctx.lineWidth=Math.max(1.5,w/880);
+    for(const ev of list){if(ev.t<start)continue;if(ev.t>end)break;
+     const x=left+(ev.t-start)*pixelsPerSec;
+     ctx.beginPath();ctx.moveTo(x,baseline);ctx.lineTo(x,baseline-height*Math.max(.2,ev.strength));ctx.stroke();
+    }
+   }else{
+    const y=value(src.id,start);
+    ctx.beginPath();ctx.moveTo(left,baseline-y*height);
+    for(let x=Math.floor(left)+2;x<right;x+=2){
+     const t=start+(x-left)/plotw*windowSec;ctx.lineTo(x,baseline-value(src.id,t)*height);
+    }
+    ctx.strokeStyle=src.color;ctx.lineWidth=Math.max(1.5,w/860);ctx.stroke();
+   }
+   // A small live position dot makes comparisons to the heard sound more direct.
+   const current=clamp(value(src.id,sec));
+   const px=left+(sec-start)*pixelsPerSec;
+   ctx.fillStyle=src.color;ctx.beginPath();ctx.arc(px,baseline-current*height,2.8,0,Math.PI*2);ctx.fill();
+  });
+  // Estimated grid is OPT-IN. Default input display only shows observed events.
+  if($('beatGrid').checked){
+   ctx.save();ctx.strokeStyle='#d7b67d';ctx.globalAlpha=.32;ctx.setLineDash([3,5]);
+   for(const t of dataset.beats){if(t<start)continue;if(t>end)break;
+    const x=left+(t-start)*pixelsPerSec;ctx.beginPath();ctx.moveTo(x,waveTop);ctx.lineTo(x,h*.965);ctx.stroke();
+   }ctx.restore();
+  }
+ }else{
+  ctx.fillStyle='#8491a8';ctx.font=`${Math.max(12,Math.floor(h*.045))}px system-ui`;
+  ctx.fillText(waveform?'Computing independent signals…':'Load an MP3 to see the waveform and its musical signals.',left+15,h*.60);
+ }
+ const px=left+(sec-start)*pixelsPerSec;
+ ctx.strokeStyle='#ffdc99';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px,h*.085);ctx.lineTo(px,h*.965);ctx.stroke();
+ ctx.fillStyle='#ffdc99';ctx.beginPath();ctx.moveTo(px-5,h*.085);ctx.lineTo(px+5,h*.085);ctx.lineTo(px,h*.085+7);ctx.fill();
+ ctx.strokeStyle='#46556b';ctx.lineWidth=1;ctx.strokeRect(left+.5,h*.095,plotw,h*.87);
 }
 function drawOutput(ms){const [w,h]=fit(output),ctx=output.getContext('2d');diagWidth=w;diagHeight=h;ctx.fillStyle='#0a101b';ctx.fillRect(0,0,w,h);
- const t=audio.currentTime||0,energy=vals.intensity||0,bass=vals.bass||0,onset=vals.onset||0,bright=vals.brightness||0,mid=vals.mid||0;
+ const t=audio.currentTime||0,energy=vals.intensity||0,bass=vals.bass||0,onset=vals.hits||0,bright=vals.brightness||0,mid=vals.mid||0;
  // Purely diagnostic signal visual. Not an interchangeable synthesis module.
  let cx=w*.5,cy=h*.53,r=Math.min(w,h)*.44;
  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r*1.35);g.addColorStop(0,`rgba(48,75,116,${.15+.25*energy})`);g.addColorStop(1,'rgba(8,13,21,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
@@ -215,18 +367,29 @@ function drawOutput(ms){const [w,h]=fit(output),ctx=output.getContext('2d');diag
  }
  ctx.lineWidth=1;ctx.strokeStyle='rgba(230,215,170,.27)';const pulse=8+onset*r*.52;ctx.beginPath();ctx.arc(cx,cy,pulse,0,2*Math.PI);ctx.stroke();
  // A minimal diagnostic bar row, visibly connected to analysis data.
- const cols=['bass','mid','high','onset','intensity'];const barw=w*.056,space=w*.023,groupw=cols.length*barw+(cols.length-1)*space,xx=(w-groupw)/2;
+ const cols=['bass','mid','high','hits','intensity'];const barw=w*.056,space=w*.023,groupw=cols.length*barw+(cols.length-1)*space,xx=(w-groupw)/2;
  for(let k=0;k<cols.length;k++){let v=vals[cols[k]]||0;ctx.fillStyle='#26354b';ctx.fillRect(xx+k*(barw+space),h*.9,barw,3);ctx.fillStyle=srcList.find(x=>x.id===cols[k])?.color||'#abc';ctx.fillRect(xx+k*(barw+space),h*.9,barw*v,3)}
 }
 function loop(ms){let t=audio.currentTime||0,dur=audio.duration||0;const now=performance.now();updateLive();drawInput();drawOutput(ms);$('elapsed').textContent=fmt(t);$('duration').textContent=fmt(dur);if(!($('seek').matches(':active'))) $('seek').value=dur?Math.round(1000*t/dur):0;
  if(playing){if(lastFrame){const interval=now-lastFrame;if(interval>0&&interval<500)fpsSamples.push(1000/interval);if(fpsSamples.length>40)fpsSamples.shift()}lastFrame=now;let fps=fpsSamples.length?fpsSamples.reduce((a,b)=>a+b,0)/fpsSamples.length:0;$('fpsLabel').textContent=fps?'Preview · '+Math.round(fps)+' fps':'Preview · running'}else{$('fpsLabel').textContent='Preview · paused';lastFrame=0;fpsSamples=[]}
  raf=requestAnimationFrame(loop)}
-function downsample(buffer,target=12000){const rate=buffer.sampleRate,channels=buffer.numberOfChannels,length=Math.floor(buffer.duration*target),step=rate/target;const left=buffer.getChannelData(0),right=channels>1?buffer.getChannelData(1):left;const samples=new Float32Array(length);const hz=72,nbins=Math.max(1,Math.ceil(buffer.duration*hz));const min=new Float32Array(nbins),max=new Float32Array(nbins);
- for(let i=0;i<nbins;i++){min[i]=1;max[i]=-1}
- // Bucket-average source samples avoids trivial sample skipping and reduces aliasing.
+function downsample(buffer,target=12000){
+ const rate=buffer.sampleRate,channels=buffer.numberOfChannels,length=Math.floor(buffer.duration*target),step=rate/target;
+ const left=buffer.getChannelData(0),right=channels>1?buffer.getChannelData(1):left;
+ const samples=new Float32Array(length),hz=120,nbins=Math.max(1,Math.ceil(buffer.duration*hz));
+ const min=new Float32Array(nbins),max=new Float32Array(nbins);
+ min.fill(1);max.fill(-1);
  for(let i=0;i<length;i++){
- const st=Math.floor(i*step),en=Math.min(left.length,Math.max(st+1,Math.floor((i+1)*step)));let sum=0;for(let j=st;j<en;j++)sum+=(left[j]+right[j])*.5;const v=sum/(en-st||1);samples[i]=v;const k=Math.min(nbins-1,Math.floor(i/target*hz));if(v<min[k])min[k]=v;if(v>max[k])max[k]=v;
+  const st=Math.floor(i*step),en=Math.min(left.length,Math.max(st+1,Math.floor((i+1)*step)));
+  let sum=0;
+  for(let j=st;j<en;j++){
+   const v=(left[j]+right[j])*.5;sum+=v;
+   const k=Math.min(nbins-1,Math.floor(j/rate*hz));
+   if(v<min[k])min[k]=v;if(v>max[k])max[k]=v;
+  }
+  samples[i]=sum/(en-st||1);
  }
+ for(let k=0;k<nbins;k++){if(min[k]>max[k]){min[k]=0;max[k]=0}}
  return {samples,waveform:{min,max,hz},sampleRate:target};
 }
 async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let token=++fileToken;stopWorker();audio.pause();audio.removeAttribute('src');audio.load();if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(file);audio.src=url;clearData();playing=false;$('play').disabled=false;$('stop').disabled=false;$('seek').disabled=false;$('play').textContent='▶ Play';$('trackname').textContent=file.name;badge('DECODING');msg('Decoding MP3 locally…','busy');$('process').textContent='Decoding';
@@ -239,14 +402,14 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
   $('duration').textContent=fmt(decoded.duration);badge('PREPARING');msg('Preparing the waveform and analysis worker…','busy');
   await new Promise(r=>setTimeout(r,40));
   const prepared=downsample(decoded,12000);if(token!==fileToken)return;
-  waveform=prepared.waveform;badge('ANALYSING');msg('Extracting energy, transients and rhythm…','busy');$('process').textContent='Starting';drawInput();
+  waveform=prepared.waveform;badge('ANALYSING');msg('Extracting multi-band attacks and rhythmic hits…','busy');$('process').textContent='Starting';drawInput();
   const code=$('workerSource').textContent;const workerUrl=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));worker=new Worker(workerUrl);URL.revokeObjectURL(workerUrl);
   worker.onmessage=ev=>{if(token!==fileToken)return;const o=ev.data;
    if(o.type==='progress'){$('process').textContent=o.value+'%';msg('Analysing music… '+o.value+'%','busy')}
    if(o.type==='error'){badge('ERROR');msg('Analysis failed: '+o.message,'error');$('process').textContent='Error';stopWorker()}
    if(o.type==='done'){
-    dataset={dt:o.dt,signals:o.signals,events:o.events,beats:o.beats,bpm:o.bpm,beatConfidence:o.beatConfidence};
-    $('bpm').textContent=o.bpm&&o.beats.length?Math.round(o.bpm)+' BPM (approx.)':'No reliable estimate';$('events').textContent=o.events.length.toLocaleString();$('resolution').textContent=Math.round(o.dt*1000)+' ms';$('process').textContent='Complete';badge('READY');msg('Analysis ready. Play the track and examine the signal response.','ok');stopWorker();drawInput()
+    dataset={dt:o.dt,t0:o.t0,signals:o.signals,events:o.events,lowEvents:o.lowEvents,beats:o.beats,bpm:o.bpm,beatConfidence:o.beatConfidence};
+    $('bpm').textContent=o.bpm&&o.beats.length?Math.round(o.bpm)+' BPM (tentative)':'No reliable estimate';$('events').textContent=o.events.length.toLocaleString();$('lowEvents').textContent=o.lowEvents.length.toLocaleString();$('resolution').textContent=Math.round(o.dt*1000)+' ms';$('process').textContent='Complete';badge('READY');msg('Analysis ready. Compare percussive hits and low hits to what you hear.','ok');stopWorker();drawInput()
    }
   };
   worker.onerror=err=>{if(token!==fileToken)return;badge('ERROR');msg('Analysis worker error: '+(err.message||'unknown error'),'error');$('process').textContent='Error';stopWorker()};
@@ -258,9 +421,10 @@ $('file').addEventListener('change',fileChange);
 $('play').onclick=playpause;
 $('stop').onclick=()=>{audio.pause();audio.currentTime=0};
 $('seek').addEventListener('input',()=>{if(Number.isFinite(audio.duration))audio.currentTime=Number($('seek').value)/1000*audio.duration});
+$('beatGrid').onchange=drawInput;
 $('window').onchange=()=>{windowSec=Number($('window').value);$('rangeLabel').textContent=windowSec+'-second window';drawInput()};
 $('smoothing').oninput=()=>{$('smoothingLabel').textContent=$('smoothing').value+'%'};
-input.addEventListener('pointerdown',e=>{if(!Number.isFinite(audio.duration)||!audio.duration)return;let rect=input.getBoundingClientRect(),x=e.clientX-rect.left,left=43/(input.width/(rect.width||1)),right=rect.width-12/(input.width/(rect.width||1));let t=lastDisplay.start+clamp((x-left)/(right-left))*windowSec;audio.currentTime=Math.min(audio.duration,Math.max(0,t))});
+input.addEventListener('pointerdown',e=>{if(!Number.isFinite(audio.duration)||!audio.duration)return;let rect=input.getBoundingClientRect(),x=e.clientX-rect.left,left=Math.max(72,Math.round(input.width*.10))/(input.width/(rect.width||1)),right=rect.width-12/(input.width/(rect.width||1));let t=lastDisplay.start+clamp((x-left)/(right-left))*windowSec;audio.currentTime=Math.min(audio.duration,Math.max(0,t))});
 audio.onplay=()=>{playing=true;$('play').textContent='Ⅱ Pause'};audio.onpause=()=>{playing=false;$('play').textContent='▶ Play'};audio.onended=()=>{playing=false;$('play').textContent='▶ Play'};
 window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement||e.target instanceof HTMLButtonElement)return;if(e.code==='Space'){e.preventDefault();playpause()}if(e.code==='ArrowLeft'&&audio.duration){audio.currentTime=clamp(audio.currentTime-5,0,audio.duration)}if(e.code==='ArrowRight'&&audio.duration){audio.currentTime=clamp(audio.currentTime+5,0,audio.duration)}});
 window.addEventListener('resize',()=>{drawInput();drawOutput(0)});
