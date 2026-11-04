@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.022</title>
+<title>Visual Synth | Input Lab v0.1.023</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -212,7 +212,7 @@ body{background-image:none!important;}
 .brand .app-version{font-family:Arial,sans-serif;font-size:11px;line-height:1;color:#f1c784;font-weight:700;letter-spacing:.06em;white-space:nowrap;align-self:center;margin-left:-9px;}
 @media(max-width:600px){.brand .app-version{font-size:9px;margin-left:-5px;}}
 
-/* v0.1.022: thirteen independent source-conditioning strips, JP-panel vocabulary */
+/* v0.1.023: thirteen independent source-conditioning strips, JP-panel vocabulary */
 .mixer-frame{position:relative;margin-top:12px;border:6px solid #151916;border-radius:15px;background:#384254;padding:26px 0 0;min-width:0;}
 .mixer-heading{position:absolute;top:-6px;left:50%;transform:translateX(-50%);margin:0;z-index:5;min-height:20px;padding:1px 19px 2px;min-width:205px;max-width:calc(100% - 30px);text-align:center;font:700 11px/17px 'Arial Narrow','Segoe UI',Arial,sans-serif;letter-spacing:.065em;color:var(--gold);white-space:nowrap;background:#151916;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,10px 100%);}
 .mixer-intro,.mixer-foot{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:2px 13px 10px;font-size:10px;color:#e9bf76;font-weight:700;letter-spacing:.07em;}
@@ -255,12 +255,21 @@ body{background-image:none!important;}
 .channel-reset:hover{background:#3b4960;}
 @media(max-width:1500px){.mixer-intro{font-size:10px}.mixer-scroll{scrollbar-width:thin;}}
 @media(max-width:650px){.mixer-intro,.mixer-foot{flex-direction:column;align-items:flex-start;gap:4px}.mixer-frame{margin-top:8px;}}
+
+/* v0.1.023: exact-width instrument rack, no stretched empty panel. */
+.brand .app-version{margin-left:0;margin-right:0;color:#f1c784;font-size:11px;}
+.mixer-frame{width:calc(13 * 92px + 12 * 2px + 12px);max-width:100%;padding:24px 0 0;}
+.mixer-scroll{width:100%;max-width:100%;}
+.channel-rack{min-width:max-content;}
+/* The main timeline is the current zoom, its own bottom edge shows the whole track. */
+#inputCanvas{cursor:crosshair;}
+@media(max-width:650px){.mixer-frame{width:100%;}}
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><strong>VISUAL SYNTH</strong><span class="app-version" aria-label="Application version">v0.1.022</span><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span></div>
+    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.023</span></div>
     <div class="header-actions" role="group" aria-label="Track and recording">
       
       <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -270,7 +279,7 @@ body{background-image:none!important;}
   <div class="monitor-grid" id="monitorGrid">
     <section class="panel" id="inputPanel" aria-label="Input monitor">
       <div class="paneltop"><div><div class="eyebrow">01 / INPUT MONITOR</div><div class="paneltitle" id="trackname" title="No track loaded">No track loaded</div></div><div class="paneltools"><label class="monitor-window" for="window">WINDOW <select id="window" aria-label="Visible timeline duration"><option value="2">2 s</option><option value="4">4 s</option><option value="8" selected>8 s</option><option value="16">16 s</option><option value="20">20 s</option><option value="32">32 s</option><option value="60">60 s</option></select></label><div class="monitor-bpm" id="bpm" title="Essentia.js beat and tempo tracking">TEMPO —</div><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
-      <div class="canvas-wrap" id="inputCanvasWrap"><canvas id="inputCanvas" aria-label="Scrollable music waveform and signal timeline"></canvas><div class="timeline-rail" aria-hidden="true"></div></div>
+      <div class="canvas-wrap" id="inputCanvasWrap"><canvas id="inputCanvas" aria-label="Music timeline. Drag in the graph to seek within the current window, or use the lower overview rail to seek anywhere in the full track." title="Drag the graph to seek. Drag the bottom overview rail to seek anywhere in the song."></canvas></div>
       <div class="compact-transport" role="group" aria-label="Music playback controls">
         <button id="play" class="transport-icon" disabled title="Play / Pause" aria-label="Play or pause">▶</button>
         <button id="stop" class="transport-icon" disabled title="Stop" aria-label="Stop">■</button>
@@ -295,9 +304,7 @@ body{background-image:none!important;}
   </nav>
   <section class="mixer-frame" aria-label="13 input conditioning channels">
     <h2 class="mixer-heading">03 / INPUT CHANNELS</h2>
-    <div class="mixer-intro"><span>13 MUSIC SOURCES <span class="mixer-subtitle">· monitor independently from synth send</span></span><span id="mixerStatus" class="mixer-subtitle">LOAD A TRACK TO BEGIN</span></div>
     <div class="mixer-scroll" tabindex="0" aria-label="Input channel mixer; scroll horizontally if required"><div id="channelRack" class="channel-rack"></div></div>
-    <div class="mixer-foot"><span><b>ON</b> = input monitor · <b>LEVEL</b> = synth send · <b>MUTE</b> = silence synth send only</span><span>RESET returns this channel to its initial settings</span></div>
   </section>
 </div>
 <audio id="player" preload="metadata" style="display:none"></audio>
@@ -375,11 +382,11 @@ function createSources(){
  for(const src of srcList){
   configs[src.id]=channelDefaults(src);
   const strip=document.createElement('div');strip.className='channel-strip';strip.id='channel-'+src.id;strip.title=src.desc;strip.style.setProperty('--channel-color',src.color);
-  strip.innerHTML=`<div class="channel-name">${src.name}</div><div class="channel-family">${src.family}</div><div class="channel-switches"><button class="channel-power" aria-label="Show ${src.name} on input monitor" aria-pressed="${configs[src.id].on}" type="button"><span class="led"></span>ON</button><button class="channel-mute" aria-label="Mute ${src.name} send to visual synthesiser" aria-pressed="false" type="button">MUTE</button></div><div class="channel-main"><input class="channel-fader" type="range" min="0" max="200" value="100" step="1" aria-label="${src.name} synth send level"><div class="channel-meter" aria-label="Live input signal before synth level and mute"><div class="channel-meter-fill" id="bar-${src.id}"></div></div></div><div class="channel-level-label">LEVEL → SYNTH</div><div class="channel-level-value">100%</div><div class="channel-dials"></div><div class="channel-special"></div><div class="channel-readout" id="num-${src.id}">0.00</div><button class="channel-reset" type="button" aria-label="Reset ${src.name} channel controls">RESET</button>`;
+  strip.innerHTML=`<div class="channel-name">${src.name}</div><div class="channel-family">${src.family}</div><div class="channel-switches"><button class="channel-power" aria-label="Enable ${src.name} for monitor and synth send" aria-pressed="${configs[src.id].on}" type="button"><span class="led"></span>ON</button><button class="channel-mute" aria-label="Mute ${src.name} send to visual synthesiser" aria-pressed="false" type="button">MUTE</button></div><div class="channel-main"><input class="channel-fader" type="range" min="0" max="200" value="100" step="1" aria-label="${src.name} synth send level"><div class="channel-meter" aria-label="Live enabled input signal; inactive when channel is off"><div class="channel-meter-fill" id="bar-${src.id}"></div></div></div><div class="channel-level-label">LEVEL → SYNTH</div><div class="channel-level-value">100%</div><div class="channel-dials"></div><div class="channel-special"></div><div class="channel-readout" id="num-${src.id}">0.00</div><button class="channel-reset" type="button" aria-label="Reset ${src.name} channel controls">RESET</button>`;
   rack.appendChild(strip);
   const power=strip.querySelector('.channel-power'),mute=strip.querySelector('.channel-mute'),fader=strip.querySelector('.channel-fader');
   updateChannelButtons(src,strip);
-  power.onclick=()=>{configs[src.id].on=!configs[src.id].on;updateChannelButtons(src,strip);drawInput()};
+  power.onclick=()=>{configs[src.id].on=!configs[src.id].on;updateChannelButtons(src,strip);updateLive();drawInput()};
   mute.onclick=()=>{configs[src.id].mute=!configs[src.id].mute;updateChannelButtons(src,strip);updateLive()};
   fader.addEventListener('input',()=>{configs[src.id].level=+fader.value/100;strip.querySelector('.channel-level-value').textContent=fader.value+'%';updateLive()});
   for(const [key,label] of [['gate','GATE'],['attack','ATT'],['release','REL'],['filter','LPF']])strip.querySelector('.channel-dials').append(makeDial(src,key,label));
@@ -409,13 +416,13 @@ function rebuildChannel(id){
 }
 
 function fit(canvas){const rect=canvas.getBoundingClientRect();const dpr=Math.min(devicePixelRatio||1,1.7);const width=Math.max(1,Math.floor(rect.width*dpr)),height=Math.max(1,Math.floor(rect.height*dpr));if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}return [width,height]}
-// Monitoring and the synth bus are deliberately independent.
-// The input monitor always reads the conditioned source, regardless of LEVEL or MUTE.
+// A channel must be ON to reach either the monitor or synthesiser.
+// MUTE and LEVEL affect the synthesiser send only, never the enabled monitor.
 function monitorValue(id,t){if(!dataset)return 0;const arr=conditioned[id]||dataset.signals[id];if(!arr||!arr.length)return 0;let pos=clamp((t-dataset.t0)/dataset.dt,0,arr.length-1),i=pos|0,f=pos-i;return (arr[i]||0)*(1-f)+(arr[Math.min(arr.length-1,i+1)]||0)*f}
-// MUTE or LEVEL=0 only affects the visual synthesiser bus, never the monitor.
-function value(id,t){const cfg=configs[id];return cfg?.mute?0:clamp(monitorValue(id,t)*(cfg?.level??1))}
-function updateLive(){const t=audio.currentTime||0;for(const s of srcList){const monitored=monitorValue(s.id,t);vals[s.id]=value(s.id,t);$('num-'+s.id).textContent=monitored.toFixed(2);$('bar-'+s.id).style.height=(100*monitored).toFixed(1)+'%'}}
-function clearData(){dataset=null;waveform=null;Object.keys(conditioned).forEach(x=>delete conditioned[x]);Object.keys(vals).forEach(x=>vals[x]=0);$('bpm').textContent='TEMPO —';$('fpsLabel').textContent='Preview · idle';$('mixerStatus').textContent='LOAD A TRACK TO BEGIN';updateLive();drawInput();drawOutput(0)}
+// OFF or MUTE silence the synth send, but only OFF also stops the live meter.
+function value(id,t){const cfg=configs[id];return !cfg?.on||cfg.mute?0:clamp(monitorValue(id,t)*(cfg.level??1))}
+function updateLive(){const t=audio.currentTime||0;for(const s of srcList){const monitored=configs[s.id]?.on?monitorValue(s.id,t):0;vals[s.id]=value(s.id,t);$('num-'+s.id).textContent=monitored.toFixed(2);$('bar-'+s.id).style.height=(100*monitored).toFixed(1)+'%'}}
+function clearData(){dataset=null;waveform=null;Object.keys(conditioned).forEach(x=>delete conditioned[x]);Object.keys(vals).forEach(x=>vals[x]=0);$('bpm').textContent='TEMPO —';$('fpsLabel').textContent='Preview · idle';updateLive();drawInput();drawOutput(0)}
 function stopWorker(){if(worker){worker.terminate();worker=null}}
 function getTiming(){
  const bpm=dataset?.bpm;
@@ -507,8 +514,19 @@ function drawInput(){
  ctx.strokeStyle='#ffdc99';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px,h*.085);ctx.lineTo(px,h*.91);ctx.stroke();
  ctx.fillStyle='#ffdc99';ctx.beginPath();ctx.moveTo(px-5,h*.085);ctx.lineTo(px+5,h*.085);ctx.lineTo(px,h*.085+7);ctx.fill();
  ctx.strokeStyle='#46556b';ctx.lineWidth=1;ctx.strokeRect(left+.5,h*.095,plotw,h*.815);
- // The song-position rail is the bottom edge of this same timeline, not a second timeline.
- const railY=h-13;ctx.strokeStyle='#4b596d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(left,railY);ctx.lineTo(right,railY);ctx.stroke();ctx.fillStyle='#e5b15d';ctx.beginPath();ctx.arc(clamp(px,left,right),railY,5,0,Math.PI*2);ctx.fill();
+ // Full-song overview integrated into the bottom of the same timeline.
+ // The filled window indicates what portion the upper detailed graph is showing.
+ const railTop=h-22,railY=h-12,trackDuration=Math.max(dur,windowSec);
+ ctx.fillStyle='#172334';ctx.fillRect(left,railTop,plotw,18);
+ ctx.strokeStyle='#4b596d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(left,railY);ctx.lineTo(right,railY);ctx.stroke();
+ if(dur>0){
+  const windowL=left+clamp(start/trackDuration)*plotw,windowR=left+clamp(end/trackDuration)*plotw;
+  ctx.fillStyle='rgba(166,184,211,.22)';ctx.fillRect(windowL,railY-5,Math.max(3,windowR-windowL),10);
+  ctx.strokeStyle='#8797ae';ctx.lineWidth=1;ctx.strokeRect(windowL+.5,railY-5.5,Math.max(3,windowR-windowL),10);
+ }
+ const songX=left+clamp(sec/trackDuration)*plotw;
+ ctx.strokeStyle='#e5b15d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(songX,railY-9);ctx.lineTo(songX,railY+9);ctx.stroke();
+ ctx.fillStyle='#e5b15d';ctx.beginPath();ctx.arc(songX,railY,4,0,Math.PI*2);ctx.fill();
 }
 function drawOutput(ms){const [w,h]=fit(output),ctx=output.getContext('2d');diagWidth=w;diagHeight=h;ctx.fillStyle='#0a101b';ctx.fillRect(0,0,w,h);
  const t=audio.currentTime||0,energy=vals.intensity||0,bass=vals.bassContour||0,onset=(vals.onsets||0)*.6+(vals.beat||0)*.4,bright=vals.brightness||0,mid=vals.upperMovement||0;
@@ -595,7 +613,7 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
    if(o.type==='error'){badge('ERROR');msg('Analysis failed: '+o.message,'error');stopWorker()}
    if(o.type==='done'){
     dataset={dt:o.dt,t0:o.t0,signals:o.signals,events:o.events,lowEvents:o.lowEvents,beats:o.beats,bpm:o.bpm,beatConfidence:o.beatConfidence};
-    rebuildAllChannels();refreshTempoDisplay();badge('READY');$('mixerStatus').textContent='13 SOURCES · READY';msg('Essentia + Meyda signals ready. Play and shape the input channels.','ok');stopWorker();drawInput()
+    rebuildAllChannels();refreshTempoDisplay();badge('READY');msg('Essentia + Meyda signals ready. Play and shape the input channels.','ok');stopWorker();drawInput()
    }
   };
   worker.onerror=err=>{if(token!==fileToken)return;badge('ERROR');msg('Analysis worker error: '+(err.message||'unknown error'),'error');stopWorker()};
@@ -659,14 +677,36 @@ $('stop').onclick=()=>{audio.pause();audio.currentTime=0};
 
 $('window').onchange=()=>{windowSec=Number($('window').value);drawInput()};
 
-function scrubInput(e){if(!Number.isFinite(audio.duration)||!audio.duration)return;
+let scrubbingWholeTrack=false;
+function scrubInput(e){
+ const dur=audio.duration;if(!Number.isFinite(dur)||dur<=0)return;
  const rect=input.getBoundingClientRect(),x=e.clientX-rect.left,left=56,right=rect.width-12;
- const time=dragWindowStart+clamp((x-left)/Math.max(1,right-left))*windowSec;
- audio.currentTime=Math.min(audio.duration,Math.max(0,time));drawInput();}
+ const fraction=(x-left)/Math.max(1,right-left);
+ if(scrubbingWholeTrack){
+  // The slim bottom strip represents the entire song, independent of window size.
+  audio.currentTime=clamp(fraction)*dur;
+  scrubbingInput=false; // Let the detailed timeline follow the new song position.
+ }else{
+  // The plot is the zoomed window; dragging beyond the edge continues seeking.
+  if(fraction<0 || fraction>1){
+   const over=fraction<0?fraction:fraction-1;
+   dragWindowStart=clamp(dragWindowStart+over*windowSec*.18,0,Math.max(0,dur-windowSec));
+  }
+  audio.currentTime=clamp(dragWindowStart+clamp(fraction)*windowSec,0,dur);
+ }
+ drawInput();
+}
 input.style.touchAction='none';
-input.addEventListener('pointerdown',e=>{dragWindowStart=lastDisplay.start;scrubbingInput=true;input.setPointerCapture(e.pointerId);scrubInput(e)});
-input.addEventListener('pointermove',e=>{if(scrubbingInput)scrubInput(e)});
-for(const type of ['pointerup','pointercancel','lostpointercapture'])input.addEventListener(type,()=>{scrubbingInput=false});
+input.addEventListener('pointerdown',e=>{
+ if(e.button!==0)return;
+ const rect=input.getBoundingClientRect();
+ scrubbingWholeTrack=(e.clientY-rect.top)>=rect.height-31;
+ dragWindowStart=lastDisplay.start;
+ scrubbingInput=!scrubbingWholeTrack;
+ input.setPointerCapture(e.pointerId);scrubInput(e);
+});
+input.addEventListener('pointermove',e=>{if(input.hasPointerCapture(e.pointerId))scrubInput(e)});
+for(const type of ['pointerup','pointercancel','lostpointercapture'])input.addEventListener(type,()=>{scrubbingInput=false;scrubbingWholeTrack=false});
 audio.onplay=()=>{playing=true;$('play').textContent='Ⅱ'};audio.onpause=()=>{playing=false;$('play').textContent='▶'};audio.onended=()=>{playing=false;$('play').textContent='▶'};
 window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement||e.target instanceof HTMLButtonElement)return;if(e.code==='Space'){e.preventDefault();playpause()}if(e.code==='ArrowLeft'&&audio.duration){audio.currentTime=clamp(audio.currentTime-5,0,audio.duration)}if(e.code==='ArrowRight'&&audio.duration){audio.currentTime=clamp(audio.currentTime+5,0,audio.duration)}});
 window.addEventListener('resize',()=>{setMonitorHeight(outputHeight,false);drawInput();drawOutput(0)});
