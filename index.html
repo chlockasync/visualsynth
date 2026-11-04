@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.002</title>
+<title>Visual Synth | Input Lab v0.1.003</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -27,13 +27,96 @@
 .panel{background:linear-gradient(150deg,#1b2030,#171b26);border:1px solid var(--edge);border-radius:13px;overflow:hidden;min-width:0}.paneltop{padding:12px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #31394a;min-height:49px}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:730}.paneltitle{font-size:14px;font-weight:650}.topright{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}.canvas-wrap{position:relative;background:#0b101b;aspect-ratio:16/9}.canvas-wrap canvas{width:100%;height:100%;display:block}.overlay{position:absolute;left:13px;bottom:11px;font-size:11px;letter-spacing:.015em;padding:5px 9px;background:#0a1122b8;border:1px solid #33415a;border-radius:6px;color:#bdc7d7;pointer-events:none}.panelbottom{border-top:1px solid #31394a;display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;min-height:58px}.status{font-size:12px;color:var(--muted);max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.status strong{color:var(--green)}.badge{border-radius:6px;border:1px solid #495a6e;background:#243447;color:#d5e1f1;padding:4px 7px;font-size:10px;letter-spacing:.07em;font-weight:650;white-space:nowrap}.control-rail{margin-top:18px;display:flex;gap:8px;border-bottom:1px solid #394151;padding-bottom:10px}.tab{border:1px solid transparent;background:none;color:var(--muted);font-weight:700;padding:9px 15px;border-radius:8px}.tab.active{color:#131f30;background:var(--gold)}.tab:disabled{opacity:.45}.control-grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.35fr);gap:15px;margin-top:15px}.controlbox{border:1px solid var(--edge);background:var(--panel);border-radius:13px;padding:17px}.subheading{margin:0 0 7px;font-size:15px}.explain{color:var(--muted);font-size:12px;margin:0 0 18px;line-height:1.5}.row{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:12px 0}.row label{color:#d7deea}.row small{color:var(--muted)}.row select,.row input[type=range]{width:130px}.row select{background:#242b3d;color:white;border:1px solid #43516a;padding:8px;border-radius:6px}.row input[type=range]{accent-color:var(--gold)}.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.chip{border:1px solid #455066;background:#252b3b;color:#d9e1ed;padding:7px 10px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:6px}.chip[aria-pressed=true]{border-color:#a9b5cb;background:#343d51}.chip .dot{height:8px;width:8px;border-radius:50%;background:var(--c)}.signal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:11px}.signal{background:#202637;border:1px solid #354054;border-radius:9px;padding:10px 10px 11px;min-width:0}.signal-header{display:flex;align-items:center;justify-content:space-between;gap:5px;font-size:11px;color:#cbd5e6}.signal-header span:nth-child(2){color:#f0f3fa;font-weight:700;font-variant-numeric:tabular-nums}.meter{margin-top:9px;height:5px;background:#0e1420;border-radius:10px;overflow:hidden}.meter div{height:100%;width:0;background:var(--c);border-radius:10px;transition:width .07s linear}.future{margin-top:14px;border:1px dashed #475369;color:#aab6c8;background:#1b2231;border-radius:9px;padding:11px 12px;font-size:12px;line-height:1.5}.future b{color:#e3e9f3}.footer{display:flex;justify-content:space-between;gap:14px;align-items:center;margin-top:16px;color:#8d9cb3;font-size:11px}.footer a{color:#c8d5e4}.busy{color:var(--gold)}.error{color:#f4a6ac}.ok{color:var(--green)}.kbd{font:11px ui-monospace,monospace;border:1px solid #495063;border-radius:4px;padding:2px 5px}
 @media(max-width:950px){.monitor-grid{grid-template-columns:minmax(0,1fr);row-gap:15px}.splitter{display:none}.control-grid{grid-template-columns:1fr}.shell{padding:14px}.header{align-items:start}.top-note{max-width:42%}.canvas-wrap{aspect-ratio:2.05}.signal-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:600px){.toolbar{gap:8px}.track-name{flex:1 1 100%;max-width:none;order:5}.transport-meta{min-width:0}.timeprogress{flex:1}.btn{min-width:0}.divider{display:none}.signal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.canvas-wrap{aspect-ratio:1.7}.header .top-note{display:none}.panelbottom{flex-wrap:wrap}}
+
+/* Visual Synth 0.1.003 — restrained JP-8000 instrument-panel language. */
+:root {
+  color-scheme:dark;
+  --bg:#4c5a71; --panel:#4c5a71; --panel2:#505f78;
+  --edge:#263349; --text:#edf0f4; --muted:#d0d8e3;
+  --blue:#86dae4; --gold:#e8b267; --green:#a4dec6;
+  --pink:#ef9bc4; --lav:#aea7fa; --red:#e98b96;
+  --line-bright:#8897ae; --well:#0a111d;
+}
+html{font:13px/1.35 'Arial Narrow','Segoe UI',Arial,sans-serif;background:var(--bg)}
+body{
+  color:var(--text);background:var(--bg);
+  background-image:linear-gradient(90deg,rgba(255,255,255,.024),transparent 24%,rgba(6,16,38,.02) 67%,transparent);
+}
+button, input, select{font:inherit}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #9cdae7;outline-offset:2px}
+.shell{width:100%;max-width:none;margin:0;padding:0 0 12px;background:transparent}
+.header{height:52px;min-height:52px;margin:0;gap:16px;padding:7px 17px 6px;border-bottom:2px solid #26344a;box-shadow:0 1px 0 #8594a8;}
+.brand{gap:10px}.brand strong{font:700 23px/1.1 'Arial Narrow','Segoe UI',sans-serif;letter-spacing:.11em;color:#e5eaf0;text-shadow:0 1px 0 #172335}
+.brand small{font-size:9px;letter-spacing:.13em;color:#c6d0de;margin-top:2px}
+.mark{height:29px;width:29px;border-color:#d6b57b;border-radius:2px;transform:none;opacity:.82}
+.mark:after{inset:5px 4px;border-color:#8bd9e0}
+.top-note{font-size:10px;line-height:1.35;color:#c2ccdc}.version{margin-top:2px;opacity:.74}
+.toolbar{margin:0;padding:9px 14px 9px;min-height:58px;background:transparent;border:0;border-radius:0;border-bottom:2px solid #29364c;box-shadow:0 1px 0 #8590a3;gap:10px}
+.filelabel,.btn,.smallbtn,.chip,.tab,.speed-control select,.row select{border-radius:2px;box-shadow:inset 0 1px 0 #77869a,0 1px 2px #202b3d77;transition:background-color .12s ease}
+.filelabel{padding:7px 12px;color:#f5f7fc;background:linear-gradient(#39465d,#1f2939);border:1px solid #192536;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.035em;white-space:nowrap}
+.filelabel:hover{background:#344762;color:white}
+.btn{padding:7px 11px;min-width:67px;background:linear-gradient(#35435a,#1e2939);border:1px solid #17263a;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.035em}
+.btn:not(:disabled):hover{background:linear-gradient(#4c5b73,#293b53)}
+.btn.live{border-color:#24364b;background:linear-gradient(#38536a,#233646)}
+.btn.record{color:#e5bcc0;background:#3f3544;border-color:#4f3540}
+.divider{background:#27384c;height:23px;box-shadow:1px 0 #8090a5}
+.transport-meta{min-width:115px}.transport-meta strong{font-size:12px;color:#e9ebf1}.transport-meta small{color:#d6dce6}
+.timeprogress{accent-color:#eab867;height:7px}.speed-control{font-size:10px;color:#e1e5eb;text-transform:uppercase;letter-spacing:.035em}.speed-control select{padding:6px 9px;min-width:70px;background:#1b2433;color:white;border:1px solid #1b2738}
+.track-name{font-size:11px;color:#d1d8e2}
+.monitor-grid{margin:9px 6px 0;grid-template-columns:minmax(0,var(--input-width,calc(50% - 5px))) 10px minmax(0,1fr);align-items:stretch}
+.monitor-grid.focus-input{grid-template-columns:minmax(0,1fr)}
+.panel,.controlbox{position:relative;overflow:visible;min-width:0;background:transparent;border:2px solid #263449;border-radius:1px;box-shadow:inset 0 1px 0 rgba(189,201,218,.46),0 1px 0 rgba(26,37,56,.2)}
+/* The heading interrupts its section's upper seam, like a printed panel legend. */
+.eyebrow,.subheading{display:inline-block;position:absolute;z-index:3;top:-9px;left:50%;transform:translateX(-50%);width:max-content;max-width:95%;margin:0;padding:1px 13px 2px;background:#4c5a71;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,6px 100%);color:var(--gold);font-size:11px;font-weight:750;line-height:14px;text-align:center;letter-spacing:.07em;text-transform:uppercase;text-shadow:0 1px 0 #283548}
+.paneltop{min-height:44px;padding:14px 12px 6px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:0}
+.paneltitle{font-size:11px;line-height:1.2;color:#d8dfe9;font-weight:500;letter-spacing:.005em}
+.topright{font-size:10px;color:#d6dce6;white-space:nowrap}
+.paneltools{gap:7px}.smallbtn{font-size:10px;color:#eef2fa;background:linear-gradient(#394960,#263448);border:1px solid #24344a;padding:4px 7px;font-weight:700;text-transform:uppercase}
+.smallbtn:hover{background:#465c78}
+.splitter{border-radius:0;min-height:180px;position:relative;background:#3e4d63;border-top:2px solid #263449;border-bottom:2px solid #263449;box-shadow:inset 1px 0 #8495ae,inset -1px 0 #19263b}
+.splitter:before{height:62px;width:3px;background:#b1a47b;border-radius:1px;box-shadow:1px 0 #1a2636;}
+.splitter:hover:before,.splitter:focus-visible:before,.resizing .splitter:before{background:#efd09b}
+.canvas-wrap{overflow:hidden;background:var(--well);border:2px solid #253246;margin:0 8px 6px;aspect-ratio:16/9;box-shadow:inset 0 2px 8px #0009,0 1px 0 #8591a6}
+.canvas-wrap canvas{display:block;width:100%;height:100%}
+.overlay{left:9px;bottom:9px;font-size:10px;border-radius:1px;background:#101824c7;border:1px solid #39495a;color:#c5d0df;padding:3px 6px}
+.panelbottom{border-top:1px solid #2a384d;min-height:34px;padding:5px 11px;gap:8px;box-shadow:inset 0 1px #74839a}
+.status{font-size:10px;color:#d2d9e4}.status strong{color:#a6ddbf}
+.badge{border-radius:1px;font-size:9px;padding:2px 5px;letter-spacing:.06em;color:#e5eaf3;border-color:#2b3b50;background:#334359}
+.control-rail{margin:8px 6px 0;padding:0;border-bottom:2px solid #2c384b;gap:0}
+.tab{color:#d4dbe6;padding:7px 12px 6px;border:1px solid #253247;border-bottom:0;background:#3e4b61;border-radius:1px;font-size:10px;font-weight:700;letter-spacing:.045em;text-transform:uppercase;box-shadow:inset 0 1px #718299}
+.tab+.tab{border-left:0}.tab.active{color:#edbd74;background:#4c5a71;border-top:2px solid #263449;padding-top:6px}.tab:disabled{opacity:.48}
+.control-grid{margin:9px 6px 0;gap:4px;grid-template-columns:minmax(290px,1fr) minmax(400px,1.22fr)}
+.controlbox{padding:17px 11px 11px}
+.explain{color:#ccd5e0;font-size:10px;margin:0 0 10px;line-height:1.35}
+.row{margin:7px 0;gap:10px;padding:0 1px;font-size:11px}.row label{color:#f0f2f5}.row strong{color:#ebedf2;font-size:11px;font-weight:700}.row small{font-size:10px;color:#d6dce8}
+.row select{padding:5px 7px;min-width:116px;background:linear-gradient(#303d54,#1d2939);color:#f5f5f5;border:1px solid #1b293d}
+.row input[type=range]{width:113px;accent-color:#9be8e9;vertical-align:middle}
+input[type=range]:not(.timeprogress){appearance:none;-webkit-appearance:none;height:8px;border:1px solid #18263a;border-radius:1px;background:linear-gradient(#17243a,#293750);box-shadow:inset 0 1px 2px #080f1a8a}
+input[type=range]:not(.timeprogress)::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:20px;border:1px solid #0c1724;border-radius:1px;background:linear-gradient(#c1cad1 0 25%,#63788b 26% 72%,#e1e4e8 73% 100%);box-shadow:0 2px 3px #111b2bab;cursor:pointer}
+input[type=range]:not(.timeprogress)::-moz-range-thumb{width:12px;height:18px;border:1px solid #0c1724;border-radius:1px;background:linear-gradient(#c1cad1,#72869a,#dedee1);cursor:pointer}
+input[type=checkbox]{accent-color:#dfb878;width:13px;height:13px}
+.legend{margin-top:8px;gap:4px 5px}
+.chip{background:#344358;border:1px solid #263449;color:#e2e8f0;padding:4px 8px;border-radius:2px;gap:5px;font-size:10px;letter-spacing:.015em;box-shadow:inset 0 1px #73839a}
+.chip[aria-pressed=true]{background:#45566f;border-color:#1c2c3e;color:#fff;box-shadow:inset 0 1px #9aabba,0 0 0 1px #8fa1b61a}
+.chip .dot{height:6px;width:6px;border-radius:50%;box-shadow:0 0 2px var(--c)}
+.signal-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin:6px 0 0;border-top:1px solid #2f3e52;border-bottom:1px solid #2f3e52}
+.signal{position:relative;background:transparent;border:0;border-right:1px solid #303f53;border-bottom:1px solid #303f53;border-radius:0;padding:10px 8px 12px;box-shadow:inset -1px 0 #7280994d;min-width:0}
+.signal:nth-child(5n){border-right:0}.signal:nth-last-child(-n+5){border-bottom:0}
+.signal-header{font-size:10px;gap:5px;color:#eef0f4}.signal-header span:first-child{white-space:normal}.signal-header span:nth-child(2){color:#dfeaf0;font-weight:500;font-size:10px}
+.meter{height:8px;background:#101b29;margin-top:10px;border-radius:0;border:1px solid #1d293b;box-shadow:inset 0 1px 2px #000a;overflow:hidden}
+.meter div{border-radius:0;background:linear-gradient(#b1edf0,#46b8c4)!important;box-shadow:0 0 4px #7ad8db70}
+.future{border:0;border-top:1px solid #2d394c;border-radius:0;margin:9px 0 0;padding:8px 0 0;background:transparent;font-size:10px;color:#c9d2dd;line-height:1.4}.future b{color:#f1d29d}
+.footer{margin:8px 9px 0;color:#c5d0de;font-size:10px}.footer a{color:#e1edf7}
+.kbd{color:#e1edf7;background:#303e54;border-color:#25344a;border-radius:1px}
+@media(max-width:950px){.shell{padding:0 0 10px}.monitor-grid{grid-template-columns:minmax(0,1fr);row-gap:12px;margin:14px 9px 0}.splitter{display:none}.control-grid{grid-template-columns:1fr;gap:13px}.header{padding:7px 11px}.canvas-wrap{aspect-ratio:2.05}.signal-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.controlbox{padding:20px 11px 12px}}
+@media(max-width:600px){.toolbar{gap:7px;padding:8px}.header{height:auto;min-height:44px;padding:7px 9px}.brand strong{font-size:18px}.monitor-grid{margin:14px 6px 0}.paneltop{padding:14px 8px 6px}.paneltitle{font-size:10px}.control-rail{margin:11px 6px 0;overflow-x:auto}.tab{padding:7px 8px;font-size:9px;white-space:nowrap}.control-grid{margin:13px 6px 0}.signal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.signal:nth-child(5n){border-right:1px solid #303f53}.signal:nth-child(2n){border-right:0}.signal:nth-last-child(-n+5){border-bottom:1px solid #303f53}.signal:nth-last-child(-n+2){border-bottom:0}.canvas-wrap{aspect-ratio:1.7}.track-name{order:5}.header .top-note{display:none}.brand small{font-size:8px}.panelbottom{flex-wrap:wrap}.eyebrow,.subheading{font-size:10px}}
+
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><span class="mark" aria-hidden="true"></span><div><strong>VISUAL SYNTH</strong><small>Input laboratory · Stage 01</small></div></div>
-    <div class="top-note">Local music in. Time-aligned control signals out.<span class="version">Prototype v0.1.002 · No uploads to a server</span></div>
+    <div class="brand"><span class="mark" aria-hidden="true"></span><div><strong>VISUAL SYNTH</strong><small>INPUT LABORATORY · STAGE 01</small></div></div>
+    <div class="top-note">Local music in. Time-aligned control signals out.<span class="version">Prototype v0.1.003 · Local processing</span></div>
   </header>
   <div class="toolbar" role="group" aria-label="Audio transport">
     <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -49,13 +132,13 @@
   </div>
   <div class="monitor-grid" id="monitorGrid">
     <section class="panel" id="inputPanel" aria-label="Input monitor">
-      <div class="paneltop"><div><div class="eyebrow">01 / INPUT MONITOR</div><div class="paneltitle">Waveform + individually scaled analysis signals</div></div><div class="paneltools"><div class="topright" id="rangeLabel">8-second window</div><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
+      <div class="paneltop"><div><div class="eyebrow">INPUT MONITOR</div><div class="paneltitle">Waveform + individually scaled analysis signals</div></div><div class="paneltools"><div class="topright" id="rangeLabel">8-second window</div><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
       <div class="canvas-wrap" id="inputCanvasWrap"><canvas id="inputCanvas" aria-label="Scrollable music waveform and signal timeline"></canvas><div class="overlay">Click to seek · Gold = playhead</div></div>
       <div class="panelbottom"><span class="status" id="inputStatus" aria-live="polite">Load an MP3 to start local analysis.</span><span id="analysisPill" class="badge">READY</span></div>
     </section>
     <div id="monitorSplitter" class="splitter" role="separator" tabindex="0" aria-label="Resize input and output monitor widths" aria-orientation="vertical" aria-valuemin="30" aria-valuemax="80" aria-valuenow="50" title="Drag left or right to resize the monitors. Use arrow keys for fine adjustment."></div>
     <section class="panel" id="outputPanel" aria-label="Output monitor">
-      <div class="paneltop"><div><div class="eyebrow">02 / OUTPUT MONITOR</div><div class="paneltitle">Signal-response test pattern</div></div><div class="topright" id="fpsLabel">Preview · idle</div></div>
+      <div class="paneltop"><div><div class="eyebrow">OUTPUT MONITOR</div><div class="paneltitle">Signal-response test pattern</div></div><div class="topright" id="fpsLabel">Preview · idle</div></div>
       <div class="canvas-wrap"><canvas id="outputCanvas" aria-label="Diagnostic visual patterns reacting to musical input"></canvas><div class="overlay">Diagnostic only · Not the final visual synthesiser</div></div>
       <div class="panelbottom"><span class="status">Simple test renderer to verify signal timing, not a visual preset.</span><span class="badge">TEST MODE</span></div>
     </section>
@@ -68,8 +151,8 @@
   </nav>
   <div class="control-grid">
     <section class="controlbox">
-      <h2 class="subheading">Analysis controls</h2>
-      <p class="explain">The whole track is analysed on import, independently of playback. These signals drive the diagnostic output and will feed the visual synthesiser later.</p>
+      <h2 class="subheading">ANALYSIS CONTROLS</h2>
+      <p class="explain">The track is analysed on import. The signals are independent of audio playback.</p>
       <div class="row"><label for="window">Timeline window</label><select id="window"><option value="2">2 seconds</option><option value="4">4 seconds</option><option value="8" selected>8 seconds</option><option value="16">16 seconds</option><option value="20">20 seconds</option><option value="32">32 seconds</option><option value="60">60 seconds</option></select></div>
       <div class="row"><label for="beatGrid">Show estimated tempo grid</label><input id="beatGrid" type="checkbox" title="Estimated metronome positions, not observed drum hits"></div>
       <div class="row"><label for="smoothing">Monitor smoothing</label><div><input type="range" id="smoothing" min="0" max="90" step="5" value="0"><small id="smoothingLabel">0%</small></div></div>
@@ -82,10 +165,10 @@
       <div class="legend" id="toggles"></div>
     </section>
     <section class="controlbox">
-      <h2 class="subheading">Live source signals</h2>
-      <p class="explain">Values follow the current song position. Each channel is independent. Signals are scaled against this recording; prominent peaks matter more than absolute measurements.</p>
+      <h2 class="subheading">LIVE SOURCE SIGNALS</h2>
+      <p class="explain">Signal values follow playback. Levels are relative to the current recording.</p>
       <div class="signal-grid" id="signals"></div>
-      <div class="future"><b>Not yet implemented:</b> actual melody tracking, bass-note tracking, harmony and longer-term song structure. Bass energy below is deliberately not labelled “bassline”. Hit detection is approximate, not instrument separation. The optional tempo grid is an estimate, not detected drum hits.</div>
+      <div class="future"><b>Not yet implemented:</b> melody, bass-note tracking, harmony and song structure. Hit detection and tempo grid are estimates, not instrument separation.</div>
     </section>
   </div>
   <div class="footer"><span>All audio decoding and analysis happens on this device. No external libraries or accounts.</span><span><span class="kbd">Space</span> Play / pause · <span class="kbd">←</span> / <span class="kbd">→</span> seek 5 s · <span class="kbd">← →</span> on divider to resize</span></div>
