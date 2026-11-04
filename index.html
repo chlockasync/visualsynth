@@ -33,12 +33,12 @@
  color-scheme:dark;--bg:#384254;--panel:#384254;--panel2:#384254;
  --edge:#151916;--text:#edf0f5;--muted:#c5cbd7;--blue:#82d6e2;
  --gold:#e5b15d;--green:#a3ddc1;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96;
- --seam:5px;--radius:14px;
+ --seam:6px;--radius:14px;
 }
 *,*::before,*::after{box-shadow:none!important;text-shadow:none!important;}
 html,body{background:#384254;color:var(--text);}
 body{background-image:none!important;}
-.shell{width:100%;max-width:none;padding:12px 17px 18px;margin:0 auto;}
+.shell{width:100%;max-width:none;padding:12px 34px 18px;margin:0 auto;}
 .header{padding:0 6px 5px;margin-bottom:8px;min-height:57px;align-items:center;}
 .brand{display:flex;gap:18px;align-items:center;min-width:0;}
 .brand strong{display:block;color:#cfd4dc;font-family:'Trebuchet MS','Arial Narrow',Arial,sans-serif;font-size:36px;font-weight:700;letter-spacing:.07em;line-height:1;white-space:nowrap;}
@@ -111,14 +111,14 @@ body{background-image:none!important;}
  .control-grid{grid-template-columns:1fr;}
  .header{gap:8px;}.brand strong{font-size:27px;}.brand-rule{height:26px;}
  .brand-tagline{font-size:10px;letter-spacing:.18em;}.top-note{display:none;}
- .shell{padding:10px 13px 18px;}
+ .shell{padding:10px 22px 18px;}
 }
 @media(max-width:600px){
  .header{min-height:44px;}.brand{gap:9px;}
  .brand strong{font-size:20px;letter-spacing:.04em;}.brand-rule{height:23px;}
  .brand-tagline{font-size:9px;letter-spacing:.07em;}
  .paneltop{padding:25px 8px 8px;}.canvas-wrap{margin:0 6px;}
- .shell{padding:8px 10px 16px;}
+ .shell{padding:8px 14px 16px;}
 }
 
 /* v0.1.012: playback belongs to the input timeline; file/record belong to the title bar. */
@@ -143,6 +143,22 @@ body{background-image:none!important;}
 .timeline-scrub .timeprogress:disabled{cursor:default;}
 @media(max-width:950px){.header-actions .track-name{max-width:170px}.header{align-items:center;}.input-transport{grid-template-columns:minmax(112px,23%) minmax(0,1fr);}}
 @media(max-width:600px){.header{gap:10px;}.header-actions{width:100%;justify-content:flex-end;gap:7px;}.header-actions .track-name{max-width:none;flex:1;text-align:left;}.header-actions .filelabel,.header-actions .btn.record{font-size:11px;padding:7px;}.input-transport{grid-template-columns:minmax(100px,35%) minmax(0,1fr);gap:8px;}.playback-buttons .btn{font-size:11px;}.scrub-times{font-size:9px;}}
+
+/* v0.1.013: rhythm timeline, compact monitor controls, wider instrument margins */
+.monitor-grid .paneltools{flex-wrap:wrap;justify-content:flex-end;gap:8px 12px;}
+.monitor-window{display:inline-flex;align-items:center;gap:7px;color:#c5cbd7;font-size:11px;white-space:nowrap;}
+.monitor-window select{color:#f1f4f7;background:#2b3547;border:1px solid var(--edge);border-radius:6px;padding:5px 7px;min-width:60px;}
+.monitor-bpm{color:var(--gold);font-size:11px;font-weight:700;white-space:nowrap;}
+.analysis-group{padding:8px 0 13px;border-bottom:1px solid #263143;}
+.analysis-group:last-of-type{border:0;}
+.analysis-group-title{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--gold);}
+.small-note{font-weight:400;color:#cbd2dd;letter-spacing:normal;margin-left:7px;}
+.analysis-group .row{margin:9px 0;}
+.analysis-group .row input[type=number]{width:130px;border:1px solid var(--edge);border-radius:6px;background:#2b3547;color:var(--text);padding:7px;}
+.analysis-group .row input:disabled{opacity:.45;}
+.analysis-group .row select{width:155px;}
+.analysis-hint{font-size:11px;color:#c7d0dd;line-height:1.45;margin:10px 0 5px;}
+@media(max-width:950px){.monitor-grid .paneltools{gap:5px}.monitor-grid .paneltop{flex-wrap:wrap;}}
 </style>
 </head>
 <body>
@@ -157,7 +173,7 @@ body{background-image:none!important;}
   </header>
   <div class="monitor-grid" id="monitorGrid">
     <section class="panel" id="inputPanel" aria-label="Input monitor">
-      <div class="paneltop"><div><div class="eyebrow">01 / INPUT MONITOR</div><div class="paneltitle">Waveform + individually scaled analysis signals</div></div><div class="paneltools"><div class="topright" id="rangeLabel">8-second window</div><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
+      <div class="paneltop"><div><div class="eyebrow">01 / INPUT MONITOR</div><div class="paneltitle">Waveform + individually scaled analysis signals</div></div><div class="paneltools"><label class="monitor-window" for="window">WINDOW <select id="window" aria-label="Visible timeline duration"><option value="2">2 s</option><option value="4">4 s</option><option value="8" selected>8 s</option><option value="16">16 s</option><option value="20">20 s</option><option value="32">32 s</option><option value="60">60 s</option></select></label><div class="monitor-bpm" id="bpm" title="Automatic tempo is provisional until established library tracking is integrated">TEMPO —</div><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
       <div class="canvas-wrap" id="inputCanvasWrap"><canvas id="inputCanvas" aria-label="Scrollable music waveform and signal timeline"></canvas><div class="overlay">Click to seek · Gold = playhead</div></div>
       <div class="input-transport" role="group" aria-label="Music playback and scrubbing">
         <div class="input-playback">
@@ -184,23 +200,35 @@ body{background-image:none!important;}
   <div class="control-grid">
     <section class="controlbox">
       <h2 class="subheading">Analysis controls</h2>
-      <p class="explain">The whole track is analysed on import, independently of playback. These signals drive the diagnostic output and will feed the visual synthesiser later.</p>
-      <div class="row"><label for="window">Timeline window</label><select id="window"><option value="2">2 seconds</option><option value="4">4 seconds</option><option value="8" selected>8 seconds</option><option value="16">16 seconds</option><option value="20">20 seconds</option><option value="32">32 seconds</option><option value="60">60 seconds</option></select></div>
-      <div class="row"><label for="beatGrid">Show estimated tempo grid</label><input id="beatGrid" type="checkbox" title="Estimated metronome positions, not observed drum hits"></div>
-      <div class="row"><label for="smoothing">Monitor smoothing</label><div><input type="range" id="smoothing" min="0" max="90" step="5" value="0"><small id="smoothingLabel">0%</small></div></div>
-      <div class="row"><label>Estimated tempo</label><strong id="bpm">Not analysed</strong></div>
-      <div class="row"><label>Percussive hit candidates</label><strong id="events">Not analysed</strong></div>
-      <div class="row"><label>Low-frequency hits</label><strong id="lowEvents">Not analysed</strong></div>
-      <div class="row"><label>Analysis resolution</label><strong id="resolution">~21 ms</strong></div>
-      <div class="row"><label>Processing</label><small id="process">Waiting for audio</small></div>
-      <p class="explain" style="margin:20px 0 8px">Show separate signal lanes in the input timeline:</p>
-      <div class="legend" id="toggles"></div>
+      <div class="analysis-group">
+        <div class="analysis-group-title">RHYTHM &amp; TIMING <span class="small-note">Current detector · provisional</span></div>
+        <div class="row"><label for="tempoMode">Tempo source</label><select id="tempoMode"><option value="auto" selected>Automatic estimate</option><option value="manual">Manual / DAW BPM</option></select></div>
+        <div class="row"><label for="manualBpm">Manual tempo (BPM)</label><input id="manualBpm" type="number" min="30" max="300" step="0.1" value="120" disabled></div>
+        <div class="row"><label for="beatsPerBar">Beats per bar</label><select id="beatsPerBar"><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option></select></div>
+        <div class="row"><label for="barOffset">Bar 1 starts at (seconds)</label><input id="barOffset" type="number" min="0" step="0.01" value="0" title="Set the start of bar 1 for your DAW track. In automatic mode the first estimated beat is used." disabled></div>
+        <div class="row"><label for="beatGrid">Show beat lines</label><input id="beatGrid" type="checkbox" checked></div>
+        <div class="row"><label for="barGrid">Show bars and bar numbers</label><input id="barGrid" type="checkbox" checked></div>
+        <p class="analysis-hint" id="rhythmHint">Automatic beat positions are estimated. Bars are counted from the first estimated beat; downbeats are not yet detected.</p>
+      </div>
+      <div class="analysis-group">
+        <div class="analysis-group-title">ACOUSTIC SIGNALS</div>
+        <p class="explain" style="margin:8px 0">Select the lanes shown in the input monitor. Existing signal algorithms are provisional.</p>
+        <div class="legend" id="toggles"></div>
+      </div>
+      <div class="analysis-group">
+        <div class="analysis-group-title">ANALYSIS STATUS</div>
+        <div class="row"><label>Percussive hit candidates</label><strong id="events">Not analysed</strong></div>
+        <div class="row"><label>Low-frequency hit candidates</label><strong id="lowEvents">Not analysed</strong></div>
+        <div class="row"><label>Analysis resolution</label><strong id="resolution">~21 ms</strong></div>
+        <div class="row"><label>Processing</label><small id="process">Waiting for audio</small></div>
+      </div>
+      <p class="analysis-hint">Next analysis engine: established beat tracking, onset strength, beat strength, then acoustic dynamics, pitch and structure. No click track is added to playback.</p>
     </section>
     <section class="controlbox">
       <h2 class="subheading">Live source signals</h2>
       <p class="explain">Values follow the current song position. Each channel is independent. Signals are scaled against this recording; prominent peaks matter more than absolute measurements.</p>
       <div class="signal-grid" id="signals"></div>
-      <div class="future"><b>Not yet implemented:</b> actual melody tracking, bass-note tracking, harmony and longer-term song structure. Bass energy below is deliberately not labelled “bassline”. Hit detection is approximate, not instrument separation. The optional tempo grid is an estimate, not detected drum hits.</div>
+      <div class="future"><b>Analysis engine status:</b> Current signals and automatically estimated beats remain provisional. Established music-analysis libraries are planned but are not yet part of this release. Bass energy is not bassline transcription.</div>
     </section>
   </div>
   <div class="footer"><span>All audio decoding and analysis happens on this device. No external libraries or accounts.</span><span><span class="kbd">Space</span> Play / pause · <span class="kbd">←</span> / <span class="kbd">→</span> seek 5 s · <span class="kbd">← →</span> on divider to resize</span></div>
@@ -409,9 +437,24 @@ function createSources(){
 }
 function fit(canvas){const rect=canvas.getBoundingClientRect();const dpr=Math.min(devicePixelRatio||1,1.7);const width=Math.max(1,Math.floor(rect.width*dpr)),height=Math.max(1,Math.floor(rect.height*dpr));if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}return [width,height]}
 function value(id,t){if(!dataset)return 0;const arr=dataset.signals[id];if(!arr||!arr.length)return 0;let pos=clamp((t-dataset.t0)/dataset.dt,0,arr.length-1),i=pos|0,f=pos-i;return (arr[i]||0)*(1-f)+(arr[Math.min(arr.length-1,i+1)]||0)*f}
-function updateLive(){const t=audio.currentTime||0,smooth=Number($('smoothing').value)/100;for(let s of srcList){let v=value(s.id,t);const last=smoothVals[s.id]??v;v=smooth*last+(1-smooth)*v;smoothVals[s.id]=v;vals[s.id]=v;$('num-'+s.id).textContent=v.toFixed(2);$('bar-'+s.id).style.width=(100*v).toFixed(1)+'%'}}
-function clearData(){dataset=null;waveform=null;Object.keys(vals).forEach(x=>{vals[x]=0;delete smoothVals[x]});$('bpm').textContent='Not analysed';$('events').textContent='Not analysed';$('lowEvents').textContent='Not analysed';$('process').textContent='Waiting for audio';$('fpsLabel').textContent='Preview · idle';updateLive();drawInput();drawOutput(0)}
+function updateLive(){const t=audio.currentTime||0,smooth=0;for(let s of srcList){let v=value(s.id,t);const last=smoothVals[s.id]??v;v=smooth*last+(1-smooth)*v;smoothVals[s.id]=v;vals[s.id]=v;$('num-'+s.id).textContent=v.toFixed(2);$('bar-'+s.id).style.width=(100*v).toFixed(1)+'%'}}
+function clearData(){dataset=null;waveform=null;Object.keys(vals).forEach(x=>{vals[x]=0;delete smoothVals[x]});$('bpm').textContent='TEMPO —';$('events').textContent='Not analysed';$('lowEvents').textContent='Not analysed';$('process').textContent='Waiting for audio';$('fpsLabel').textContent='Preview · idle';updateLive();drawInput();drawOutput(0)}
 function stopWorker(){if(worker){worker.terminate();worker=null}}
+function getTiming(){
+ const manual=$('tempoMode').value==='manual';
+ const bpm=manual?Number($('manualBpm').value):dataset?.bpm;
+ if(!Number.isFinite(bpm)||bpm<=0)return null;
+ const interval=60/bpm;
+ const origin=manual?Math.max(0,Number($('barOffset').value)||0):Number(dataset?.beats?.[0]);
+ if(!Number.isFinite(origin))return null;
+ const beatsPerBar=Math.max(1,Number($('beatsPerBar').value)||4);
+ return {bpm,interval,origin,beatsPerBar,manual};
+}
+function refreshTempoDisplay(){
+ const timing=getTiming();
+ $('bpm').textContent=timing?'TEMPO '+timing.bpm.toFixed(timing.manual?1:0)+' BPM'+(timing.manual?'':' ~'):'TEMPO —';
+ $('rhythmHint').textContent=timing?.manual?'Manual timing: set the BPM and the time at which bar 1 begins. This does not re-analyse the audio.':'Automatic timing is a provisional estimate. Bar 1 starts at the first predicted beat, not a reliably detected downbeat.';
+}
 function drawInput(){
  const [w,h]=fit(input),ctx=input.getContext('2d');canvasWidth=w;canvasHeight=h;
  ctx.fillStyle='#0c1422';ctx.fillRect(0,0,w,h);
@@ -472,13 +515,28 @@ function drawInput(){
    const px=left+(sec-start)*pixelsPerSec;
    ctx.fillStyle=src.color;ctx.beginPath();ctx.arc(px,baseline-current*height,2.8,0,Math.PI*2);ctx.fill();
   });
-  // Estimated grid is OPT-IN. Default input display only shows observed events.
-  if($('beatGrid').checked){
-   ctx.save();ctx.strokeStyle='#d7b67d';ctx.globalAlpha=.32;ctx.setLineDash([3,5]);
-   for(const t of dataset.beats){if(t<start)continue;if(t>end)break;
-    const x=left+(t-start)*pixelsPerSec;ctx.beginPath();ctx.moveTo(x,waveTop);ctx.lineTo(x,h*.965);ctx.stroke();
-   }ctx.restore();
+  // Beat/bar grid is a time alignment aid, not a claim that all musical accents were detected.
+  const timing=getTiming();
+  if(timing && ($('beatGrid').checked || $('barGrid').checked)){
+   const {interval,origin,beatsPerBar}=timing;
+   const minBeat=Math.max(0,Math.ceil((start-origin)/interval));
+   const maxBeat=Math.floor((end-origin)/interval);
+   const maxLines=1200;
+   let prevLabelX=-1000;
+   for(let i=minBeat;i<=maxBeat && i<minBeat+maxLines;i++){
+    const isBar=i%beatsPerBar===0;
+    if((isBar && !$('barGrid').checked)||(!isBar&&!$('beatGrid').checked))continue;
+    const t=origin+i*interval,x=left+(t-start)*pixelsPerSec;
+    ctx.save();ctx.strokeStyle=isBar?'#e8bb74':'#8998b1';ctx.globalAlpha=isBar?.72:.27;
+    ctx.lineWidth=isBar?Math.max(1.5,w/960):1;
+    ctx.setLineDash(isBar?[]:[3,5]);ctx.beginPath();ctx.moveTo(x,waveTop);ctx.lineTo(x,h*.965);ctx.stroke();ctx.restore();
+    if(isBar && $('barGrid').checked && x>left+6 && x>prevLabelX+35 && x<right-20){
+      ctx.fillStyle='#f0bd76';ctx.font=`bold ${Math.max(10,Math.floor(h*.028))}px system-ui`;
+      ctx.fillText('BAR '+(Math.floor(i/beatsPerBar)+1),x+4,Math.max(27,waveTop-6));prevLabelX=x;
+    }
+   }
   }
+
  }else{
   ctx.fillStyle='#8491a8';ctx.font=`${Math.max(12,Math.floor(h*.045))}px system-ui`;
   ctx.fillText(waveform?'Computing independent signals…':'Load an MP3 to see the waveform and its musical signals.',left+15,h*.60);
@@ -543,7 +601,7 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
    if(o.type==='error'){badge('ERROR');msg('Analysis failed: '+o.message,'error');$('process').textContent='Error';stopWorker()}
    if(o.type==='done'){
     dataset={dt:o.dt,t0:o.t0,signals:o.signals,events:o.events,lowEvents:o.lowEvents,beats:o.beats,bpm:o.bpm,beatConfidence:o.beatConfidence};
-    $('bpm').textContent=o.bpm&&o.beats.length?Math.round(o.bpm)+' BPM (tentative)':'No reliable estimate';$('events').textContent=o.events.length.toLocaleString();$('lowEvents').textContent=o.lowEvents.length.toLocaleString();$('resolution').textContent=Math.round(o.dt*1000)+' ms';$('process').textContent='Complete';badge('READY');msg('Analysis ready. Compare percussive hits and low hits to what you hear.','ok');stopWorker();drawInput()
+    refreshTempoDisplay();$('events').textContent=o.events.length.toLocaleString();$('lowEvents').textContent=o.lowEvents.length.toLocaleString();$('resolution').textContent=Math.round(o.dt*1000)+' ms';$('process').textContent='Complete';badge('READY');msg('Analysis ready. Compare percussive hits and low hits to what you hear.','ok');stopWorker();drawInput()
    }
   };
   worker.onerror=err=>{if(token!==fileToken)return;badge('ERROR');msg('Analysis worker error: '+(err.message||'unknown error'),'error');$('process').textContent='Error';stopWorker()};
@@ -601,13 +659,18 @@ $('play').onclick=playpause;
 $('stop').onclick=()=>{audio.pause();audio.currentTime=0};
 $('seek').addEventListener('input',()=>{if(Number.isFinite(audio.duration))audio.currentTime=Number($('seek').value)/1000*audio.duration});
 $('beatGrid').onchange=drawInput;
-$('window').onchange=()=>{windowSec=Number($('window').value);$('rangeLabel').textContent=windowSec+'-second window';drawInput()};
-$('smoothing').oninput=()=>{$('smoothingLabel').textContent=$('smoothing').value+'%'};
+$('barGrid').onchange=drawInput;
+$('beatsPerBar').onchange=()=>{refreshTempoDisplay();drawInput()};
+$('tempoMode').onchange=()=>{const manual=$('tempoMode').value==='manual';$('manualBpm').disabled=!manual;$('barOffset').disabled=!manual;refreshTempoDisplay();drawInput()};
+$('manualBpm').oninput=()=>{refreshTempoDisplay();drawInput()};
+$('barOffset').oninput=()=>{refreshTempoDisplay();drawInput()};
+$('window').onchange=()=>{windowSec=Number($('window').value);drawInput()};
+
 input.addEventListener('pointerdown',e=>{if(!Number.isFinite(audio.duration)||!audio.duration)return;let rect=input.getBoundingClientRect(),x=e.clientX-rect.left,left=Math.max(72,Math.round(input.width*.10))/(input.width/(rect.width||1)),right=rect.width-12/(input.width/(rect.width||1));let t=lastDisplay.start+clamp((x-left)/(right-left))*windowSec;audio.currentTime=Math.min(audio.duration,Math.max(0,t))});
 audio.onplay=()=>{playing=true;$('play').textContent='Ⅱ Pause'};audio.onpause=()=>{playing=false;$('play').textContent='▶ Play'};audio.onended=()=>{playing=false;$('play').textContent='▶ Play'};
 window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement||e.target instanceof HTMLButtonElement)return;if(e.code==='Space'){e.preventDefault();playpause()}if(e.code==='ArrowLeft'&&audio.duration){audio.currentTime=clamp(audio.currentTime-5,0,audio.duration)}if(e.code==='ArrowRight'&&audio.duration){audio.currentTime=clamp(audio.currentTime+5,0,audio.duration)}});
 window.addEventListener('resize',()=>{drawInput();drawOutput(0)});
-createSources();updateLive();raf=requestAnimationFrame(loop);
+createSources();refreshTempoDisplay();updateLive();raf=requestAnimationFrame(loop);
 })();
 </script>
 </body>
