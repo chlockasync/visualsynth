@@ -14,9 +14,13 @@ async function init(libraries){
   // IMPORTANT: essentia-wasm.web.js is built for a DOM page and accesses `document`.
   // Workers have no document. The Essentia project explicitly demonstrates
   // essentia-wasm.umd.js (synchronous WASM) inside importScripts-based Workers.
+  // Essentia 0.1.3's UMD postlude writes `exports.EssentiaWASM = Module`.
+  // In a classic browser worker, `exports` is NOT provided automatically.
+  self.exports = {};
   try { importScripts(libraries.wasm); }
   catch(err) { throw Error('Cannot load Essentia worker WASM: '+(err?.message||err)); }
-  const wasm=(typeof EssentiaWASM!=='undefined')?EssentiaWASM:((typeof Module!=='undefined')?Module:null);
+  const wasm=self.exports.EssentiaWASM || ((typeof Module!=='undefined')?Module:null);
+  delete self.exports;
   if(!wasm)throw Error('Essentia worker WASM loaded but exposed neither EssentiaWASM nor Module.');
   try { importScripts(libraries.core); }
   catch(err) { throw Error('Cannot load Essentia core: '+(err?.message||err)); }
