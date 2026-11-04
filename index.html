@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.006</title>
+<title>Visual Synth | Input Lab v0.1.008</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -28,7 +28,7 @@
 @media(max-width:950px){.monitor-grid{grid-template-columns:minmax(0,1fr);row-gap:15px}.splitter{display:none}.control-grid{grid-template-columns:1fr}.shell{padding:14px}.header{align-items:start}.top-note{max-width:42%}.canvas-wrap{aspect-ratio:2.05}.signal-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:600px){.toolbar{gap:8px}.track-name{flex:1 1 100%;max-width:none;order:5}.transport-meta{min-width:0}.timeprogress{flex:1}.btn{min-width:0}.divider{display:none}.signal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.canvas-wrap{aspect-ratio:1.7}.header .top-note{display:none}.panelbottom{flex-wrap:wrap}}
 
-/* v0.1.006 — restored original v0.1.002 section layout; restrained JP colourway.
+/* v0.1.008 — align monitor framing to supplied markup; preserve working controls.
    A single section rule, used everywhere. No gradients, shadows or decorative divider lines. */
 :root {
   color-scheme:dark;
@@ -53,7 +53,7 @@ body{background-image:none!important;}
 .shell{width:100%;max-width:none;padding:12px 17px 18px;margin:0 auto;}
 .header{padding:0 6px 5px;margin-bottom:8px;min-height:57px;align-items:center;}
 .brand{display:flex;gap:18px;align-items:center;min-width:0;}
-.brand strong{display:block;color:#cfd4dc;font-family:'Trebuchet MS','Arial Narrow',Arial,sans-serif;font-size:36px;font-weight:700;letter-spacing:.085em;line-height:1;white-space:nowrap;}
+.brand strong{display:block;color:#cfd4dc;font-family:'Trebuchet MS','Arial Narrow',Arial,sans-serif;font-size:36px;font-weight:700;letter-spacing:.07em;line-height:1;white-space:nowrap;}
 .brand-rule{height:35px;width:1px;flex:none;background:#b6bdc9;}
 .brand-tagline{font-size:12px;letter-spacing:.33em;color:#d0d6df;white-space:nowrap;}
 .top-note{color:#c8d0db;font-size:10px;}
@@ -61,27 +61,29 @@ body{background-image:none!important;}
 .mark,.brand small{display:none;}
 /* All the major areas use exactly the same solid border and radius. */
 .toolbar,.panel,.controlbox{background:#384254;background-image:none!important;border:var(--section-border) solid var(--edge);border-radius:var(--section-radius);}
-.toolbar{margin-bottom:12px;padding:9px 11px;gap:9px;}
-.monitor-grid{grid-template-columns:minmax(0,var(--input-width,calc(50% - 9px))) 18px minmax(0,1fr);}
+.toolbar{margin-bottom:0;padding:9px 11px;gap:7px;}
+/* One 5px seam between transport and monitor row. The row overlaps the
+   transport's bottom border instead of drawing a second dark stripe. */
+.monitor-grid{margin-top:calc(-1 * var(--section-border));grid-template-columns:minmax(0,var(--input-width,49%)) 6px minmax(0,1fr);}
 .panel{position:relative;overflow:visible;min-width:0;}
-.paneltop{border:0;border-radius:9px 9px 0 0;background:#384254;min-height:55px;padding:24px 12px 7px;}
+.paneltop{border:0;border-radius:9px 9px 0 0;background:#384254;min-height:53px;padding:24px 12px 7px;}
 .paneltitle{font-size:12px;font-weight:600;}
 .panelbottom{background:#384254;border:0;border-radius:0 0 9px 9px;padding:8px 12px;min-height:42px;}
 /* Lower the centered border labels so they sit IN the header gap, not above it. */
-.eyebrow,.subheading{position:absolute;top:-2px;left:50%;transform:translateX(-50%);z-index:2;
+.eyebrow,.subheading{position:absolute;top:-3px;left:50%;transform:translateX(-50%);z-index:2;
   display:flex;align-items:center;justify-content:center;min-height:20px;width:max-content;
   max-width:calc(100% - 28px);margin:0;padding:2px 17px 1px;
   background:#151916;color:#e5b15d;border:0;
   clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,9px 100%);
   font:700 11px/17px 'Arial Narrow','Segoe UI',Arial,sans-serif;
   letter-spacing:.045em;text-align:center;text-transform:uppercase;white-space:nowrap;}
-.subheading{top:-2px;}
+.subheading{top:-3px;}
 /* Monitor display corners, including BOTH top corners, are visibly round. */
 .canvas-wrap{margin:0 9px;border:1px solid #151916;border-radius:12px;overflow:hidden;background:#0b1019;}
 .canvas-wrap canvas{border-radius:11px;}
 .monitor-grid.focus-input #inputCanvasWrap{height:clamp(330px,58vh,680px);}
 .splitter{border:0;border-radius:9px;min-height:260px;}
-.splitter:before{background:#151916;width:5px;height:72px;border-radius:4px;}
+.splitter:before{background:#151916;width:3px;height:72px;border-radius:4px;}
 .splitter:hover:before,.splitter:focus-visible:before,.resizing .splitter:before{background:#e5b15d;}
 .control-rail{margin:11px 0 9px;border:0;padding:0;gap:6px;}
 .controlbox{position:relative;padding:30px 13px 13px;}
@@ -125,13 +127,81 @@ body{background-image:none!important;}
   .shell{padding:8px 10px 16px;}
 }
 
+
+/* v0.1.008: one solid 5px seam, including all rounded junctions.
+   Adjacent areas have no layout gap. The parent's dark colour fills the
+   exterior corner cutouts, so no blue triangles are left between them. */
+.monitor-grid {
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,var(--input-width,49%)) minmax(0,1fr);
+  gap:0;
+  align-items:stretch;
+  background:var(--edge);
+  margin-top:calc(-1 * var(--section-border));
+  border-radius:var(--section-radius);
+}
+.monitor-grid > .panel {
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  height:100%;
+}
+.monitor-grid > #outputPanel {
+  margin-left:calc(-1 * var(--section-border));
+}
+.monitor-grid .canvas-wrap {
+  flex:1 1 auto;
+  height:clamp(300px,28vw,450px);
+  aspect-ratio:auto;
+  min-height:0;
+}
+.monitor-grid .panelbottom { margin-top:auto; }
+.splitter {
+  position:absolute;
+  z-index:9;
+  top:0;
+  bottom:0;
+  left:var(--input-width,49%);
+  transform:translateX(-50%);
+  width:18px;
+  height:100%;
+  min-height:0;
+  display:flex;
+  background:transparent;
+  border:0;
+}
+.splitter::before {background:var(--edge);width:5px;height:64px;}
+.monitor-grid.focus-input {grid-template-columns:minmax(0,1fr);}
+.monitor-grid.focus-input > #outputPanel {display:none;}
+.monitor-grid.focus-input .splitter {display:none;}
+.monitor-grid.focus-input #inputCanvasWrap {height:clamp(330px,58vh,680px);}
+.control-grid {
+  display:grid;
+  grid-template-columns:minmax(260px,1fr) minmax(320px,1.35fr);
+  gap:0;
+  background:var(--edge);
+  border-radius:var(--section-radius);
+}
+.control-grid > .controlbox:nth-child(2) {
+  margin-left:calc(-1 * var(--section-border));
+}
+@media(max-width:950px){
+  .monitor-grid {grid-template-columns:minmax(0,1fr);row-gap:0;}
+  .monitor-grid > #outputPanel {margin-left:0;margin-top:calc(-1 * var(--section-border));}
+  .monitor-grid .canvas-wrap {height:clamp(280px,45vw,420px);}
+  .monitor-grid .splitter {display:none;}
+  .control-grid {grid-template-columns:1fr;gap:0;}
+  .control-grid > .controlbox:nth-child(2) {margin-left:0;margin-top:calc(-1 * var(--section-border));}
+}
+
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
     <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span></div>
-    <div class="top-note">Local music in. Time-aligned control signals out.<span class="version">Prototype v0.1.006 · Local processing</span></div>
+    <div class="top-note">Local music in. Time-aligned control signals out.<span class="version">Prototype v0.1.008 · Local processing</span></div>
   </header>
   <div class="toolbar" role="group" aria-label="Audio transport">
     <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -542,7 +612,7 @@ audio.playbackRate=Number($('speed').value);
 
 // Resize the input and output monitor by dragging the central divider.
 // The split is deliberately limited so neither monitor becomes unusably narrow.
-let splitPercent=50;
+let splitPercent=49;
 try{const old=Number(localStorage.getItem('visualSynth.monitorSplit'));if(Number.isFinite(old)&&old>=30&&old<=80)splitPercent=old}catch{}
 function setSplit(percent,save=true){
  splitPercent=clamp(percent,30,80);
@@ -560,8 +630,8 @@ splitter.addEventListener('pointerdown',e=>{
 splitter.addEventListener('pointermove',e=>{
  if(!draggingSplitter)return;
  const rect=monitorGrid.getBoundingClientRect();
- // Offset by half the divider width so the grab handle remains centred.
- setSplit((e.clientX-rect.left-9)/rect.width*100,false);
+ // Divider is centred exactly on the shared panel seam.
+ setSplit((e.clientX-rect.left)/rect.width*100,false);
 });
 function finishSplit(){if(!draggingSplitter)return;draggingSplitter=false;document.body.classList.remove('resizing');setSplit(splitPercent,true)}
 splitter.addEventListener('pointerup',finishSplit);
