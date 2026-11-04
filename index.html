@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.016</title>
+<title>Visual Synth | Input Lab v0.1.017</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -160,7 +160,7 @@ body{background-image:none!important;}
 .analysis-hint{font-size:11px;color:#c7d0dd;line-height:1.45;margin:10px 0 5px;}
 @media(max-width:950px){.monitor-grid .paneltools{gap:5px}.monitor-grid .paneltop{flex-wrap:wrap;}}
 
-/* v0.1.016 – integrated timeline, compact transport, and source-focused controls */
+/* v0.1.017 – integrated timeline, compact transport, and source-focused controls */
 .monitor-grid .paneltop{padding-top:23px;min-height:52px;}
 .monitor-grid .paneltitle{font-size:12px;color:#e5ebf4;max-width:45vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .monitor-grid .paneltop .paneltools{flex-wrap:nowrap;}
@@ -180,6 +180,34 @@ body{background-image:none!important;}
 .analysis-group-title{margin:0 0 10px;}
 .controlbox .explain{margin-bottom:12px;}
 @media(max-width:950px){.monitor-grid .paneltop .paneltools{flex-wrap:wrap}.monitor-grid .paneltitle{max-width:70vw}}
+
+/* v0.1.017: ratio-locked output; one bottom-edge drag handle. */
+.monitor-grid{
+ --monitor-height:330px;
+ grid-template-columns:minmax(0,1fr) var(--output-panel-width,604px);
+ gap:var(--seam);align-items:stretch;
+}
+.monitor-grid>.panel{height:100%;}
+.monitor-grid .canvas-wrap{height:var(--monitor-height);flex:0 0 var(--monitor-height);min-height:0;aspect-ratio:auto;}
+#outputCanvasWrap{width:calc(100% - 18px);aspect-ratio:16 / 9;height:auto!important;flex:0 0 auto!important;}
+#inputCanvasWrap{flex:1 1 auto;min-height:100px;}
+.monitor-grid .splitter{
+ position:absolute;left:50%;top:auto;bottom:-12px;transform:translateX(-50%);
+ width:min(210px,38%);height:22px;min-height:0;z-index:15;
+ cursor:ns-resize;border:0;background:transparent;touch-action:none;
+ display:flex;align-items:center;justify-content:center;
+}
+.monitor-grid .splitter::before{content:'';height:3px;width:72px;border-radius:3px;background:var(--gold);}
+.resizing-monitors,.resizing-monitors *{cursor:ns-resize!important;user-select:none!important;}
+.monitor-grid.focus-input{grid-template-columns:minmax(0,1fr)}
+.monitor-grid.focus-input .splitter,.monitor-grid.focus-input #outputPanel{display:none}
+.monitor-grid.focus-input #inputCanvasWrap{height:clamp(330px,58vh,680px);flex:1 1 auto;}
+@media(max-width:950px){
+ .monitor-grid:not(.focus-input){grid-template-columns:minmax(0,1fr) var(--output-panel-width,604px);gap:var(--seam)}
+ .monitor-grid .splitter{display:flex}
+ .monitor-grid .canvas-wrap{height:var(--monitor-height)}
+}
+
 </style>
 </head>
 <body>
@@ -205,10 +233,10 @@ body{background-image:none!important;}
       </div>
       <div class="panelbottom"><span class="status" id="inputStatus" aria-live="polite">Load an MP3 to start local analysis.</span><span id="analysisPill" class="badge">READY</span></div>
     </section>
-    <div id="monitorSplitter" class="splitter" role="separator" tabindex="0" aria-label="Resize input and output monitor widths" aria-orientation="vertical" aria-valuemin="30" aria-valuemax="80" aria-valuenow="50" title="Drag left or right to resize the monitors. Use arrow keys for fine adjustment."></div>
+    <div id="monitorSplitter" class="splitter" role="separator" tabindex="0" aria-label="Resize monitor height" aria-orientation="horizontal" aria-valuemin="120" aria-valuemax="750" aria-valuenow="330" title="Drag up or down to resize monitor height. The output stays 16:9. Use up/down arrow keys for fine adjustment."></div>
     <section class="panel" id="outputPanel" aria-label="Output monitor">
       <div class="paneltop"><div><div class="eyebrow">02 / OUTPUT MONITOR</div><div class="paneltitle">Signal-response test pattern</div></div><div class="topright" id="fpsLabel">Preview · idle</div></div>
-      <div class="canvas-wrap"><canvas id="outputCanvas" aria-label="Diagnostic visual patterns reacting to musical input"></canvas><div class="overlay">Diagnostic only · Not the final visual synthesiser</div></div>
+      <div class="canvas-wrap" id="outputCanvasWrap"><canvas id="outputCanvas" aria-label="Diagnostic visual patterns reacting to musical input"></canvas><div class="overlay">Diagnostic only · Not the final visual synthesiser</div></div>
       <div class="panelbottom"><span class="status">Simple test renderer to verify signal timing, not a visual preset.</span><span class="badge">TEST MODE</span></div>
     </section>
   </div>
@@ -419,6 +447,38 @@ async function prepareAudio(buffer){
  const converted=await offline.startRendering();
  return {samples:converted.getChannelData(0).slice(),sampleRate:targetRate,waveform:{min,max,hz}};
 }
+// Download script assets with CORS, then load same-origin Blob URLs in the worker.
+// This avoids cross-origin importScripts restrictions, including on GitHub Pages.
+const LIBS={
+ wasm:['https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.umd.js','https://unpkg.com/essentia.js@0.1.3/dist/essentia-wasm.umd.js'],
+ core:['https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia.js-core.js','https://unpkg.com/essentia.js@0.1.3/dist/essentia.js-core.js'],
+ meyda:['https://cdn.jsdelivr.net/npm/meyda@5.6.3/dist/web/meyda.min.js','https://unpkg.com/meyda@5.6.3/dist/web/meyda.min.js']
+};
+let libPromise=null;
+async function getAnalysisLibraries(){
+ if(libPromise)return libPromise;
+ libPromise=(async()=>{
+  const scripts={};
+  try{
+   for(const [name,hosts] of Object.entries(LIBS)){
+    let lastError;
+    for(const u of hosts){
+     try{
+      const resp=await fetch(u,{mode:'cors',cache:'force-cache'});
+      if(!resp.ok)throw Error('HTTP '+resp.status);
+      const body=await resp.text();
+      if(body.length<1000||/^\s*<!doctype/i.test(body))throw Error('Invalid script response');
+      scripts[name]=URL.createObjectURL(new Blob([body],{type:'text/javascript'}));
+      break;
+     }catch(err){lastError=err;}
+    }
+    if(!scripts[name])throw Error(name+' could not be downloaded from either CDN ('+(lastError?.message||'network error')+').');
+   }
+   return scripts;
+  }catch(err){Object.values(scripts).forEach(u=>URL.revokeObjectURL(u));throw err;}
+ })().catch(err=>{libPromise=null;throw err});
+ return libPromise;
+}
 async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let token=++fileToken;stopWorker();audio.pause();audio.removeAttribute('src');audio.load();if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(file);audio.src=url;clearData();playing=false;$('play').disabled=false;$('stop').disabled=false;$('play').textContent='▶';$('trackname').textContent=file.name;$('trackname').title=file.name;badge('DECODING');msg('Decoding MP3 locally…','busy');
  if(!/\.mp3$/i.test(file.name)){msg('This first prototype is designed for MP3 files. Attempting decode…','busy')}
  try{
@@ -430,6 +490,8 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
   await new Promise(r=>setTimeout(r,40));
   const prepared=await prepareAudio(decoded);if(token!==fileToken)return;
   waveform=prepared.waveform;badge('ANALYSING');msg('Starting established music-analysis libraries…','busy');drawInput();
+  msg('Loading library files for analysis…','busy');
+  const libraries=await getAnalysisLibraries();if(token!==fileToken)return;
   worker=new Worker('./analysis-worker.js');
   worker.onmessage=ev=>{if(token!==fileToken)return;const o=ev.data;
    if(o.type==='progress'){msg((o.detail||'Analysing music…')+' '+o.value+'%','busy')}
@@ -440,8 +502,8 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
    }
   };
   worker.onerror=err=>{if(token!==fileToken)return;badge('ERROR');msg('Analysis worker error: '+(err.message||'unknown error'),'error');stopWorker()};
-  worker.postMessage({type:'analyse',samples:prepared.samples.buffer,sampleRate:prepared.sampleRate},[prepared.samples.buffer]);
- }catch(err){if(token!==fileToken)return;badge('ERROR');msg('Could not decode the MP3: '+(err?.message||err),'error');console.error(err)}
+  worker.postMessage({type:'analyse',samples:prepared.samples.buffer,sampleRate:prepared.sampleRate,libraries},[prepared.samples.buffer]);
+ }catch(err){if(token!==fileToken)return;badge('ERROR');msg('Preparation or library load failed: '+(err?.message||err),'error');console.error(err)}
 }
 function playpause(){if(!audio.src)return;if(audio.paused){audio.play().catch(err=>msg('Playback failed: '+err.message,'error'))}else audio.pause()}
 // HTMLMediaElement playbackRate slows music and its currentTime together.
@@ -450,38 +512,42 @@ if('preservesPitch' in audio)audio.preservesPitch=true;
 $('speed').addEventListener('change',()=>{audio.playbackRate=Number($('speed').value)});
 audio.playbackRate=Number($('speed').value);
 
-// Resize the input and output monitor by dragging the central divider.
-// The split is deliberately limited so neither monitor becomes unusably narrow.
-let splitPercent=49;
-try{const old=Number(localStorage.getItem('visualSynth.monitorSplit'));if(Number.isFinite(old)&&old>=30&&old<=80)splitPercent=old}catch{}
-function setSplit(percent,save=true){
- splitPercent=clamp(percent,30,80);
- monitorGrid.style.setProperty('--input-width',splitPercent+'%');
- splitter.setAttribute('aria-valuenow',String(Math.round(splitPercent)));
- if(save)try{localStorage.setItem('visualSynth.monitorSplit',String(splitPercent))}catch{}
+// Output monitor is always 16:9. Drag the shared BOTTOM seam up/down to resize.
+// Its width is determined solely by its display height; input takes the remainder.
+let outputHeight=330;
+try{const saved=Number(localStorage.getItem('visualSynth.monitorHeight'));if(Number.isFinite(saved)&&saved>0)outputHeight=saved}catch{}
+function setMonitorHeight(height,save=true){
+ const gridWidth=monitorGrid.clientWidth;
+ const seam=6,sideInsets=18,minimumInput=Math.min(320,Math.max(165,gridWidth*.30));
+ const maxH=Math.max(100,(gridWidth-2*seam-sideInsets-minimumInput-seam)*9/16);
+ outputHeight=Math.round(Math.min(maxH,Math.max(120,height)));
+ monitorGrid.style.setProperty('--monitor-height',outputHeight+'px');
+ monitorGrid.style.setProperty('--output-panel-width',(Math.round(outputHeight*16/9+18))+'px');
+ splitter.setAttribute('aria-valuenow',String(outputHeight));
+ if(save)try{localStorage.setItem('visualSynth.monitorHeight',String(outputHeight))}catch{}
+ drawInput();drawOutput(0);
 }
-setSplit(splitPercent,false);
-let draggingSplitter=false;
+let draggingMonitor=false,dragStartY=0,dragStartHeight=0;
 splitter.addEventListener('pointerdown',e=>{
- if(e.button!==0)return;
- draggingSplitter=true;splitter.setPointerCapture(e.pointerId);
- document.body.classList.add('resizing');e.preventDefault();
+ if(e.button!==0 || monitorGrid.classList.contains('focus-input'))return;
+ draggingMonitor=true;dragStartY=e.clientY;dragStartHeight=outputHeight;
+ splitter.setPointerCapture(e.pointerId);document.body.classList.add('resizing-monitors');e.preventDefault();
 });
-splitter.addEventListener('pointermove',e=>{
- if(!draggingSplitter)return;
- const rect=monitorGrid.getBoundingClientRect();
- // Divider is centred exactly on the shared panel seam.
- setSplit((e.clientX-rect.left)/rect.width*100,false);
+splitter.addEventListener('pointermove',e=>{if(!draggingMonitor)return;
+ setMonitorHeight(dragStartHeight+(e.clientY-dragStartY),false);
 });
-function finishSplit(){if(!draggingSplitter)return;draggingSplitter=false;document.body.classList.remove('resizing');setSplit(splitPercent,true)}
-splitter.addEventListener('pointerup',finishSplit);
-splitter.addEventListener('pointercancel',finishSplit);
-splitter.addEventListener('lostpointercapture',finishSplit);
+function finishMonitorDrag(){if(!draggingMonitor)return;draggingMonitor=false;
+ document.body.classList.remove('resizing-monitors');setMonitorHeight(outputHeight,true)}
+splitter.addEventListener('pointerup',finishMonitorDrag);
+splitter.addEventListener('pointercancel',finishMonitorDrag);
+splitter.addEventListener('lostpointercapture',finishMonitorDrag);
 splitter.addEventListener('keydown',e=>{
- if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();e.stopPropagation();setSplit(splitPercent+(e.key==='ArrowRight'?5:-5));}
- if(e.key==='Home'){e.preventDefault();e.stopPropagation();setSplit(30)}
- if(e.key==='End'){e.preventDefault();e.stopPropagation();setSplit(80)}
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();setMonitorHeight(outputHeight+(e.key==='ArrowDown'?16:-16))}
+ if(e.key==='Home'){e.preventDefault();setMonitorHeight(120)}
+ if(e.key==='End'){e.preventDefault();setMonitorHeight(9999)}
 });
+setMonitorHeight(outputHeight,false);
+new ResizeObserver(()=>setMonitorHeight(outputHeight,false)).observe(monitorGrid);
 $('focusInput').addEventListener('click',()=>{
  const expanded=monitorGrid.classList.toggle('focus-input');
  $('focusInput').setAttribute('aria-pressed',String(expanded));
@@ -506,7 +572,7 @@ input.addEventListener('pointermove',e=>{if(scrubbingInput)scrubInput(e)});
 for(const type of ['pointerup','pointercancel','lostpointercapture'])input.addEventListener(type,()=>{scrubbingInput=false});
 audio.onplay=()=>{playing=true;$('play').textContent='Ⅱ'};audio.onpause=()=>{playing=false;$('play').textContent='▶'};audio.onended=()=>{playing=false;$('play').textContent='▶'};
 window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement||e.target instanceof HTMLButtonElement)return;if(e.code==='Space'){e.preventDefault();playpause()}if(e.code==='ArrowLeft'&&audio.duration){audio.currentTime=clamp(audio.currentTime-5,0,audio.duration)}if(e.code==='ArrowRight'&&audio.duration){audio.currentTime=clamp(audio.currentTime+5,0,audio.duration)}});
-window.addEventListener('resize',()=>{drawInput();drawOutput(0)});
+window.addEventListener('resize',()=>{setMonitorHeight(outputHeight,false);drawInput();drawOutput(0)});
 createSources();refreshTempoDisplay();updateLive();raf=requestAnimationFrame(loop);
 })();
 </script>

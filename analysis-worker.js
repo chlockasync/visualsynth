@@ -1,8 +1,6 @@
 'use strict';
 /* Visual Synth: library-driven music analysis, no legacy hit or tempo estimation. */
-const ROOT='https://cdn.jsdelivr.net/npm/';
-const ESS=ROOT+'essentia.js@0.1.3/dist/';
-const MEY=ROOT+'meyda@5.6.3/dist/web/meyda.min.js';
+
 const clamp=x=>Math.max(0,Math.min(1,x));
 function pct(a,p=.97){const b=Array.from(a).filter(Number.isFinite).sort((x,y)=>x-y);return b.length?b[Math.min(b.length-1),Math.floor(p*(b.length-1))]:1}
 function normalize(a,p=.975,gamma=.8){const scale=Math.max(1e-9,pct(a,p));return Float32Array.from(a,x=>clamp(Math.pow(Math.max(0,x)/scale,gamma)))}
@@ -10,23 +8,24 @@ function average(a,r){const b=new Float32Array(a.length);let sum=0,l=0,h=0;for(l
 function vecToArray(e,v){if(!v)return [];const arr=Array.from(e.vectorToArray(v));if(typeof v.delete==='function')v.delete();return arr}
 function envelope(events,n,dt,decay=.12){const a=new Float32Array(n);let j=0;for(let i=0;i<n;i++){const t=i*dt;while(j<events.length&&events[j].t<=t)j++;if(j){const ev=events[j-1];a[i]=ev.strength*Math.exp(-(t-ev.t)/decay)}}return a}
 function sourcePhase(beats,n,dt){const phase=new Float32Array(n),pulse=new Float32Array(n);if(!beats.length)return {phase,pulse};let j=0;for(let i=0;i<n;i++){const t=i*dt;while(j+1<beats.length&&beats[j+1]<=t)j++;const prev=beats[j],next=beats[j+1]??prev+((beats[j]-beats[j-1])||.5),span=Math.max(.02,next-prev);phase[i]=t<beats[0]?0:clamp((t-prev)/span);pulse[i]=t<beats[0]?0:Math.exp(-(t-prev)/.10)}return {phase,pulse}}
-async function init(){
+async function init(libraries){
+  if(!libraries?.wasm || !libraries?.core || !libraries?.meyda)throw Error("Analysis libraries were not supplied to the worker.");
   postMessage({type:'progress',value:2,detail:'Loading Essentia’s worker-compatible WASM…'});
   // IMPORTANT: essentia-wasm.web.js is built for a DOM page and accesses `document`.
   // Workers have no document. The Essentia project explicitly demonstrates
   // essentia-wasm.umd.js (synchronous WASM) inside importScripts-based Workers.
-  try { importScripts(ESS+'essentia-wasm.umd.js'); }
+  try { importScripts(libraries.wasm); }
   catch(err) { throw Error('Cannot load Essentia worker WASM: '+(err?.message||err)); }
-  if(typeof Module==='undefined') throw Error('Essentia worker WASM loaded, but did not expose Module.');
-  const wasm=Module;
-  try { importScripts(ESS+'essentia.js-core.js'); }
+  const wasm=(typeof EssentiaWASM!=='undefined')?EssentiaWASM:((typeof Module!=='undefined')?Module:null);
+  if(!wasm)throw Error('Essentia worker WASM loaded but exposed neither EssentiaWASM nor Module.');
+  try { importScripts(libraries.core); }
   catch(err) { throw Error('Cannot load Essentia core: '+(err?.message||err)); }
   if(typeof Essentia!=='function') throw Error('Essentia core did not expose an Essentia constructor.');
   postMessage({type:'progress',value:5,detail:'Loading Meyda acoustic-feature library…'});
   // Meyda's web bundle is designed to expose a global to `window`.
   // In a dedicated Worker, self is the appropriate global instead.
   if(typeof window==='undefined') self.window=self;
-  try { importScripts(MEY); }
+  try { importScripts(libraries.meyda); }
   catch(err) { throw Error('Cannot load Meyda: '+(err?.message||err)); }
   if(typeof Meyda==='undefined'||typeof Meyda.extract!=='function') throw Error('Meyda loaded, but its extract function is unavailable.');
   let e;
@@ -34,11 +33,11 @@ async function init(){
   catch(err) { throw Error('Essentia worker WASM initialisation failed: '+(err?.message||err)); }
   return {e,m:Meyda};
 }
-async function analyse(samples,rate){
+async function analyse(samples,rate,libraries){
  if(rate!==44100)throw Error('The analysis audio must be 44,100 Hz.');
  const s=new Float32Array(samples),duration=s.length/rate;
  if(duration<2)throw Error('Please load at least 2 seconds of music.');
- const {e,m}=await init();
+ const {e,m}=await init(libraries);
  postMessage({type:'progress',value:10,detail:'Finding beats and tempo with Essentia…'});
  let beats=[],bpm=null,beatConfidence=0,onsetTimes=[];
  const v=e.arrayToVector(s);
@@ -89,4 +88,4 @@ async function analyse(samples,rate){
  const signals={loudness,bass,mid,high,brightness,texture,harmonic,activity,intensity,onsets,attack,beat:pulse,phase};
  postMessage({type:'done',dt,t0:0,signals,events,lowEvents:[],beats,bpm,beatConfidence,engine:'Essentia.js + Meyda',count:n},Object.values(signals).map(x=>x.buffer));
 }
-onmessage=async ev=>{if(ev.data.type!=='analyse')return;try{await analyse(ev.data.samples,ev.data.sampleRate)}catch(err){postMessage({type:'error',message:String(err?.message||err),stack:String(err?.stack||'')})}};
+onmessage=async ev=>{if(ev.data.type!=='analyse')return;try{await analyse(ev.data.samples,ev.data.sampleRate,ev.data.libraries)}catch(err){postMessage({type:'error',message:String(err?.message||err),stack:String(err?.stack||'')})}};
