@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.014</title>
+<title>Visual Synth | Input Lab v0.1.015</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -160,7 +160,7 @@ body{background-image:none!important;}
 .analysis-hint{font-size:11px;color:#c7d0dd;line-height:1.45;margin:10px 0 5px;}
 @media(max-width:950px){.monitor-grid .paneltools{gap:5px}.monitor-grid .paneltop{flex-wrap:wrap;}}
 
-/* v0.1.014 – integrated timeline, compact transport, and source-focused controls */
+/* v0.1.015 – integrated timeline, compact transport, and source-focused controls */
 .monitor-grid .paneltop{padding-top:23px;min-height:52px;}
 .monitor-grid .paneltitle{font-size:12px;color:#e5ebf4;max-width:45vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .monitor-grid .paneltop .paneltools{flex-wrap:nowrap;}
@@ -194,7 +194,7 @@ body{background-image:none!important;}
   </header>
   <div class="monitor-grid" id="monitorGrid">
     <section class="panel" id="inputPanel" aria-label="Input monitor">
-      <div class="paneltop"><div><div class="eyebrow">01 / INPUT MONITOR</div><div class="paneltitle" id="trackname" title="No track loaded">No track loaded</div></div><div class="paneltools"><label class="monitor-window" for="window">WINDOW <select id="window" aria-label="Visible timeline duration"><option value="2">2 s</option><option value="4">4 s</option><option value="8" selected>8 s</option><option value="16">16 s</option><option value="20">20 s</option><option value="32">32 s</option><option value="60">60 s</option></select></label><div class="monitor-bpm" id="bpm" title="Automatic tempo is provisional until established library tracking is integrated">TEMPO —</div><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
+      <div class="paneltop"><div><div class="eyebrow">01 / INPUT MONITOR</div><div class="paneltitle" id="trackname" title="No track loaded">No track loaded</div></div><div class="paneltools"><label class="monitor-window" for="window">WINDOW <select id="window" aria-label="Visible timeline duration"><option value="2">2 s</option><option value="4">4 s</option><option value="8" selected>8 s</option><option value="16">16 s</option><option value="20">20 s</option><option value="32">32 s</option><option value="60">60 s</option></select></label><div class="monitor-bpm" id="bpm" title="Essentia.js beat and tempo tracking">TEMPO —</div><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
       <div class="canvas-wrap" id="inputCanvasWrap"><canvas id="inputCanvas" aria-label="Scrollable music waveform and signal timeline"></canvas><div class="timeline-rail" aria-hidden="true"></div></div>
       <div class="compact-transport" role="group" aria-label="Music playback controls">
         <button id="play" class="transport-icon" disabled title="Play / Pause" aria-label="Play or pause">▶</button>
@@ -222,211 +222,46 @@ body{background-image:none!important;}
     <section class="controlbox">
       <h2 class="subheading">Analysis controls</h2>
       <div class="analysis-group">
-        <div class="analysis-group-title">RHYTHM</div>
-        <div class="row"><label for="beatGrid">Show beats</label><input id="beatGrid" type="checkbox" checked></div>
-        <div class="row"><label for="barGrid">Show bars</label><input id="barGrid" type="checkbox" checked></div>
+        <div class="analysis-group-title">RHYTHM · ESSENTIA.JS</div>
+        <p class="explain">Tempo, beats and bars are always shown in the timeline. Bar boundaries assume 4/4 and the first detected beat starts bar 1.</p>
+        <p class="explain" id="engineStatus">Essentia.js: tempo, beats, onsets. Meyda: loudness, tone, spectral energy. Analyses the whole uploaded track before playback.</p>
       </div>
       <div class="analysis-group">
-        <div class="analysis-group-title">ACOUSTIC SIGNALS</div>
+        <div class="analysis-group-title">MUSICAL SOURCES · ESSENTIA + MEYDA</div>
         <p class="explain" style="margin:8px 0">Select the musical sources shown on the timeline. All extracted signals remain available to the visual synth.</p>
         <div class="legend" id="toggles"></div>
       </div>
     </section>
     <section class="controlbox">
       <h2 class="subheading">Live source signals</h2>
-      <p class="explain">Available signals respond to the current moment in the track. These will become modulation sources for the visual synth.</p>
+      <p class="explain">Music-derived signals available at the playhead, ready to become visual modulation sources.</p>
       <div class="signal-grid" id="signals"></div>
     </section>
   </div>
 </div>
 <audio id="player" preload="metadata" style="display:none"></audio>
-<script id="workerSource" type="text/plain">
-'use strict';
-// Visual Synth input lab: descriptive analysis, not instrument transcription.
-// Each feature is indexed by the CENTRE of its analysis window (t0 + i*dt).
-const N=1024,H=256;
-const clamp=v=>Math.max(0,Math.min(1,v));
-function quantile(values,p){
- const a=Array.from(values).filter(Number.isFinite).sort((x,y)=>x-y);
- return a.length?a[Math.min(a.length-1,Math.floor((a.length-1)*p))]:0;
-}
-function movingMean(a,radius){
- const b=new Float32Array(a.length);let start=0,end=0,sum=0;
- for(let i=0;i<a.length;i++){
-  const left=Math.max(0,i-radius),right=Math.min(a.length,i+radius+1);
-  while(end<right)sum+=a[end++];while(start<left)sum-=a[start++];
-  b[i]=sum/(end-start||1);
- }return b;
-}
-function norm(a,p=.97,exp=.7){
- const q=Math.max(1e-10,quantile(a,p));let result=new Float32Array(a.length);
- for(let i=0;i<a.length;i++)result[i]=clamp(Math.pow(Math.max(0,a[i])/q,exp));
- return result;
-}
-function fft(re,im){
- const n=re.length;
- for(let i=1,j=0;i<n;i++){
-  let bit=n>>1;for(;j&bit;bit>>=1)j^=bit;j^=bit;
-  if(i<j){let tr=re[i];re[i]=re[j];re[j]=tr;tr=im[i];im[i]=im[j];im[j]=tr;}
- }
- for(let len=2;len<=n;len<<=1){
-  const ang=-2*Math.PI/len,wr=Math.cos(ang),wi=Math.sin(ang);
-  for(let i=0;i<n;i+=len){let ur=1,ui=0;
-   for(let j=0;j<len/2;j++){
-    const a=i+j,b=a+len/2,vr=re[b]*ur-im[b]*ui,vi=re[b]*ui+im[b]*ur;
-    re[b]=re[a]-vr;im[b]=im[a]-vi;re[a]+=vr;im[a]+=vi;
-    const nr=ur*wr-ui*wi;ui=ur*wi+ui*wr;ur=nr;
-   }
-  }
- }
-}
-function changeFeature(flux,dt,minChange){
- // Subtract a local baseline, then scale relative peaks to this particular track.
- const base=movingMean(flux,Math.max(2,Math.round(.17/dt)));
- const difference=new Float32Array(flux.length);
- for(let i=0;i<difference.length;i++)difference[i]=Math.max(0,flux[i]-base[i]-minChange);
- return norm(difference,.985,.8);
-}
-function pickHits(signal,dt,t0,duration,threshold=.25,minGap=.115){
- const result=[];
- if(signal.length && signal[0]>=threshold && signal[0]>signal[1])result.push({t:0,strength:signal[0]});
- for(let i=1;i<signal.length-1;i++){
-  if(signal[i]<threshold||signal[i]<signal[i-1]||signal[i]<=signal[i+1])continue;
-  const t=t0+i*dt;
-  if(t>=duration)break;
-  const hit={t,strength:signal[i]};
-  if(result.length && t-result[result.length-1].t<minGap){
-   if(hit.strength>result[result.length-1].strength)result[result.length-1]=hit;
-  }else result.push(hit);
- }return result;
-}
-function eventEnvelope(events,n,dt,t0,decay){
- const result=new Float32Array(n);let e=0;
- for(let i=0;i<n;i++){
-  const t=t0+i*dt;
-  while(e<events.length && events[e].t<=t)e++;
-  if(e){const last=events[e-1],elapsed=t-last.t;
-   result[i]=last.strength*Math.exp(-elapsed/decay);
-  }
- }
- return result;
-}
-function tempoEstimate(onset,dt){
- // Diagnostic tempo only. Never present these predicted beat-grid lines as observed hits.
- const minLag=Math.ceil(60/(175*dt)),maxLag=Math.floor(60/(65*dt));
- if(onset.length<maxLag*4)return {bpm:null,confidence:0,beats:[]};
- let bestLag=0,bestScore=0;
- for(let lag=minLag;lag<=maxLag;lag++){
-  let cross=0,p0=0,p1=0;
-  for(let i=lag;i<onset.length;i+=2){
-   const a=onset[i],b=onset[i-lag];cross+=a*b;p0+=a*a;p1+=b*b;
-  }
-  const score=cross/Math.sqrt(Math.max(1e-9,p0*p1));
-  if(score>bestScore){bestScore=score;bestLag=lag;}
- }
- if(!bestLag||bestScore<.14)return {bpm:null,confidence:bestScore,beats:[]};
- let phase=0,maxSum=-Infinity;
- for(let offset=0;offset<bestLag;offset++){
-  let sum=0;for(let i=offset;i<onset.length;i+=bestLag)sum+=onset[i];
-  if(sum>maxSum){maxSum=sum;phase=offset;}
- }
- const interval=bestLag*dt,beats=[];
- for(let t=phase*dt;t<onset.length*dt;t+=interval)beats.push(t);
- return {bpm:60/interval,confidence:Math.min(1,bestScore),beats};
-}
-function estimateFromRegularLowHits(events,duration){
- // A regular low-end pulse is often a stronger metrical clue than hi-hat subdivisions.
- if(events.length<8)return null;
- const gaps=[];
- for(let i=1;i<events.length;i++){
-  const gap=events[i].t-events[i-1].t;
-  if(gap>=.32 && gap<=1.10)gaps.push(gap);
- }
- if(gaps.length<Math.max(6,events.length*.65))return null;
- const sorted=gaps.slice().sort((a,b)=>a-b);
- const interval=sorted[Math.floor(sorted.length/2)];
- const regular=gaps.filter(g=>Math.abs(g-interval)<Math.max(.045,interval*.095)).length/gaps.length;
- if(regular<.75)return null;
- const bpm=60/interval,beats=[];
- for(let t=events[0].t;t<duration;t+=interval)beats.push(t);
- return {bpm,confidence:regular,beats};
-}
-function calculate({samples,sampleRate}){
- const s=new Float32Array(samples),dt=H/sampleRate,t0=N/(2*sampleRate);
- const nframes=Math.max(0,Math.floor((s.length-N)/H)+1);
- if(nframes<5)throw new Error('The audio is too short for analysis.');
- const rms=new Float32Array(nframes),low=new Float32Array(nframes),mid=new Float32Array(nframes),high=new Float32Array(nframes),centroid=new Float32Array(nframes);
- const fluxLow=new Float32Array(nframes),fluxMid=new Float32Array(nframes),fluxHigh=new Float32Array(nframes);
- const re=new Float32Array(N),im=new Float32Array(N),win=new Float32Array(N),previous=new Float32Array(N/2);
- const hzPerBin=sampleRate/N;
- for(let j=0;j<N;j++)win[j]=.5-.5*Math.cos(2*Math.PI*j/(N-1));
- for(let frame=0;frame<nframes;frame++){
-  const st=frame*H;let energy=0;
-  for(let j=0;j<N;j++){
-   const v=s[st+j];energy+=v*v;re[j]=v*win[j];im[j]=0;
-  }
-  rms[frame]=Math.sqrt(energy/N);
-  fft(re,im);
-  let l=0,m=0,h=0,fl=0,fm=0,fh=0,weight=0,total=0;
-  for(let k=2;k<N/2;k++){
-   const frequency=k*hzPerBin,mag=Math.hypot(re[k],im[k]);
-   const old=previous[k],delta=Math.max(0,Math.log1p(5*mag)-Math.log1p(5*old));
-   previous[k]=mag;
-   if(frequency<180){l+=mag*mag;fl+=delta;}
-   else if(frequency<2000){m+=mag*mag;fm+=delta;}
-   else{h+=mag*mag;fh+=delta;}
-   weight+=mag*frequency;total+=mag;
-  }
-  low[frame]=Math.sqrt(l);mid[frame]=Math.sqrt(m);high[frame]=Math.sqrt(h);
-  centroid[frame]=total?weight/total:0;
-  // Averaging per bin keeps the 2–6 kHz range from drowning out kick energy.
-  fluxLow[frame]=fl/14;fluxMid[frame]=fm/155;fluxHigh[frame]=fh/340;
-  if(frame%480===0)postMessage({type:'progress',value:Math.round(frame/nframes*94)});
- }
- const loudness=norm(rms,.985,.6),bass=norm(low,.985,.65),mids=norm(mid,.985,.65),highs=norm(high,.985,.65);
- const nLow=changeFeature(fluxLow,dt,.035),nMid=changeFeature(fluxMid,dt,.018),nHigh=changeFeature(fluxHigh,dt,.018);
- const broadRaw=new Float32Array(nframes),lowRaw=new Float32Array(nframes),brightness=new Float32Array(nframes);
- const rmsFloor=Math.max(1e-8,quantile(rms,.85)*.012);
- for(let i=0;i<nframes;i++){
-  const riseLow=Math.max(0,bass[i]-bass[Math.max(0,i-2)]-.065);
-  const riseLoud=Math.max(0,loudness[i]-loudness[Math.max(0,i-2)]-.045);
-  const gate=clamp((rms[i]-rmsFloor)/(rmsFloor*3));
-  broadRaw[i]=(nLow[i]*.37+nMid[i]*.38+nHigh[i]*.25+riseLoud*.20)*gate;
-  lowRaw[i]=(nLow[i]*.67+riseLow*.45)*gate;
-  brightness[i]=clamp(centroid[i]/5000);
- }
- const onset=norm(broadRaw,.985,.82),lowAttack=norm(lowRaw,.985,.82);
- const events=pickHits(onset,dt,t0,s.length/sampleRate,.34,.105);
- const lowEvents=pickHits(lowAttack,dt,t0,s.length/sampleRate,.39,.15);
- const hits=eventEnvelope(events,nframes,dt,t0,.10),lowHits=eventEnvelope(lowEvents,nframes,dt,t0,.14);
- const activity=norm(movingMean(onset,Math.max(1,Math.round(.22/dt))),.97,.7);
- const intensity=new Float32Array(nframes);
- for(let i=0;i<nframes;i++)intensity[i]=clamp(.70*loudness[i]+.22*activity[i]+.08*brightness[i]);
- const tempo=estimateFromRegularLowHits(lowEvents,s.length/sampleRate) || tempoEstimate(onset,dt);
- const signals={loudness,intensity,bass,mid:mids,high:highs,brightness,onset,activity,hits,lowHits};
- postMessage({type:'done',dt,t0,signals,events,lowEvents,beats:tempo.beats,bpm:tempo.bpm,beatConfidence:tempo.confidence,count:nframes},
-  Object.values(signals).map(v=>v.buffer));
-}
-onmessage=(event)=>{if(event.data.type==='analyse'){try{calculate(event.data)}catch(err){postMessage({type:'error',message:String(err?.message||err)})}}};
-</script>
+
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const audio=$('player'),input=$('inputCanvas'),output=$('outputCanvas');
 const monitorGrid=$('monitorGrid'),splitter=$('monitorSplitter');
 const srcList=[
- {id:'loudness',name:'Loudness',color:'#87cafa',desc:'Short-term audio level'},
- {id:'bass',name:'Low energy',color:'#ed9abc',desc:'Sound energy below 180 Hz, not identified bass notes'},
- {id:'hits',name:'Percussive hits',color:'#f5aa89',desc:'Triggered envelopes at measured attack candidates (NOT an invented tempo grid)'},
- {id:'lowHits',name:'Low hits',color:'#f3cf87',desc:'Percussive events with low-frequency energy, often kicks, not guaranteed'},
- {id:'onset',name:'Attack strength',color:'#ef9b91',desc:'Short musical changes measured across low, mid and high bands'},
- {id:'activity',name:'Activity',color:'#a9d5aa',desc:'Short-window density of musical changes'},
- {id:'intensity',name:'Intensity',color:'#ffcf83',desc:'Audio level + activity + brightness'},
- {id:'mid',name:'Mid energy',color:'#acb7fb',desc:'180 Hz – 2 kHz'},
- {id:'high',name:'High energy',color:'#9bd9b9',desc:'Above 2 kHz'},
- {id:'brightness',name:'Brightness',color:'#e5b98b',desc:'Spectral centroid estimate'}
+ {id:'loudness',name:'Loudness',color:'#87cafa',desc:'Meyda perceptual loudness'},
+ {id:'beat',name:'Beat pulse',color:'#e5b15d',desc:'Essentia tracked beats, with a short visual pulse envelope'},
+ {id:'phase',name:'Beat phase',color:'#f3cf87',desc:'Progress through the time between detected beats'},
+ {id:'onsets',name:'Note attacks',color:'#f5aa89',desc:'Essentia-detected musical note and percussion onsets'},
+ {id:'attack',name:'Attack envelope',color:'#ef9b91',desc:'Short envelope triggered by detected note attacks'},
+ {id:'activity',name:'Rhythmic activity',color:'#a9d5aa',desc:'Density of detected note attacks'},
+ {id:'intensity',name:'Intensity',color:'#ffcf83',desc:'Loudness and rhythmic activity blended for visual control'},
+ {id:'bass',name:'Low energy',color:'#ed9abc',desc:'Meyda spectrum energy below 180 Hz, not bass-note transcription'},
+ {id:'mid',name:'Mid energy',color:'#acb7fb',desc:'Meyda spectrum energy from 180 Hz to 2 kHz'},
+ {id:'high',name:'High energy',color:'#9bd9b9',desc:'Meyda spectrum energy above 2 kHz'},
+ {id:'brightness',name:'Brightness',color:'#e5b98b',desc:'Meyda spectral centroid'},
+ {id:'texture',name:'Noisiness',color:'#92cad2',desc:'Meyda spectral flatness'},
+ {id:'harmonic',name:'Harmonic change',color:'#c8adf5',desc:'Movement in Meyda chroma features, not isolated melody'}
 ];
-let chosen=new Set(['loudness','bass']),vals={},smoothVals={},dataset=null,waveform=null,worker=null,url=null;
+let chosen=new Set(['loudness','beat','onsets','bass']),vals={},smoothVals={},dataset=null,waveform=null,worker=null,url=null;
 let fileToken=0,windowSec=8,playing=false,raf=0,lastFrame=0,fpsSamples=[],lastDisplay={start:0,end:20},started=false;
 let canvasWidth=0,canvasHeight=0,diagWidth=0,diagHeight=0;
 const fmt=(v)=>{if(!Number.isFinite(v))return '0:00';let h=Math.floor(v/3600),m=Math.floor(v%3600/60),s=Math.floor(v%60);return (h?h+':'+String(m).padStart(2,'0'):String(m))+':'+String(s).padStart(2,'0')};
@@ -455,7 +290,7 @@ function getTiming(){
 }
 function refreshTempoDisplay(){
  const timing=getTiming();
- $('bpm').textContent=timing?'~ '+Math.round(timing.bpm)+' BPM':'TEMPO —';
+ $('bpm').textContent=timing?Math.round(timing.bpm)+' BPM':'TEMPO —';
 }
 function drawInput(){
  const [w,h]=fit(input),ctx=input.getContext('2d');canvasWidth=w;canvasHeight=h;
@@ -494,11 +329,11 @@ function drawInput(){
    ctx.font=`${Math.max(10,Math.min(12,Math.round(each*.22)))}px system-ui`;
    ctx.fillStyle=src.color;
    // Small left label so even four lanes fit side by side.
-   const labels={loudness:'Loud',bass:'Low',hits:'Hits',lowHits:'Low hits',onset:'Attack',activity:'Activity',intensity:'Energy',mid:'Mids',high:'High',brightness:'Bright'};
+   const labels={loudness:'Loud',bass:'Low',beat:'Beat',phase:'Phase',onsets:'Onsets',attack:'Attack',activity:'Activity',intensity:'Energy',mid:'Mids',high:'High',brightness:'Bright',texture:'Noise',harmonic:'Harmony'};
    ctx.fillText(labels[src.id]||src.name,7,labelY);
    const pad=Math.min(6,each*.15),height=each-pad*2,baseline=bottom-pad;
-   if(src.id==='hits'||src.id==='lowHits'){
-    const list=src.id==='hits'?dataset.events:dataset.lowEvents;
+   if(src.id==='onsets'){
+    const list=dataset.events;
     ctx.strokeStyle=src.color;ctx.lineWidth=Math.max(1.5,w/880);
     for(const ev of list){if(ev.t<start)continue;if(ev.t>end)break;
      const x=left+(ev.t-start)*pixelsPerSec;
@@ -519,7 +354,7 @@ function drawInput(){
   });
   // Beat/bar grid is a time alignment aid, not a claim that all musical accents were detected.
   const timing=getTiming();
-  if(timing && ($('beatGrid').checked || $('barGrid').checked)){
+  if(timing){
    const {interval,origin,beatsPerBar}=timing;
    const minBeat=Math.max(0,Math.ceil((start-origin)/interval));
    const maxBeat=Math.floor((end-origin)/interval);
@@ -527,12 +362,12 @@ function drawInput(){
    let prevLabelX=-1000;
    for(let i=minBeat;i<=maxBeat && i<minBeat+maxLines;i++){
     const isBar=i%beatsPerBar===0;
-    if((isBar && !$('barGrid').checked)||(!isBar&&!$('beatGrid').checked))continue;
+
     const t=origin+i*interval,x=left+(t-start)*pixelsPerSec;
     ctx.save();ctx.strokeStyle=isBar?'#e8bb74':'#8998b1';ctx.globalAlpha=isBar?.72:.27;
     ctx.lineWidth=isBar?Math.max(1.5,w/960):1;
     ctx.setLineDash(isBar?[]:[3,5]);ctx.beginPath();ctx.moveTo(x,waveTop);ctx.lineTo(x,h*.91);ctx.stroke();ctx.restore();
-    if(isBar && $('barGrid').checked && x>left+6 && x>prevLabelX+35 && x<right-20){
+    if(isBar && x>left+6 && x>prevLabelX+35 && x<right-20){
       ctx.fillStyle='#f0bd76';ctx.font=`bold ${Math.max(10,Math.floor(h*.028))}px system-ui`;
       ctx.fillText('BAR '+(Math.floor(i/beatsPerBar)+1),x+4,Math.max(27,waveTop-6));prevLabelX=x;
     }
@@ -551,7 +386,7 @@ function drawInput(){
  const railY=h-13;ctx.strokeStyle='#4b596d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(left,railY);ctx.lineTo(right,railY);ctx.stroke();ctx.fillStyle='#e5b15d';ctx.beginPath();ctx.arc(clamp(px,left,right),railY,5,0,Math.PI*2);ctx.fill();
 }
 function drawOutput(ms){const [w,h]=fit(output),ctx=output.getContext('2d');diagWidth=w;diagHeight=h;ctx.fillStyle='#0a101b';ctx.fillRect(0,0,w,h);
- const t=audio.currentTime||0,energy=vals.intensity||0,bass=vals.bass||0,onset=vals.hits||0,bright=vals.brightness||0,mid=vals.mid||0;
+ const t=audio.currentTime||0,energy=vals.intensity||0,bass=vals.bass||0,onset=vals.beat||0,bright=vals.brightness||0,mid=vals.mid||0;
  // Purely diagnostic signal visual. Not an interchangeable synthesis module.
  let cx=w*.5,cy=h*.53,r=Math.min(w,h)*.44;
  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r*1.35);g.addColorStop(0,`rgba(48,75,116,${.15+.25*energy})`);g.addColorStop(1,'rgba(8,13,21,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
@@ -563,30 +398,26 @@ function drawOutput(ms){const [w,h]=fit(output),ctx=output.getContext('2d');diag
  }
  ctx.lineWidth=1;ctx.strokeStyle='rgba(230,215,170,.27)';const pulse=8+onset*r*.52;ctx.beginPath();ctx.arc(cx,cy,pulse,0,2*Math.PI);ctx.stroke();
  // A minimal diagnostic bar row, visibly connected to analysis data.
- const cols=['bass','mid','high','hits','intensity'];const barw=w*.056,space=w*.023,groupw=cols.length*barw+(cols.length-1)*space,xx=(w-groupw)/2;
+ const cols=['bass','mid','high','beat','intensity'];const barw=w*.056,space=w*.023,groupw=cols.length*barw+(cols.length-1)*space,xx=(w-groupw)/2;
  for(let k=0;k<cols.length;k++){let v=vals[cols[k]]||0;ctx.fillStyle='#26354b';ctx.fillRect(xx+k*(barw+space),h*.9,barw,3);ctx.fillStyle=srcList.find(x=>x.id===cols[k])?.color||'#abc';ctx.fillRect(xx+k*(barw+space),h*.9,barw*v,3)}
 }
 function loop(ms){let t=audio.currentTime||0,dur=audio.duration||0;const now=performance.now();updateLive();drawInput();drawOutput(ms);$('elapsed').textContent=fmt(t);$('duration').textContent=fmt(dur);
  if(playing){if(lastFrame){const interval=now-lastFrame;if(interval>0&&interval<500)fpsSamples.push(1000/interval);if(fpsSamples.length>40)fpsSamples.shift()}lastFrame=now;let fps=fpsSamples.length?fpsSamples.reduce((a,b)=>a+b,0)/fpsSamples.length:0;$('fpsLabel').textContent=fps?'Preview · '+Math.round(fps)+' fps':'Preview · running'}else{$('fpsLabel').textContent='Preview · paused';lastFrame=0;fpsSamples=[]}
  raf=requestAnimationFrame(loop)}
-function downsample(buffer,target=12000){
- const rate=buffer.sampleRate,channels=buffer.numberOfChannels,length=Math.floor(buffer.duration*target),step=rate/target;
+async function prepareAudio(buffer){
+ const rate=buffer.sampleRate,channels=buffer.numberOfChannels,hz=120,nbins=Math.max(1,Math.ceil(buffer.duration*hz));
  const left=buffer.getChannelData(0),right=channels>1?buffer.getChannelData(1):left;
- const samples=new Float32Array(length),hz=120,nbins=Math.max(1,Math.ceil(buffer.duration*hz));
- const min=new Float32Array(nbins),max=new Float32Array(nbins);
- min.fill(1);max.fill(-1);
- for(let i=0;i<length;i++){
-  const st=Math.floor(i*step),en=Math.min(left.length,Math.max(st+1,Math.floor((i+1)*step)));
-  let sum=0;
-  for(let j=st;j<en;j++){
-   const v=(left[j]+right[j])*.5;sum+=v;
-   const k=Math.min(nbins-1,Math.floor(j/rate*hz));
-   if(v<min[k])min[k]=v;if(v>max[k])max[k]=v;
-  }
-  samples[i]=sum/(en-st||1);
- }
- for(let k=0;k<nbins;k++){if(min[k]>max[k]){min[k]=0;max[k]=0}}
- return {samples,waveform:{min,max,hz},sampleRate:target};
+ const min=new Float32Array(nbins),max=new Float32Array(nbins);min.fill(1);max.fill(-1);
+ // Extract the visual waveform from the original decoded track, keeping its peaks.
+ const stride=Math.max(1,Math.floor(rate/360));
+ for(let i=0;i<left.length;i+=stride){const k=Math.min(nbins-1,Math.floor(i/rate*hz));const v=(left[i]+right[i])*.5;if(v<min[k])min[k]=v;if(v>max[k])max[k]=v}
+ for(let k=0;k<nbins;k++)if(min[k]>max[k]){min[k]=0;max[k]=0}
+ // Essentia rhythm/onset detectors require exactly 44.1 kHz. WebAudio handles resampling.
+ const targetRate=44100;
+ const offline=new OfflineAudioContext(1,Math.ceil(buffer.duration*targetRate),targetRate);
+ const source=offline.createBufferSource();source.buffer=buffer;source.connect(offline.destination);source.start();
+ const converted=await offline.startRendering();
+ return {samples:converted.getChannelData(0).slice(),sampleRate:targetRate,waveform:{min,max,hz}};
 }
 async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let token=++fileToken;stopWorker();audio.pause();audio.removeAttribute('src');audio.load();if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(file);audio.src=url;clearData();playing=false;$('play').disabled=false;$('stop').disabled=false;$('play').textContent='▶';$('trackname').textContent=file.name;$('trackname').title=file.name;badge('DECODING');msg('Decoding MP3 locally…','busy');
  if(!/\.mp3$/i.test(file.name)){msg('This first prototype is designed for MP3 files. Attempting decode…','busy')}
@@ -597,15 +428,15 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
   if(token!==fileToken)return;
   $('duration').textContent=fmt(decoded.duration);badge('PREPARING');msg('Preparing the waveform and analysis worker…','busy');
   await new Promise(r=>setTimeout(r,40));
-  const prepared=downsample(decoded,12000);if(token!==fileToken)return;
-  waveform=prepared.waveform;badge('ANALYSING');msg('Extracting multi-band attacks and rhythmic hits…','busy');drawInput();
-  const code=$('workerSource').textContent;const workerUrl=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));worker=new Worker(workerUrl);URL.revokeObjectURL(workerUrl);
+  const prepared=await prepareAudio(decoded);if(token!==fileToken)return;
+  waveform=prepared.waveform;badge('ANALYSING');msg('Starting established music-analysis libraries…','busy');drawInput();
+  worker=new Worker('./analysis-worker.js');
   worker.onmessage=ev=>{if(token!==fileToken)return;const o=ev.data;
-   if(o.type==='progress'){msg('Analysing music… '+o.value+'%','busy')}
+   if(o.type==='progress'){msg((o.detail||'Analysing music…')+' '+o.value+'%','busy')}
    if(o.type==='error'){badge('ERROR');msg('Analysis failed: '+o.message,'error');stopWorker()}
    if(o.type==='done'){
     dataset={dt:o.dt,t0:o.t0,signals:o.signals,events:o.events,lowEvents:o.lowEvents,beats:o.beats,bpm:o.bpm,beatConfidence:o.beatConfidence};
-    refreshTempoDisplay();badge('READY');msg('Musical signals ready. Play and explore.','ok');stopWorker();drawInput()
+    refreshTempoDisplay();badge('READY');msg('Essentia + Meyda signals ready. Play and explore.','ok');stopWorker();drawInput()
    }
   };
   worker.onerror=err=>{if(token!==fileToken)return;badge('ERROR');msg('Analysis worker error: '+(err.message||'unknown error'),'error');stopWorker()};
@@ -661,8 +492,7 @@ $('focusInput').addEventListener('click',()=>{
 $('file').addEventListener('change',fileChange);
 $('play').onclick=playpause;
 $('stop').onclick=()=>{audio.pause();audio.currentTime=0};
-$('beatGrid').onchange=drawInput;
-$('barGrid').onchange=drawInput;
+
 $('window').onchange=()=>{windowSec=Number($('window').value);drawInput()};
 
 function scrubInput(e){if(!Number.isFinite(audio.duration)||!audio.duration)return;
