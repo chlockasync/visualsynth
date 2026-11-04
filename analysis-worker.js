@@ -11,11 +11,28 @@ function vecToArray(e,v){if(!v)return [];const arr=Array.from(e.vectorToArray(v)
 function envelope(events,n,dt,decay=.12){const a=new Float32Array(n);let j=0;for(let i=0;i<n;i++){const t=i*dt;while(j<events.length&&events[j].t<=t)j++;if(j){const ev=events[j-1];a[i]=ev.strength*Math.exp(-(t-ev.t)/decay)}}return a}
 function sourcePhase(beats,n,dt){const phase=new Float32Array(n),pulse=new Float32Array(n);if(!beats.length)return {phase,pulse};let j=0;for(let i=0;i<n;i++){const t=i*dt;while(j+1<beats.length&&beats[j+1]<=t)j++;const prev=beats[j],next=beats[j+1]??prev+((beats[j]-beats[j-1])||.5),span=Math.max(.02,next-prev);phase[i]=t<beats[0]?0:clamp((t-prev)/span);pulse[i]=t<beats[0]?0:Math.exp(-(t-prev)/.10)}return {phase,pulse}}
 async function init(){
- postMessage({type:'progress',value:2,detail:'Loading Essentia and Meyda libraries…'});
- importScripts(ESS+'essentia-wasm.web.js',ESS+'essentia.js-core.js',MEY);
- if(typeof EssentiaWASM!=='function'||typeof Essentia!=='function'||typeof Meyda==='undefined')throw Error('Music-analysis libraries did not load. Check internet access to jsDelivr.');
- const wasm=await EssentiaWASM({locateFile:file=>ESS+file});
- return {e:new Essentia(wasm),m:Meyda};
+  postMessage({type:'progress',value:2,detail:'Loading Essentia’s worker-compatible WASM…'});
+  // IMPORTANT: essentia-wasm.web.js is built for a DOM page and accesses `document`.
+  // Workers have no document. The Essentia project explicitly demonstrates
+  // essentia-wasm.umd.js (synchronous WASM) inside importScripts-based Workers.
+  try { importScripts(ESS+'essentia-wasm.umd.js'); }
+  catch(err) { throw Error('Cannot load Essentia worker WASM: '+(err?.message||err)); }
+  if(typeof Module==='undefined') throw Error('Essentia worker WASM loaded, but did not expose Module.');
+  const wasm=Module;
+  try { importScripts(ESS+'essentia.js-core.js'); }
+  catch(err) { throw Error('Cannot load Essentia core: '+(err?.message||err)); }
+  if(typeof Essentia!=='function') throw Error('Essentia core did not expose an Essentia constructor.');
+  postMessage({type:'progress',value:5,detail:'Loading Meyda acoustic-feature library…'});
+  // Meyda's web bundle is designed to expose a global to `window`.
+  // In a dedicated Worker, self is the appropriate global instead.
+  if(typeof window==='undefined') self.window=self;
+  try { importScripts(MEY); }
+  catch(err) { throw Error('Cannot load Meyda: '+(err?.message||err)); }
+  if(typeof Meyda==='undefined'||typeof Meyda.extract!=='function') throw Error('Meyda loaded, but its extract function is unavailable.');
+  let e;
+  try { e=new Essentia(wasm); }
+  catch(err) { throw Error('Essentia worker WASM initialisation failed: '+(err?.message||err)); }
+  return {e,m:Meyda};
 }
 async function analyse(samples,rate){
  if(rate!==44100)throw Error('The analysis audio must be 44,100 Hz.');
