@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.020</title>
+<title>Visual Synth | Input Lab v0.1.021</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -211,12 +211,55 @@ body{background-image:none!important;}
 /* Version must be plainly visible to distinguish cached GitHub Pages releases. */
 .brand .app-version{font-family:Arial,sans-serif;font-size:11px;line-height:1;color:#f1c784;font-weight:700;letter-spacing:.06em;white-space:nowrap;align-self:center;margin-left:-9px;}
 @media(max-width:600px){.brand .app-version{font-size:9px;margin-left:-5px;}}
+
+/* v0.1.021: thirteen independent source-conditioning strips, JP-panel vocabulary */
+.mixer-frame{position:relative;margin-top:12px;border:6px solid #151916;border-radius:15px;background:#384254;padding:26px 0 0;min-width:0;}
+.mixer-heading{position:absolute;top:-6px;left:50%;transform:translateX(-50%);margin:0;z-index:5;min-height:20px;padding:1px 19px 2px;min-width:205px;max-width:calc(100% - 30px);text-align:center;font:700 11px/17px 'Arial Narrow','Segoe UI',Arial,sans-serif;letter-spacing:.065em;color:var(--gold);white-space:nowrap;background:#151916;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,10px 100%);}
+.mixer-intro,.mixer-foot{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:2px 13px 10px;font-size:10px;color:#e9bf76;font-weight:700;letter-spacing:.07em;}
+.mixer-subtitle{color:#c0cad9;font-size:10px;font-weight:500;letter-spacing:.018em;}
+.mixer-foot{padding:9px 13px;letter-spacing:.012em;font-weight:400;color:#cbd2df;flex-wrap:wrap;border-top:2px solid #151916;}
+.mixer-foot b{color:var(--gold);}
+.mixer-scroll{overflow-x:auto;overscroll-behavior-x:contain;background:#151916;scrollbar-color:#a6b3c5 #151916;}
+.channel-rack{display:grid;grid-template-columns:repeat(13,minmax(103px,1fr));gap:2px;background:#151916;min-width:1340px;padding:0 0 2px;}
+.channel-strip{position:relative;min-width:0;background:#384254;padding:25px 6px 11px;display:flex;flex-direction:column;gap:8px;align-items:stretch;min-height:385px;}
+.channel-strip.off{color:#98a3b5;}
+.channel-strip:focus-within{background:#3c485d;}
+.channel-name{position:absolute;top:0;left:3px;right:3px;height:18px;padding:1px 3px;display:flex;align-items:center;justify-content:center;font:700 10px/13px 'Arial Narrow','Segoe UI',Arial,sans-serif;color:#efbd69;letter-spacing:.01em;text-transform:uppercase;white-space:nowrap;background:#151916;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,8px 100%);}
+.channel-family{font-size:9px;text-align:center;letter-spacing:.12em;color:#c5ceda;min-height:12px;}
+.channel-switches{display:flex;align-items:center;justify-content:space-between;gap:3px;}
+.channel-power,.channel-trace{height:27px;min-width:0;flex:1;border:1px solid #151916;border-radius:5px;background:#2d374a;color:#bdc7d5;font-size:9px;font-weight:800;letter-spacing:.045em;padding:2px;}
+.channel-power{display:flex;align-items:center;justify-content:center;gap:3px;}
+.channel-power .led{width:7px;height:7px;border-radius:50%;background:#151916;border:1px solid #8592a6;}
+.channel-power[aria-pressed=true] .led{background:#ffc775;border-color:#f5cc88;}
+.channel-power[aria-pressed=true]{color:#f0f2f7;}
+.channel-trace[aria-pressed=true]{color:#ffcb74;border-color:#bd975d;}
+.channel-power:focus-visible,.channel-trace:focus-visible{outline:2px solid #ffcf83;outline-offset:1px;}
+.channel-main{display:flex;align-items:center;justify-content:center;gap:8px;height:115px;}
+.channel-fader{writing-mode:vertical-lr;direction:rtl;appearance:auto;accent-color:#bedde9;width:19px;height:104px;margin:0;cursor:ns-resize;}
+.channel-meter{width:9px;height:100px;border:1px solid #151916;border-radius:3px;background:#172131;position:relative;overflow:hidden;}
+.channel-meter-fill{position:absolute;bottom:0;left:0;right:0;height:0%;background:var(--channel-color,#9dd9e3);}
+.channel-level-label{text-align:center;color:#e2e7ef;font-size:9px;letter-spacing:.045em;}
+.channel-level-value{text-align:center;color:#f0c079;font-size:10px;font-variant-numeric:tabular-nums;}
+.channel-dials{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 4px;align-items:start;justify-items:center;margin-top:3px;}
+.channel-dial{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;width:100%;touch-action:none;cursor:ns-resize;outline-offset:2px;}
+.channel-dial:focus-visible{outline:2px solid #f5c57d;border-radius:4px;}
+.channel-dial-title{color:#e1e6ee;font-size:9px;white-space:nowrap;}
+.channel-dial-face{display:block;width:33px;height:33px;border:3px solid #151916;border-radius:50%;background:#242e40;position:relative;}
+.channel-dial-face:after{content:'';width:3px;height:12px;background:#e8edf4;border-radius:3px;position:absolute;left:calc(50% - 1.5px);top:2px;transform-origin:50% 12px;transform:rotate(var(--dial-angle,-135deg));}
+.channel-dial-val{font-size:9px;color:#e3bc79;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.channel-special{margin-top:3px;border-top:1px solid #202a39;padding-top:9px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.channel-special .channel-dial-face{width:30px;height:30px;}
+.channel-readout{margin-top:auto;font-size:10px;text-align:center;color:#c2d1e4;border-top:1px solid #202a39;padding-top:7px;font-variant-numeric:tabular-nums;}
+.channel-strip.off .channel-meter-fill{background:#78869a;opacity:.25;}
+.channel-strip.off .channel-readout{color:#8e9aad;}
+@media(max-width:1500px){.mixer-intro{font-size:10px}.mixer-scroll{scrollbar-width:thin;}}
+@media(max-width:650px){.mixer-intro,.mixer-foot{flex-direction:column;align-items:flex-start;gap:4px}.mixer-frame{margin-top:8px;}.channel-rack{grid-template-columns:repeat(13,105px);}}
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><strong>VISUAL SYNTH</strong><span class="app-version" aria-label="Application version">v0.1.020</span><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span></div>
+    <div class="brand"><strong>VISUAL SYNTH</strong><span class="app-version" aria-label="Application version">v0.1.021</span><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span></div>
     <div class="header-actions" role="group" aria-label="Track and recording">
       
       <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -249,26 +292,12 @@ body{background-image:none!important;}
     <button class="tab" disabled title="Routing and modulation come next">MODULATION · LATER</button>
     <button class="tab" disabled title="Video recording comes later">RECORDING · LATER</button>
   </nav>
-  <div class="control-grid">
-    <section class="controlbox">
-      <h2 class="subheading">Analysis controls</h2>
-      <div class="analysis-group">
-        <div class="analysis-group-title">RHYTHM · ESSENTIA.JS</div>
-        <p class="explain">Tempo, beats and bars are always shown in the timeline. Bar boundaries assume 4/4 and the first detected beat starts bar 1.</p>
-        <p class="explain" id="engineStatus">Essentia.js: tempo, beats, onsets. Meyda: loudness, tone, spectral energy. Analyses the whole uploaded track before playback.</p>
-      </div>
-      <div class="analysis-group">
-        <div class="analysis-group-title">MUSICAL SOURCES · ESSENTIA + MEYDA</div>
-        <p class="explain" style="margin:8px 0">Select the musical sources shown on the timeline. All extracted signals remain available to the visual synth.</p>
-        <div class="legend" id="toggles"></div>
-      </div>
-    </section>
-    <section class="controlbox">
-      <h2 class="subheading">Live source signals</h2>
-      <p class="explain">Music-derived signals available at the playhead, ready to become visual modulation sources.</p>
-      <div class="signal-grid" id="signals"></div>
-    </section>
-  </div>
+  <section class="mixer-frame" aria-label="13 input conditioning channels">
+    <h2 class="mixer-heading">03 / INPUT CHANNELS</h2>
+    <div class="mixer-intro"><span>13 MUSIC SOURCES <span class="mixer-subtitle">· shape the signals before visual synthesis</span></span><span id="mixerStatus" class="mixer-subtitle">LOAD A TRACK TO BEGIN</span></div>
+    <div class="mixer-scroll" tabindex="0" aria-label="Input channel mixer; scroll horizontally if required"><div id="channelRack" class="channel-rack"></div></div>
+    <div class="mixer-foot"><span><b>ON</b> sends a channel to the output · <b>TRACE</b> shows it in the input timeline</span><span>LEVEL · GATE · ATTACK · RELEASE · FILTER + SOURCE CONTROL</span></div>
+  </section>
 </div>
 <audio id="player" preload="metadata" style="display:none"></audio>
 
@@ -278,21 +307,24 @@ const $=id=>document.getElementById(id);
 const audio=$('player'),input=$('inputCanvas'),output=$('outputCanvas');
 const monitorGrid=$('monitorGrid'),splitter=$('monitorSplitter');
 const srcList=[
- {id:'loudness',name:'Loudness',color:'#87cafa',desc:'Meyda perceptual loudness'},
- {id:'beat',name:'Beat pulse',color:'#e5b15d',desc:'Essentia tracked beats, with a short visual pulse envelope'},
- {id:'phase',name:'Beat phase',color:'#f3cf87',desc:'Progress through the time between detected beats'},
- {id:'onsets',name:'Note attacks',color:'#f5aa89',desc:'Essentia-detected musical note and percussion onsets'},
- {id:'attack',name:'Attack envelope',color:'#ef9b91',desc:'Short envelope triggered by detected note attacks'},
- {id:'activity',name:'Rhythmic activity',color:'#a9d5aa',desc:'Density of detected note attacks'},
- {id:'intensity',name:'Intensity',color:'#ffcf83',desc:'Loudness and rhythmic activity blended for visual control'},
- {id:'bass',name:'Low energy',color:'#ed9abc',desc:'Meyda spectrum energy below 180 Hz, not bass-note transcription'},
- {id:'mid',name:'Mid energy',color:'#acb7fb',desc:'Meyda spectrum energy from 180 Hz to 2 kHz'},
- {id:'high',name:'High energy',color:'#9bd9b9',desc:'Meyda spectrum energy above 2 kHz'},
- {id:'brightness',name:'Brightness',color:'#e5b98b',desc:'Meyda spectral centroid'},
- {id:'texture',name:'Noisiness',color:'#92cad2',desc:'Meyda spectral flatness'},
- {id:'harmonic',name:'Harmonic change',color:'#c8adf5',desc:'Movement in Meyda chroma features, not isolated melody'}
+ {id:'beat',name:'BEAT',family:'TIMING',color:'#e5b15d',desc:'Essentia beat events, shaped as trigger pulses',special:'WIDTH',specialKind:'width'},
+ {id:'phase',name:'PHASE',family:'TIMING',color:'#e6ce91',desc:'Position between detected beats, with an adjustable cycle multiplier',special:'RATE',specialKind:'rate'},
+ {id:'onsets',name:'ONSETS',family:'TIMING',color:'#eda689',desc:'Each detected musical attack, whether or not on the beat',special:'CURVE',specialKind:'curve'},
+ {id:'attack',name:'STRENGTH',family:'TIMING',color:'#e69a9a',desc:'Strength envelope from detected musical attacks',special:'CURVE',specialKind:'curve'},
+ {id:'bassContour',name:'BASS PITCH',family:'LOW',color:'#e9a4c8',desc:'Approximate low-register pitch prominence; not isolated bass-note transcription',special:'RANGE',specialKind:'range'},
+ {id:'bassMovement',name:'BASS MOVE',family:'LOW',color:'#cb92bb',desc:'Speed of changes in the approximate low-register pitch',special:'CURVE',specialKind:'curve'},
+ {id:'upperContour',name:'UPPER PITCH',family:'UPPER',color:'#a6d0e7',desc:'Approximate upper-register pitch prominence; not isolated lead-melody transcription',special:'RANGE',specialKind:'range'},
+ {id:'upperMovement',name:'UPPER MOVE',family:'UPPER',color:'#9da9f2',desc:'Speed of changes in the approximate upper-register pitch',special:'CURVE',specialKind:'curve'},
+ {id:'loudness',name:'LOUDNESS',family:'STATE',color:'#88c8fa',desc:'Meyda perceptual loudness',special:'CURVE',specialKind:'curve'},
+ {id:'intensity',name:'INTENSITY',family:'STATE',color:'#ffcf83',desc:'Musical energy combining loudness, brightness and attack activity',special:'CURVE',specialKind:'curve'},
+ {id:'brightness',name:'BRIGHTNESS',family:'STATE',color:'#e7bf8f',desc:'Meyda spectral centroid, showing whether a sound is bright or dark',special:'CURVE',specialKind:'curve'},
+ {id:'activity',name:'ACTIVITY',family:'STATE',color:'#a9d5aa',desc:'Density of musical attacks through time',special:'CURVE',specialKind:'curve'},
+ {id:'texture',name:'TEXTURE',family:'STATE',color:'#91cbd3',desc:'Spectral flatness, tonal versus noisy texture',special:'CURVE',specialKind:'curve'}
 ];
-let chosen=new Set(['loudness','beat','onsets','bass']),vals={},smoothVals={},dataset=null,waveform=null,worker=null,url=null;
+const metadata=Object.fromEntries(srcList.map(x=>[x.id,x]));
+let chosen=new Set(['beat','bassContour','upperContour','intensity']);
+const configs={}, conditioned={};
+let vals={},dataset=null,waveform=null,worker=null,url=null;
 let fileToken=0,windowSec=8,playing=false,raf=0,lastFrame=0,fpsSamples=[],lastDisplay={start:0,end:20},started=false;
 let canvasWidth=0,canvasHeight=0,diagWidth=0,diagHeight=0;
 const fmt=(v)=>{if(!Number.isFinite(v))return '0:00';let h=Math.floor(v/3600),m=Math.floor(v%3600/60),s=Math.floor(v%60);return (h?h+':'+String(m).padStart(2,'0'):String(m))+':'+String(s).padStart(2,'0')};
@@ -300,17 +332,60 @@ function fmtAxis(t){return fmt(t)+(windowSec<=4?'.'+String(Math.round((t-Math.fl
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 function msg(s,state=''){ $('inputStatus').textContent=s;$('inputStatus').className='status '+state; }
 function badge(s){$('analysisPill').textContent=s;}
+const controls={gate:{min:0,max:.95,default:0,format:v=>Math.round(v*100)+'%'},attack:{min:0,max:1.2,default:.02,format:v=>Math.round(v*1000)+'ms'},release:{min:0,max:2.5,default:.12,format:v=>Math.round(v*1000)+'ms'},filter:{min:.25,max:20,default:20,format:v=>v>=10?v.toFixed(0)+'Hz':v.toFixed(1)+'Hz'},width:{min:.035,max:.6,default:.12,format:v=>Math.round(v*1000)+'ms'},rate:{min:.5,max:4,default:1,format:v=>v.toFixed(1)+'×'},curve:{min:.45,max:2.5,default:1,format:v=>v.toFixed(2)},range:{min:.5,max:2,default:1,format:v=>v.toFixed(2)+'×'}};
+function makeDial(source,key,label){
+ const setting=controls[key];const wrap=document.createElement('div');wrap.className='channel-dial';wrap.setAttribute('role','slider');wrap.setAttribute('tabindex','0');wrap.setAttribute('aria-label',source.name+' '+label);wrap.setAttribute('aria-valuemin',String(setting.min));wrap.setAttribute('aria-valuemax',String(setting.max));
+ wrap.innerHTML=`<span class="channel-dial-title">${label}</span><span class="channel-dial-face" aria-hidden="true"></span><span class="channel-dial-val"></span>`;
+ const write=(v)=>{configs[source.id][key]=clamp(v,setting.min,setting.max);wrap.style.setProperty('--dial-angle',(configs[source.id][key]-setting.min)/(setting.max-setting.min)*270-135+'deg');wrap.lastElementChild.textContent=setting.format(configs[source.id][key]);wrap.setAttribute('aria-valuenow',String(+configs[source.id][key].toFixed(3)));wrap.setAttribute('aria-valuetext',setting.format(configs[source.id][key]));rebuildChannel(source.id);drawInput();};
+ let dragY=0,dragVal=0,dragging=false;
+ wrap.addEventListener('pointerdown',e=>{if(e.button!==0)return;dragging=true;dragY=e.clientY;dragVal=configs[source.id][key];wrap.setPointerCapture(e.pointerId);wrap.focus();e.preventDefault()});
+ wrap.addEventListener('pointermove',e=>{if(dragging)write(dragVal+(dragY-e.clientY)*(setting.max-setting.min)/155)});
+ for(const type of ['pointerup','pointercancel','lostpointercapture'])wrap.addEventListener(type,()=>dragging=false);
+ wrap.addEventListener('keydown',e=>{let delta;if(e.key==='ArrowUp'||e.key==='ArrowRight')delta=.02;else if(e.key==='ArrowDown'||e.key==='ArrowLeft')delta=-.02;else if(e.key==='Home'){write(setting.min);e.preventDefault();return}else if(e.key==='End'){write(setting.max);e.preventDefault();return}else return;write(configs[source.id][key]+delta*(setting.max-setting.min));e.preventDefault()});
+ write(configs[source.id][key]);return wrap;
+}
 function createSources(){
- const container=$('toggles'),grid=$('signals');
- for(const source of srcList){
-  const btn=document.createElement('button');btn.type='button';btn.className='chip';btn.setAttribute('aria-pressed',chosen.has(source.id)?'true':'false');btn.title='Toggle '+source.name+' timeline';btn.innerHTML=`<span class="dot" style="--c:${source.color}"></span>${source.name}`;btn.onclick=()=>{if(chosen.has(source.id))chosen.delete(source.id);else chosen.add(source.id);btn.setAttribute('aria-pressed',String(chosen.has(source.id)));drawInput()};container.append(btn);
-  const card=document.createElement('div');card.className='signal';card.title=source.desc;card.innerHTML=`<div class="signal-header"><span>${source.name}</span><span id="num-${source.id}">0.00</span></div><div class="meter" style="--c:${source.color}"><div id="bar-${source.id}"></div></div>`;grid.append(card);
+ const rack=$('channelRack');rack.replaceChildren();
+ for(const src of srcList){
+  configs[src.id]={on:true,level:1,gate:0,attack:.02,release:.12,filter:20,[src.specialKind]:controls[src.specialKind].default};
+  if(src.id==='beat'||src.id==='onsets'){configs[src.id].attack=0;configs[src.id].release=.035}
+  if(src.id==='phase'){configs[src.id].attack=0;configs[src.id].release=0}
+  const strip=document.createElement('div');strip.className='channel-strip';strip.id='channel-'+src.id;strip.title=src.desc;strip.style.setProperty('--channel-color',src.color);
+  strip.innerHTML=`<div class="channel-name">${src.name}</div><div class="channel-family">${src.family}</div><div class="channel-switches"><button class="channel-power" aria-label="Enable ${src.name}" aria-pressed="true" type="button"><span class="led"></span>ON</button><button class="channel-trace" aria-label="Display ${src.name} on the timeline" aria-pressed="${chosen.has(src.id)}" type="button">TRACE</button></div><div class="channel-main"><input class="channel-fader" type="range" min="0" max="200" value="100" step="1" aria-label="${src.name} output level"><div class="channel-meter" aria-label="Live processed level"><div class="channel-meter-fill" id="bar-${src.id}"></div></div></div><div class="channel-level-label">LEVEL</div><div class="channel-level-value">100%</div><div class="channel-dials"></div><div class="channel-special"></div><div class="channel-readout" id="num-${src.id}">0.00</div>`;
+  rack.appendChild(strip);
+  const power=strip.querySelector('.channel-power'),trace=strip.querySelector('.channel-trace'),fader=strip.querySelector('.channel-fader');
+  power.onclick=()=>{const cfg=configs[src.id];cfg.on=!cfg.on;power.setAttribute('aria-pressed',String(cfg.on));strip.classList.toggle('off',!cfg.on);rebuildChannel(src.id);drawInput()};
+  trace.onclick=()=>{if(chosen.has(src.id))chosen.delete(src.id);else chosen.add(src.id);trace.setAttribute('aria-pressed',String(chosen.has(src.id)));drawInput()};
+  fader.addEventListener('input',()=>{configs[src.id].level=+fader.value/100;strip.querySelector('.channel-level-value').textContent=fader.value+'%';rebuildChannel(src.id);drawInput()});
+  for(const [key,label] of [['gate','GATE'],['attack','ATT'],['release','REL'],['filter','LPF']])strip.querySelector('.channel-dials').append(makeDial(src,key,label));
+  strip.querySelector('.channel-special').append(makeDial(src,src.specialKind,src.special));
  }
 }
+function rebuildAllChannels(){srcList.forEach(s=>rebuildChannel(s.id))}
+function rebuildChannel(id){
+ if(!dataset?.signals)return;
+ const raw=dataset.signals[id],n=raw?.length;if(!n)return;
+ const c=configs[id];const out=new Float32Array(n),dt=dataset.dt;
+ const lowpassAlpha=1-Math.exp(-2*Math.PI*c.filter*dt),aAlpha=c.attack?1-Math.exp(-dt/c.attack):1,rAlpha=c.release?1-Math.exp(-dt/c.release):1;
+ let low=0,env=0;
+ for(let i=0;i<n;i++){
+  let x=clamp(raw[i]||0);
+  if(id==='beat'&& c.width!==.12){const prev=dataset.signals.beat[i]||0;x=Math.pow(prev,.12/c.width)}
+  else if(id==='phase'){x=(x*c.rate)%1}
+  else if(c.curve!==undefined){x=Math.pow(x,c.curve)}
+  else if(c.range!==undefined){x=clamp(.5+(x-.5)*c.range)}
+  x=c.gate>=1?0:clamp((x-c.gate)/(1-c.gate));
+  low+=lowpassAlpha*(x-low);
+  env+=(low>env?aAlpha:rAlpha)*(low-env);
+  out[i]=c.on?clamp(env*c.level):0;
+ }
+ conditioned[id]=out;
+}
+
 function fit(canvas){const rect=canvas.getBoundingClientRect();const dpr=Math.min(devicePixelRatio||1,1.7);const width=Math.max(1,Math.floor(rect.width*dpr)),height=Math.max(1,Math.floor(rect.height*dpr));if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height}return [width,height]}
-function value(id,t){if(!dataset)return 0;const arr=dataset.signals[id];if(!arr||!arr.length)return 0;let pos=clamp((t-dataset.t0)/dataset.dt,0,arr.length-1),i=pos|0,f=pos-i;return (arr[i]||0)*(1-f)+(arr[Math.min(arr.length-1,i+1)]||0)*f}
-function updateLive(){const t=audio.currentTime||0,smooth=0;for(let s of srcList){let v=value(s.id,t);const last=smoothVals[s.id]??v;v=smooth*last+(1-smooth)*v;smoothVals[s.id]=v;vals[s.id]=v;$('num-'+s.id).textContent=v.toFixed(2);$('bar-'+s.id).style.width=(100*v).toFixed(1)+'%'}}
-function clearData(){dataset=null;waveform=null;Object.keys(vals).forEach(x=>{vals[x]=0;delete smoothVals[x]});$('bpm').textContent='TEMPO —';$('fpsLabel').textContent='Preview · idle';updateLive();drawInput();drawOutput(0)}
+function value(id,t){if(!dataset)return 0;const arr=conditioned[id]||dataset.signals[id];if(!arr||!arr.length)return 0;let pos=clamp((t-dataset.t0)/dataset.dt,0,arr.length-1),i=pos|0,f=pos-i;return (arr[i]||0)*(1-f)+(arr[Math.min(arr.length-1,i+1)]||0)*f}
+function updateLive(){const t=audio.currentTime||0;for(const s of srcList){let v=value(s.id,t);vals[s.id]=v;$('num-'+s.id).textContent=v.toFixed(2);$('bar-'+s.id).style.height=(100*v).toFixed(1)+'%'}}
+function clearData(){dataset=null;waveform=null;Object.keys(conditioned).forEach(x=>delete conditioned[x]);Object.keys(vals).forEach(x=>vals[x]=0);$('bpm').textContent='TEMPO —';$('fpsLabel').textContent='Preview · idle';$('mixerStatus').textContent='LOAD A TRACK TO BEGIN';updateLive();drawInput();drawOutput(0)}
 function stopWorker(){if(worker){worker.terminate();worker=null}}
 function getTiming(){
  const bpm=dataset?.bpm;
@@ -360,24 +435,13 @@ function drawInput(){
    ctx.font=`${Math.max(10,Math.min(12,Math.round(each*.22)))}px system-ui`;
    ctx.fillStyle=src.color;
    // Small left label so even four lanes fit side by side.
-   const labels={loudness:'Loud',bass:'Low',beat:'Beat',phase:'Phase',onsets:'Onsets',attack:'Attack',activity:'Activity',intensity:'Energy',mid:'Mids',high:'High',brightness:'Bright',texture:'Noise',harmonic:'Harmony'};
+   const labels={beat:'Beat',phase:'Phase',onsets:'Onsets',attack:'Strength',bassContour:'Bass pitch',bassMovement:'Bass move',upperContour:'Upper pitch',upperMovement:'Upper move',loudness:'Loud',intensity:'Energy',brightness:'Bright',activity:'Activity',texture:'Texture'};
    ctx.fillText(labels[src.id]||src.name,7,labelY);
    const pad=Math.min(6,each*.15),height=each-pad*2,baseline=bottom-pad;
-   if(src.id==='onsets'){
-    const list=dataset.events;
-    ctx.strokeStyle=src.color;ctx.lineWidth=Math.max(1.5,w/880);
-    for(const ev of list){if(ev.t<start)continue;if(ev.t>end)break;
-     const x=left+(ev.t-start)*pixelsPerSec;
-     ctx.beginPath();ctx.moveTo(x,baseline);ctx.lineTo(x,baseline-height*Math.max(.2,ev.strength));ctx.stroke();
-    }
-   }else{
-    const y=value(src.id,start);
-    ctx.beginPath();ctx.moveTo(left,baseline-y*height);
-    for(let x=Math.floor(left)+2;x<right;x+=2){
-     const t=start+(x-left)/plotw*windowSec;ctx.lineTo(x,baseline-value(src.id,t)*height);
-    }
-    ctx.strokeStyle=src.color;ctx.lineWidth=Math.max(1.5,w/860);ctx.stroke();
-   }
+   const y=value(src.id,start);
+   ctx.beginPath();ctx.moveTo(left,baseline-y*height);
+   for(let x=Math.floor(left)+2;x<right;x+=2){const t=start+(x-left)/plotw*windowSec;ctx.lineTo(x,baseline-value(src.id,t)*height)}
+   ctx.strokeStyle=src.color;ctx.lineWidth=Math.max(1.5,w/860);ctx.stroke();
    // A small live position dot makes comparisons to the heard sound more direct.
    const current=clamp(value(src.id,sec));
    const px=left+(sec-start)*pixelsPerSec;
@@ -417,7 +481,7 @@ function drawInput(){
  const railY=h-13;ctx.strokeStyle='#4b596d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(left,railY);ctx.lineTo(right,railY);ctx.stroke();ctx.fillStyle='#e5b15d';ctx.beginPath();ctx.arc(clamp(px,left,right),railY,5,0,Math.PI*2);ctx.fill();
 }
 function drawOutput(ms){const [w,h]=fit(output),ctx=output.getContext('2d');diagWidth=w;diagHeight=h;ctx.fillStyle='#0a101b';ctx.fillRect(0,0,w,h);
- const t=audio.currentTime||0,energy=vals.intensity||0,bass=vals.bass||0,onset=vals.beat||0,bright=vals.brightness||0,mid=vals.mid||0;
+ const t=audio.currentTime||0,energy=vals.intensity||0,bass=vals.bassContour||0,onset=(vals.onsets||0)*.6+(vals.beat||0)*.4,bright=vals.brightness||0,mid=vals.upperMovement||0;
  // Purely diagnostic signal visual. Not an interchangeable synthesis module.
  let cx=w*.5,cy=h*.53,r=Math.min(w,h)*.44;
  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r*1.35);g.addColorStop(0,`rgba(48,75,116,${.15+.25*energy})`);g.addColorStop(1,'rgba(8,13,21,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
@@ -429,7 +493,7 @@ function drawOutput(ms){const [w,h]=fit(output),ctx=output.getContext('2d');diag
  }
  ctx.lineWidth=1;ctx.strokeStyle='rgba(230,215,170,.27)';const pulse=8+onset*r*.52;ctx.beginPath();ctx.arc(cx,cy,pulse,0,2*Math.PI);ctx.stroke();
  // A minimal diagnostic bar row, visibly connected to analysis data.
- const cols=['bass','mid','high','beat','intensity'];const barw=w*.056,space=w*.023,groupw=cols.length*barw+(cols.length-1)*space,xx=(w-groupw)/2;
+ const cols=['bassContour','upperContour','onsets','beat','intensity'];const barw=w*.056,space=w*.023,groupw=cols.length*barw+(cols.length-1)*space,xx=(w-groupw)/2;
  for(let k=0;k<cols.length;k++){let v=vals[cols[k]]||0;ctx.fillStyle='#26354b';ctx.fillRect(xx+k*(barw+space),h*.9,barw,3);ctx.fillStyle=srcList.find(x=>x.id===cols[k])?.color||'#abc';ctx.fillRect(xx+k*(barw+space),h*.9,barw*v,3)}
 }
 function loop(ms){let t=audio.currentTime||0,dur=audio.duration||0;const now=performance.now();updateLive();drawInput();drawOutput(ms);$('elapsed').textContent=fmt(t);$('duration').textContent=fmt(dur);
@@ -495,13 +559,13 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
   waveform=prepared.waveform;badge('ANALYSING');msg('Starting established music-analysis libraries…','busy');drawInput();
   msg('Loading library files for analysis…','busy');
   const libraries=await getAnalysisLibraries();if(token!==fileToken)return;
-  worker=new Worker('./analysis-worker.js?v=0.1.020');
+  worker=new Worker('./analysis-worker.js?v=0.1.021');
   worker.onmessage=ev=>{if(token!==fileToken)return;const o=ev.data;
    if(o.type==='progress'){msg((o.detail||'Analysing music…')+' '+o.value+'%','busy')}
    if(o.type==='error'){badge('ERROR');msg('Analysis failed: '+o.message,'error');stopWorker()}
    if(o.type==='done'){
     dataset={dt:o.dt,t0:o.t0,signals:o.signals,events:o.events,lowEvents:o.lowEvents,beats:o.beats,bpm:o.bpm,beatConfidence:o.beatConfidence};
-    refreshTempoDisplay();badge('READY');msg('Essentia + Meyda signals ready. Play and explore.','ok');stopWorker();drawInput()
+    rebuildAllChannels();refreshTempoDisplay();badge('READY');$('mixerStatus').textContent='13 SOURCES · READY';msg('Essentia + Meyda signals ready. Play and shape the input channels.','ok');stopWorker();drawInput()
    }
   };
   worker.onerror=err=>{if(token!==fileToken)return;badge('ERROR');msg('Analysis worker error: '+(err.message||'unknown error'),'error');stopWorker()};

@@ -59,6 +59,7 @@ async function analyse(samples,rate,libraries){
  m.bufferSize=2048;m.sampleRate=rate;m.windowingFunction='hanning';
  const size=2048,hop=1024,dt=hop/rate,n=Math.floor(Math.max(0,s.length-size)/hop)+1;
  const raw={loudness:new Float32Array(n),bass:new Float32Array(n),mid:new Float32Array(n),high:new Float32Array(n),brightness:new Float32Array(n),texture:new Float32Array(n),harmonic:new Float32Array(n)};
+ const rawBassPitch=new Float32Array(n),rawUpperPitch=new Float32Array(n);
  const frame=new Float32Array(size),prevChroma=new Float32Array(12);let prevFrame=null;
  const hzPerBin=rate/size;
  for(let i=0;i<n;i++){
@@ -72,6 +73,17 @@ async function analyse(samples,rate,libraries){
   const spec=f.amplitudeSpectrum;
   for(let b=1;b<spec.length;b++){const hz=b*hzPerBin,power=spec[b]*spec[b];if(hz<180)l+=power;else if(hz<2000)mi+=power;else h+=power}
   raw.bass[i]=Math.sqrt(l);raw.mid[i]=Math.sqrt(mi);raw.high[i]=Math.sqrt(h);
+  // Register pitch prominence from weighted spectral peaks. These are intentionally
+  // approximate contours, not separated instrument notes or transcription.
+  let bassMax=0,bassHz=0,upperMax=0,upperHz=0;
+  for(let b=2;b<spec.length-1;b++){
+   const hz=b*hzPerBin, mag=spec[b];
+   if(mag<=spec[b-1]||mag<spec[b+1])continue;
+   if(hz>=50&&hz<=360){const weight=mag/(1+Math.abs(hz-170)/500);if(weight>bassMax){bassMax=weight;bassHz=hz}}
+   if(hz>=360&&hz<=3400){const weight=mag/Math.sqrt(hz/360);if(weight>upperMax){upperMax=weight;upperHz=hz}}
+  }
+  rawBassPitch[i]=bassHz?clamp(Math.log2(bassHz/50)/Math.log2(360/50)):i?rawBassPitch[i-1]:0;
+  rawUpperPitch[i]=upperHz?clamp(Math.log2(upperHz/360)/Math.log2(3400/360)):i?rawUpperPitch[i-1]:0;
   const chroma=f.chroma||[];let total=0,diff=0;
   for(let k=0;k<12;k++){const c=chroma[k]||0;total+=c;diff+=Math.abs(c-prevChroma[k]);prevChroma[k]=c}
   raw.harmonic[i]=total?diff/(total+1e-5):0;
@@ -83,13 +95,17 @@ async function analyse(samples,rate,libraries){
  const brightness=normalize(raw.brightness,.98,.75),texture=Float32Array.from(raw.texture,clamp),harmonic=normalize(average(raw.harmonic,2),.98,.65);
  // Onset events come from Essentia. Their strength comes from measured short-time loudness change.
  const events=onsetTimes.map(t=>{const idx=Math.max(0,Math.min(n-1,Math.round(t/dt)));const base=Math.max(0,idx-3);return {t,strength:clamp(.26+1.3*Math.max(0,loudness[idx]-loudness[base])+.18*mid[idx])}});
- const onsets=envelope(events,n,dt,.115),attack=Float32Array.from(onsets);
+ const attack=envelope(events,n,dt,.115),onsets=envelope(events.map(ev=>({...ev,strength:1})),n,dt,.055);
  const density=new Float32Array(n);let a=0,b=0;
  for(let i=0;i<n;i++){const t=i*dt;while(b<events.length&&events[b].t<t+.2)b++;while(a<b&&events[a].t<t-.2)a++;density[i]=(b-a)/.4}
  const activity=normalize(average(density,3),.98,.75);
  const intensity=new Float32Array(n);for(let i=0;i<n;i++)intensity[i]=clamp(.62*loudness[i]+.27*activity[i]+.11*brightness[i]);
+ // Slightly smooth pitch-prominence trajectories to avoid single-frame jitter.
+ const bassContour=average(rawBassPitch,2),upperContour=average(rawUpperPitch,2);
+ const movement=(contour,energy)=>{const delta=new Float32Array(n);for(let i=1;i<n;i++)delta[i]=Math.abs(contour[i]-contour[i-1])*energy[i];return normalize(average(delta,2),.97,.8)};
+ const bassMovement=movement(bassContour,bass),upperMovement=movement(upperContour,mid);
  const {phase, pulse}=sourcePhase(beats,n,dt);
- const signals={loudness,bass,mid,high,brightness,texture,harmonic,activity,intensity,onsets,attack,beat:pulse,phase};
+ const signals={loudness,bass,mid,high,brightness,texture,harmonic,activity,intensity,onsets,attack,beat:pulse,phase,bassContour,bassMovement,upperContour,upperMovement};
  postMessage({type:'done',dt,t0:0,signals,events,lowEvents:[],beats,bpm,beatConfidence,engine:'Essentia.js + Meyda',count:n},Object.values(signals).map(x=>x.buffer));
 }
 onmessage=async ev=>{if(ev.data.type!=='analyse')return;try{await analyse(ev.data.samples,ev.data.sampleRate,ev.data.libraries)}catch(err){postMessage({type:'error',message:String(err?.message||err),stack:String(err?.stack||'')})}};
