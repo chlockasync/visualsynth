@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.011</title>
+<title>Visual Synth | Input Lab v0.1.012</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -120,30 +120,52 @@ body{background-image:none!important;}
  .paneltop{padding:25px 8px 8px;}.canvas-wrap{margin:0 6px;}
  .shell{padding:8px 10px 16px;}
 }
+
+/* v0.1.012: playback belongs to the input timeline; file/record belong to the title bar. */
+.header{min-height:66px;margin-bottom:10px;flex-wrap:wrap;gap:12px;}
+.header-actions{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0;}
+.header-actions .track-name{display:block;max-width:clamp(100px,17vw,300px);font-size:12px;text-align:right;color:#e2e6ee;}
+.header-actions .filelabel{padding:8px 12px;}
+.header-actions .btn.record{min-width:auto;padding:8px 12px;white-space:nowrap;}
+.monitor-grid{margin-top:0;border-radius:var(--radius);}
+.monitor-grid .paneltop{min-height:55px;}
+.input-transport{margin:0 9px;min-height:93px;display:grid;grid-template-columns:minmax(110px,27%) minmax(0,1fr);gap:12px;align-items:stretch;padding:8px 0 4px;}
+.input-playback{display:flex;flex-direction:column;justify-content:center;gap:7px;min-width:0;}
+.playback-buttons{display:flex;gap:5px;}
+.playback-buttons .btn{min-width:0;flex:1;padding:7px 3px;font-size:12px;}
+.input-playback .speed-control{display:flex;justify-content:space-between;gap:6px;font-size:11px;}
+.input-playback .speed-control select{min-width:0;width:84px;padding:4px 5px;}
+.timeline-scrub{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:8px;padding:6px 7px 2px 0;}
+.scrub-times{display:flex;justify-content:space-between;align-items:center;gap:6px;min-width:0;font-size:11px;color:#c8d0dc;}
+.scrub-times strong{font-variant-numeric:tabular-nums;color:#eaf0f6;white-space:nowrap;font-size:12px;}
+.scrub-times .time-separator{color:var(--muted);}
+.timeline-scrub .timeprogress{display:block;width:100%;min-width:0;margin:0;flex:none;accent-color:var(--gold);cursor:pointer;}
+.timeline-scrub .timeprogress:disabled{cursor:default;}
+@media(max-width:950px){.header-actions .track-name{max-width:170px}.header{align-items:center;}.input-transport{grid-template-columns:minmax(112px,23%) minmax(0,1fr);}}
+@media(max-width:600px){.header{gap:10px;}.header-actions{width:100%;justify-content:flex-end;gap:7px;}.header-actions .track-name{max-width:none;flex:1;text-align:left;}.header-actions .filelabel,.header-actions .btn.record{font-size:11px;padding:7px;}.input-transport{grid-template-columns:minmax(100px,35%) minmax(0,1fr);gap:8px;}.playback-buttons .btn{font-size:11px;}.scrub-times{font-size:9px;}}
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
     <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span></div>
-    <div class="top-note">Local music in. Time-aligned control signals out.<span class="version">Prototype v0.1.011 · Local processing</span></div>
+    <div class="header-actions" role="group" aria-label="Track and recording">
+      <span class="track-name" id="trackname" title="No track loaded">No track loaded</span>
+      <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
+      <button class="btn record" disabled title="Video recording is planned for a later stage">● Record · later</button>
+    </div>
   </header>
-  <div class="toolbar" role="group" aria-label="Audio transport">
-    <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
-    <button id="play" class="btn live" disabled>▶ Play</button>
-    <button id="stop" class="btn" disabled>■ Stop</button>
-    <span class="divider"></span>
-    <div class="transport-meta"><strong><span id="elapsed">0:00</span> <small>/ <span id="duration">0:00</span></small></strong></div>
-    <input id="seek" class="timeprogress" type="range" min="0" max="1000" value="0" disabled aria-label="Seek in music track">
-    <label class="speed-control" for="speed">Speed <select id="speed" aria-label="Playback speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option></select></label>
-    <span class="divider"></span>
-    <button class="btn record" disabled title="Video recording is planned for a later stage">● Record · later</button>
-    <span class="track-name" id="trackname">No track loaded</span>
-  </div>
   <div class="monitor-grid" id="monitorGrid">
     <section class="panel" id="inputPanel" aria-label="Input monitor">
       <div class="paneltop"><div><div class="eyebrow">01 / INPUT MONITOR</div><div class="paneltitle">Waveform + individually scaled analysis signals</div></div><div class="paneltools"><div class="topright" id="rangeLabel">8-second window</div><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
       <div class="canvas-wrap" id="inputCanvasWrap"><canvas id="inputCanvas" aria-label="Scrollable music waveform and signal timeline"></canvas><div class="overlay">Click to seek · Gold = playhead</div></div>
+      <div class="input-transport" role="group" aria-label="Music playback and scrubbing">
+        <div class="input-playback">
+          <div class="playback-buttons"><button id="play" class="btn live" disabled>▶ Play</button><button id="stop" class="btn" disabled>■ Stop</button></div>
+          <label class="speed-control" for="speed">Speed <select id="speed" aria-label="Playback speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option></select></label>
+        </div>
+        <div class="timeline-scrub"><div class="scrub-times"><span>TRACK POSITION</span><strong><span id="elapsed">0:00</span> <span class="time-separator">/</span> <span id="duration">0:00</span></strong></div><input id="seek" class="timeprogress" type="range" min="0" max="1000" value="0" disabled aria-label="Seek in music track"></div>
+      </div>
       <div class="panelbottom"><span class="status" id="inputStatus" aria-live="polite">Load an MP3 to start local analysis.</span><span id="analysisPill" class="badge">READY</span></div>
     </section>
     <div id="monitorSplitter" class="splitter" role="separator" tabindex="0" aria-label="Resize input and output monitor widths" aria-orientation="vertical" aria-valuemin="30" aria-valuemax="80" aria-valuenow="50" title="Drag left or right to resize the monitors. Use arrow keys for fine adjustment."></div>
@@ -504,7 +526,7 @@ function downsample(buffer,target=12000){
  for(let k=0;k<nbins;k++){if(min[k]>max[k]){min[k]=0;max[k]=0}}
  return {samples,waveform:{min,max,hz},sampleRate:target};
 }
-async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let token=++fileToken;stopWorker();audio.pause();audio.removeAttribute('src');audio.load();if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(file);audio.src=url;clearData();playing=false;$('play').disabled=false;$('stop').disabled=false;$('seek').disabled=false;$('play').textContent='▶ Play';$('trackname').textContent=file.name;badge('DECODING');msg('Decoding MP3 locally…','busy');$('process').textContent='Decoding';
+async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let token=++fileToken;stopWorker();audio.pause();audio.removeAttribute('src');audio.load();if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(file);audio.src=url;clearData();playing=false;$('play').disabled=false;$('stop').disabled=false;$('seek').disabled=false;$('play').textContent='▶ Play';$('trackname').textContent=file.name;$('trackname').title=file.name;badge('DECODING');msg('Decoding MP3 locally…','busy');$('process').textContent='Decoding';
  if(!/\.mp3$/i.test(file.name)){msg('This first prototype is designed for MP3 files. Attempting decode…','busy')}
  try{
   const array=await file.arrayBuffer();if(token!==fileToken)return;
