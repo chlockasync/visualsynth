@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.026</title>
+<title>Visual Synth | Synthesis v0.1.027</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -400,12 +400,72 @@ body{background-image:none!important;}
 .channel-dial{gap:5px}
 .channel-special{margin-top:10px;padding-top:13px}
 .channel-reset{margin-top:auto}
+
+/* FUNCTIONAL SYNTHESIS WORKBENCH, using the existing flat JP-style geometry.
+   One common 6px backing gives one seam, never two overlapping borders. */
+[hidden]{display:none!important}
+.synth-workbench{display:grid;grid-template-columns:166px minmax(0,1fr);gap:6px;margin-top:12px;border:6px solid #151916;border-radius:14px;background:#151916;min-width:0;align-items:stretch;overflow:visible}
+.synth-track-bank,.synth-editor{position:relative;background:#384254;min-width:0}
+.synth-track-bank{border-radius:8px 0 0 8px;padding:27px 7px 12px}
+.synth-editor{border-radius:0 8px 8px 0;padding:27px 10px 10px}
+.synth-notch,.synth-module-notch{position:absolute;top:-6px;left:50%;transform:translateX(-50%);display:block;margin:0;padding:2px 12px 3px;font:700 10px/15px 'Arial Narrow','Segoe UI',Arial,sans-serif;letter-spacing:.04em;white-space:nowrap;text-align:center;background:#151916;color:#e5b15d;clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,9px 100%);z-index:2}
+.synth-track-bank .synth-notch{font-size:9px;padding-inline:6px}
+.synth-track-column{display:flex;flex-direction:column;align-items:stretch;gap:0}
+.synth-track{display:flex;align-items:center;flex-direction:column;justify-content:center;height:111px;gap:2px;min-width:0}
+.synth-track-title{border:0;background:none;color:#d9e3f0;font:800 12px/18px 'Segoe UI',Arial,sans-serif;letter-spacing:.05em;cursor:pointer;padding:0 6px}
+.synth-track.selected .synth-track-title{color:#e5b15d}
+.synth-track-dial{height:62px;width:85px;display:flex;align-items:center;justify-content:center;cursor:ns-resize;touch-action:none;position:relative}
+.synth-track-dial::before,.synth-track-dial::after{position:absolute;bottom:7px;font:bold 13px Arial;color:#dde7f1}
+.synth-track-dial::before{content:'−';left:-4px}.synth-track-dial::after{content:'+';right:-4px}
+.synth-track-dial .channel-dial-face{transform:scale(1.33);pointer-events:none}
+.synth-track-dial .synth-knob-name,.synth-track-dial .synth-knob-value{display:none}
+.synth-track-dial .synth-knob{width:65px;height:60px;justify-content:center}
+.synth-track-actions{display:flex;align-items:center;gap:5px}
+.synth-action{border:1px solid #151916;background:#283448;color:#dce4f0;font:700 10px/20px 'Segoe UI',Arial,sans-serif;padding:1px 7px;cursor:pointer}
+.synth-action:hover{background:#334359}.synth-track-actions .synth-action{min-width:46px;font-size:9px}
+.synth-action[aria-pressed="true"],.synth-action.selected{color:#f0bd71;border-color:#af864f;background:#202a39}
+.synth-editor-status{height:33px;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 3px;margin-bottom:7px;font-size:12px}
+.synth-editor-status strong{letter-spacing:.06em;font-size:12px;color:#dbe4ee}
+.synth-editor-status>div{display:flex;gap:6px}
+.synth-module-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:#151916;padding:6px;border-radius:10px 10px 0 0}
+.synth-module{position:relative;min-width:0;background:#384254;padding:20px 11px 9px;min-height:229px;border-radius:4px;display:flex;flex-direction:column;gap:9px}
+.synth-module .synth-module-notch{font-size:10px;min-width:85px}
+.synth-module>p{font-size:10px;color:#b1bfce;margin:0;min-height:12px}
+.synth-module label,.synth-combine label{display:flex;flex-direction:column;gap:4px;min-width:0;font:700 10px 'Segoe UI',Arial,sans-serif;color:#dae2ee;letter-spacing:.04em}
+.synth-module select,.synth-combine select{height:28px;width:100%;min-width:0;background:#273449;color:#e5edf6;border:1px solid #151916;border-radius:2px;padding:3px 5px;font-size:11px}
+.synth-source-row{display:flex;gap:8px;min-width:0;align-items:center;justify-content:space-between;flex:1}
+.synth-stack{display:flex;flex-direction:column;gap:7px;min-width:0;flex:1}
+#sourceBlendDial{flex:0 0 56px;width:56px;align-self:center}
+.synth-choices{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.synth-choices button{border:1px solid #151916;background:#283448;color:#c3cbd6;padding:6px 8px;font:bold 10px 'Segoe UI',Arial;cursor:pointer;border-radius:2px}
+.synth-choices button.selected{background:#151916;color:#e5b15d}
+.synth-choice-row{display:flex;align-items:center;gap:12px;font:700 10px Arial;color:#d3dce8}
+.synth-choice-row>span{width:53px;flex:none}
+.synth-knob-row{display:flex;justify-content:space-around;align-items:center;flex-wrap:wrap;gap:10px 5px;min-height:77px;margin-top:auto}
+.synth-knob{display:flex;flex-direction:column;align-items:center;gap:3px;width:62px;min-width:0;cursor:ns-resize;touch-action:none;outline-offset:3px}
+.synth-knob .channel-dial-face{pointer-events:none}
+.synth-knob-name{font-size:9px;font-weight:700;color:#dde4ed;white-space:nowrap}
+.synth-knob-value{font-size:10px;color:#e5b15d;font-variant-numeric:tabular-nums;white-space:nowrap}
+.synth-track-dial:focus-visible,.synth-knob:focus-visible{outline:2px solid #e5b15d}
+.synth-colour-choices{margin:8px 0}
+.synth-colour-choices button{width:25px;height:22px;padding:0;background:var(--colour)!important;border:2px solid #151916}
+.synth-colour-choices button.selected{outline:1px solid #f0f0ec;outline-offset:2px}
+.synth-fader-mount{display:flex;flex-direction:column;gap:5px;align-items:center;width:58px;min-width:58px;font:bold 10px Arial;color:#dce5ef}
+.synth-fader-mount>.channel-fader-well{width:50px;height:128px;flex:none}
+.synth-combine{position:relative;display:flex;align-items:center;justify-content:space-between;gap:9px;background:#384254;border:6px solid #151916;border-top:0;border-radius:0 0 10px 10px;padding:27px 10px 12px;flex-wrap:wrap}
+.synth-combine label{flex:1 1 100px}.synth-combine .synth-module-notch{min-width:169px}
+.synth-arrow{font-size:22px;color:#e5b15d}
+.synth-combine-dial{width:72px;flex:0 0 72px}
+.synth-combine-dial .synth-knob{margin:auto}
+#combineEnable{height:29px;min-width:50px}
+@media(max-width:1250px){.synth-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.synth-workbench{grid-template-columns:154px minmax(0,1fr)}}
+@media(max-width:700px){.synth-module-grid{grid-template-columns:minmax(0,1fr)}.synth-workbench{grid-template-columns:120px minmax(0,1fr)}.synth-track-bank{padding-inline:2px}.synth-track{height:106px}.synth-editor{padding-inline:5px}.synth-editor-status{height:auto;align-items:flex-start;flex-wrap:wrap}.synth-track-dial{height:58px}}
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.026</span></div>
+    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.027</span></div>
     <div class="header-actions" role="group" aria-label="Track and recording">
       
       <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -427,20 +487,54 @@ body{background-image:none!important;}
     </section>
     <div id="monitorSplitter" class="splitter" role="separator" tabindex="0" aria-label="Resize monitor height" aria-orientation="horizontal" aria-valuemin="120" aria-valuemax="750" aria-valuenow="330" title="Drag up or down to resize monitor height. The output stays 16:9. Use up/down arrow keys for fine adjustment."></div>
     <section class="panel" id="outputPanel" aria-label="Output monitor">
-      <div class="paneltop"><div><div class="eyebrow">02 / OUTPUT MONITOR</div><div class="paneltitle">Signal-response test pattern</div></div><div class="topright" id="fpsLabel">Preview · idle</div></div>
-      <div class="canvas-wrap" id="outputCanvasWrap"><canvas id="outputCanvas" aria-label="Diagnostic visual patterns reacting to musical input"></canvas><div class="overlay">Diagnostic only · Not the final visual synthesiser</div></div>
-      <div class="panelbottom"><span class="status">Simple test renderer to verify signal timing, not a visual preset.</span><span class="badge">TEST MODE</span></div>
+      <div class="paneltop"><div><div class="eyebrow">02 / OUTPUT MONITOR</div><div class="paneltitle" id="outputLabel">Visual synthesis · six-track mixer</div></div><div class="topright" id="fpsLabel">Preview · idle</div></div>
+      <div class="canvas-wrap" id="outputCanvasWrap"><canvas id="outputCanvas" aria-label="Diagnostic visual patterns reacting to musical input"></canvas><div class="overlay" id="outputHint">Load music to drive the synthesis tracks</div></div>
+      <div class="panelbottom"><span class="status" id="outputStatus">Select SYNTHESIS to shape the visual output tracks.</span><span class="badge" id="outputMode">SYNTH</span></div>
     </section>
   </div>
   <nav class="control-rail" aria-label="Engine sections">
-    <button class="tab active" aria-current="page">INPUT + ANALYSIS</button>
-    <button class="tab" disabled title="Visual synthesis modules come next">SYNTHESIS · LATER</button>
-    <button class="tab" disabled title="Routing and modulation come next">MODULATION · LATER</button>
-    <button class="tab" disabled title="Video recording comes later">RECORDING · LATER</button>
+    <button class="tab active" id="tabInputs" type="button" aria-selected="true">INPUT + ANALYSIS</button>
+    <button class="tab" id="tabSynthesis" type="button" aria-selected="false">SYNTHESIS</button>
+    <button class="tab" disabled title="Extended modulation routing is a later stage">MODULATION · LATER</button>
+    <button class="tab" disabled title="Video recording is a later stage">RECORDING · LATER</button>
   </nav>
-  <section class="mixer-frame" aria-label="13 input conditioning channels">
+  <section class="mixer-frame" id="inputWorkbench" aria-label="13 input conditioning channels">
     <h2 class="mixer-heading">03 / INPUT CHANNELS</h2>
     <div class="mixer-scroll" tabindex="0" aria-label="Input channel mixer; scroll horizontally if required"><div id="channelRack" class="channel-rack"></div></div>
+  </section>
+  <section class="synth-workbench" id="synthesisWorkbench" aria-label="Visual synthesis control workbench" hidden>
+    <section class="synth-track-bank" aria-label="Six output track controls">
+      <h2 class="synth-notch">01–06 / OUTPUT TRACKS</h2>
+      <div id="outputTrackColumn" class="synth-track-column"></div>
+    </section>
+    <section class="synth-editor" aria-label="Selected visual track controls">
+      <h2 class="synth-notch">TRACK <span id="selectedTrackNum">01</span> / SYNTHESIS CONTROLS</h2>
+      <div class="synth-editor-status"><strong id="selectedTrackLabel">TRACK 01 · BEAT</strong><div><button class="synth-action" id="resetVisualTrack" type="button">RESET TRACK</button><button class="synth-action" id="copyVisualTrack" type="button">COPY TO NEXT</button></div></div>
+      <div class="synth-module-grid">
+        <div class="synth-module"><h3 class="synth-module-notch">SOURCE / ROUTING</h3><p>Musical signals supply the visual material</p>
+          <div class="synth-source-row"><div class="synth-stack"><label>PRIMARY INPUT<select id="visPrimary"></select></label><label>SECOND INPUT<select id="visSecondary"></select></label><label>SOURCE MODE<select id="visSourceMode"><option value="mix">MIX</option><option value="multiply">MULTIPLY</option><option value="difference">DIFFERENCE</option></select></label></div><div id="sourceBlendDial"></div><div class="synth-fader-mount" data-param="drive" data-label="DRIVE"></div></div>
+        </div>
+        <div class="synth-module"><h3 class="synth-module-notch">EXPRESSION</h3><p>How the signal is expressed spatially</p>
+          <div class="synth-choices" data-param="style"><button data-v="radial">RADIAL</button><button data-v="linear">LINEAR</button><button data-v="spiral">SPIRAL</button><button data-v="field">FIELD</button></div>
+          <div class="synth-choice-row"><span>ORIGIN</span><div class="synth-choices" data-param="origin"><button data-v="centre">CENTRE</button><button data-v="edge">EDGE</button></div></div>
+          <div class="synth-choice-row"><span>FLOW</span><div class="synth-choices" data-param="direction"><button data-v="out">OUT</button><button data-v="in">IN</button><button data-v="still">STILL</button></div></div>
+          <div class="synth-knob-row" id="expressionDials"></div>
+        </div>
+        <div class="synth-module"><h3 class="synth-module-notch">SPACE</h3><p>Scale, placement and symmetry</p><div class="synth-knob-row" id="spaceDials"></div></div>
+        <div class="synth-module"><h3 class="synth-module-notch">MOTION</h3><p>Musical history and movement</p><div class="synth-knob-row" id="motionDials"></div></div>
+        <div class="synth-module"><h3 class="synth-module-notch">SHAPE</h3><p>Pattern shaping and deformation</p><div class="synth-knob-row" id="shapeDials"></div></div>
+        <div class="synth-module"><h3 class="synth-module-notch">COLOUR / OUTPUT</h3><p>Colour and track intensity</p>
+          <div class="synth-choices synth-colour-choices" data-param="colour"><button data-v="#86d9e9" style="--colour:#86d9e9" aria-label="Cyan"></button><button data-v="#efb86d" style="--colour:#efb86d" aria-label="Amber"></button><button data-v="#b5a0e9" style="--colour:#b5a0e9" aria-label="Violet"></button><button data-v="#b9e6c1" style="--colour:#b9e6c1" aria-label="Green"></button><button data-v="#ec9ec2" style="--colour:#ec9ec2" aria-label="Rose"></button></div>
+          <div class="synth-knob-row" id="colourDials"></div>
+        </div>
+      </div>
+      <div class="synth-combine"><h3 class="synth-module-notch">TRACK COMBINATION</h3>
+        <label>FEED FROM<select id="combineFrom"></select></label><span class="synth-arrow">→</span><label>INTO<select id="combineInto"></select></label>
+        <label>MODE<select id="combineMode"><option value="over">OVERLAY</option><option value="add">ADD</option><option value="multiply">MULTIPLY</option><option value="mask">MASK</option><option value="difference">DIFFERENCE</option></select></label>
+        <div class="synth-combine-dial" id="combineAmountMount"></div>
+        <button class="synth-action" id="combineEnable" type="button" aria-pressed="false">OFF</button>
+      </div>
+    </section>
   </section>
 </div>
 <audio id="player" preload="metadata" style="display:none"></audio>
@@ -710,22 +804,196 @@ function drawInput(){
  ctx.strokeStyle='#e5b15d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(songX,railY-9);ctx.lineTo(songX,railY+9);ctx.stroke();
  ctx.fillStyle='#e5b15d';ctx.beginPath();ctx.arc(songX,railY,4,0,Math.PI*2);ctx.fill();
 }
-function drawOutput(ms){const [w,h]=fit(output),ctx=output.getContext('2d');diagWidth=w;diagHeight=h;ctx.fillStyle='#0a101b';ctx.fillRect(0,0,w,h);
- const t=audio.currentTime||0,energy=vals.intensity||0,bass=vals.bassContour||0,onset=(vals.onsets||0)*.6+(vals.beat||0)*.4,bright=vals.brightness||0,mid=vals.upperMovement||0;
- // Purely diagnostic signal visual. Not an interchangeable synthesis module.
- let cx=w*.5,cy=h*.53,r=Math.min(w,h)*.44;
- const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r*1.35);g.addColorStop(0,`rgba(48,75,116,${.15+.25*energy})`);g.addColorStop(1,'rgba(8,13,21,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
- let spacing=9+18*(1-bass),waves=10+Math.floor(bright*14);
- for(let j=0;j<waves;j++){
-  const radius=10+j*spacing*.75+(t*18%spacing),phase=t*(.4+mid*.2),n=140;
-  ctx.beginPath();for(let i=0;i<=n;i++){let a=i/n*Math.PI*2,dist=radius+5*energy*Math.sin(a*5+phase+j*.3)+7*mid*Math.cos(a*3-phase*2);let x=cx+Math.cos(a)*dist,y=cy+Math.sin(a)*dist*.72;if(!i)ctx.moveTo(x,y);else ctx.lineTo(x,y)}
-  let hue=185+j*2.6+bright*46;ctx.strokeStyle=`hsla(${hue},78%,${55+20*energy}%,${clamp(.1+energy*.28+onset*.16,.05,.65)})`;ctx.lineWidth=Math.max(1,w/800);ctx.stroke();
- }
- ctx.lineWidth=1;ctx.strokeStyle='rgba(230,215,170,.27)';const pulse=8+onset*r*.52;ctx.beginPath();ctx.arc(cx,cy,pulse,0,2*Math.PI);ctx.stroke();
- // A minimal diagnostic bar row, visibly connected to analysis data.
- const cols=['bassContour','upperContour','onsets','beat','intensity'];const barw=w*.056,space=w*.023,groupw=cols.length*barw+(cols.length-1)*space,xx=(w-groupw)/2;
- for(let k=0;k<cols.length;k++){let v=vals[cols[k]]||0;ctx.fillStyle='#26354b';ctx.fillRect(xx+k*(barw+space),h*.9,barw,3);ctx.fillStyle=srcList.find(x=>x.id===cols[k])?.color||'#abc';ctx.fillRect(xx+k*(barw+space),h*.9,barw*v,3)}
+function drawOutput(ms){renderVisualOutput(ms);}
+
+/* VISUAL SYNTHESIS v0.1.027. Six reusable visual tracks. Music signal histories,
+   not independent oscillators, supply the evolving pattern values. */
+const visualSpec={
+ mix:{min:0,max:1,def:.45,fmt:v=>Math.round(v*100)+'%'},
+ drive:{min:0,max:2,def:1,fmt:v=>Math.round(v*100)+'%'},
+ repeat:{min:3,max:30,def:16,fmt:v=>Math.round(v)+'×'},
+ width:{min:.1,max:1,def:.48,fmt:v=>Math.round(v*100)+'%'},
+ scale:{min:.35,max:2.8,def:1,fmt:v=>v.toFixed(2)+'×'},
+ rotate:{min:-180,max:180,def:0,fmt:v=>Math.round(v)+'°'},
+ symmetry:{min:1,max:10,def:3,fmt:v=>String(Math.round(v))},
+ speed:{min:0,max:2.5,def:1,fmt:v=>v.toFixed(2)+'×'},
+ history:{min:.2,max:8,def:2,fmt:v=>v.toFixed(1)+'s'},
+ phase:{min:0,max:1,def:0,fmt:v=>Math.round(v*360)+'°'},
+ warp:{min:0,max:1,def:.28,fmt:v=>Math.round(v*100)+'%'},
+ fold:{min:1,max:8,def:3,fmt:v=>Math.round(v)+'×'},
+ contrast:{min:.3,max:3,def:1.1,fmt:v=>v.toFixed(2)+'×'},
+ tint:{min:-180,max:180,def:0,fmt:v=>Math.round(v)+'°'},
+};
+function initialVisualTrack(i){return {
+ on:i<2,level:i===0?.85:i===1?.70:.65,
+ primary:['beat','bassContour','upperContour','onsets','intensity','brightness'][i],
+ secondary:'none',sourceMode:'mix',style:['radial','linear','spiral','field','radial','spiral'][i],
+ origin:'centre',direction:i===1?'still':'out',colour:['#86d9e9','#efb86d','#b5a0e9','#b9e6c1','#ec9ec2','#e1c78b'][i],
+ ...Object.fromEntries(Object.entries(visualSpec).map(([k,v])=>[k,v.def]))
+};}
+const visualTracks=Array.from({length:6},(_,i)=>initialVisualTrack(i));
+let selectedVisualTrack=0;
+const trackMix={on:false,from:0,into:1,mode:'add',amount:.5};
+const visualCanvases=Array.from({length:6},()=>document.createElement('canvas'));
+const visualCtx=visualCanvases.map(c=>c.getContext('2d',{alpha:true}));
+const combineSurface=document.createElement('canvas'),combineCtx=combineSurface.getContext('2d',{alpha:true});
+const showSynth=()=>!$('synthesisWorkbench').hidden;
+const dialMarkup=()=>`<span class="channel-dial-face" aria-hidden="true"><span class="channel-dial-ticks">${Array.from({length:17},(_,i)=>`<i class="channel-dial-tick${(i===0||i===8||i===16)?' major':''}" style="--tick-angle:${-135+i*270/16}deg"></i>`).join('')}</span><span class="channel-dial-ring"></span><span class="channel-dial-arc"></span><span class="channel-dial-core"></span><span class="channel-dial-pointer"></span></span>`;
+function paintVisualKnob(el,p){p=clamp(p);el.style.setProperty('--dial-angle',(p*270-135)+'deg');el.style.setProperty('--dial-sweep',(p*270)+'deg');}
+function knobControl(label,owner,param,spec,classes='synth-knob'){
+ const d=document.createElement('div');d.className=classes;d.setAttribute('role','slider');d.tabIndex=0;d.setAttribute('aria-label',label);
+ d.innerHTML=`<span class="synth-knob-name">${label}</span>${dialMarkup()}<span class="synth-knob-value"></span>`;
+ function refresh(){const v=owner[param];const f=clamp((v-spec.min)/(spec.max-spec.min));paintVisualKnob(d,f);d.lastElementChild.textContent=spec.fmt(v);d.setAttribute('aria-valuenow',v.toFixed(3));}
+ function set(v){owner[param]=clamp(v,spec.min,spec.max);refresh();drawOutput(0)}
+ let drag=false,startY=0,startV=0;
+ d.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag=true;startY=e.clientY;startV=owner[param];d.setPointerCapture(e.pointerId);d.focus({preventScroll:true});e.preventDefault()});
+ d.addEventListener('pointermove',e=>{if(drag)set(startV+(startY-e.clientY)*(spec.max-spec.min)/135)});
+ for(const k of ['pointerup','pointercancel','lostpointercapture'])d.addEventListener(k,()=>drag=false);
+ d.addEventListener('wheel',e=>{if(!e.deltaY)return;e.preventDefault();set(owner[param]+(e.deltaY<0?1:-1)*(spec.max-spec.min)*(e.shiftKey?.005:.025))},{passive:false});
+ d.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowRight'||e.key==='ArrowDown'||e.key==='ArrowLeft'){set(owner[param]+(['ArrowUp','ArrowRight'].includes(e.key)?1:-1)*(spec.max-spec.min)*.02);e.preventDefault()}else if(e.key==='Home'){set(spec.min);e.preventDefault()}else if(e.key==='End'){set(spec.max);e.preventDefault()}});
+ d.refresh=refresh;refresh();return d;
 }
+function buildVisualTrackBank(){const col=$('outputTrackColumn');col.replaceChildren();
+ visualTracks.forEach((tr,i)=>{
+  const row=document.createElement('div');row.className='synth-track';row.dataset.index=i;
+  row.innerHTML=`<button type="button" class="synth-track-title">OUTPUT ${i+1}</button><div class="synth-track-dial"></div><div class="synth-track-actions"><button type="button" class="synth-action synth-track-on">ON</button><button type="button" class="synth-action synth-track-edit">EDIT</button></div>`;
+  col.appendChild(row);
+  row.querySelector('.synth-track-title').onclick=()=>selectVisualTrack(i);
+  row.querySelector('.synth-track-edit').onclick=()=>selectVisualTrack(i);
+  const power=row.querySelector('.synth-track-on');power.onclick=()=>{tr.on=!tr.on;refreshVisualBank();drawOutput(0)};
+  row.querySelector('.synth-track-dial').append(knobControl('TRACK '+(i+1)+' LEVEL',tr,'level',{min:0,max:1,fmt:v=>Math.round(v*100)+'%'},'synth-track-dial-knob synth-knob'));
+ });refreshVisualBank();
+}
+function refreshVisualBank(){for(let i=0;i<6;i++){const row=$('outputTrackColumn').children[i];if(!row)continue;row.classList.toggle('selected',i===selectedVisualTrack);row.querySelector('.synth-track-on').setAttribute('aria-pressed',String(visualTracks[i].on));row.querySelector('.synth-track-on').textContent=visualTracks[i].on?'ON':'OFF';row.querySelector('.synth-track-edit').classList.toggle('selected',i===selectedVisualTrack);row.querySelectorAll('.synth-knob').forEach(k=>k.refresh?.());}}
+function chooseSourceOptions(sel,secondary=false){sel.replaceChildren();if(secondary)sel.add(new Option('NONE','none'));for(const src of srcList)sel.add(new Option(src.name,src.id));}
+function drawSynthKnobGroups(tr){const groups={expressionDials:[['REPEAT','repeat'],['WIDTH','width']],spaceDials:[['SCALE','scale'],['ROTATE','rotate'],['SYMMETRY','symmetry']],motionDials:[['SPEED','speed'],['HISTORY','history'],['PHASE','phase']],shapeDials:[['WARP','warp'],['FOLD','fold']],colourDials:[['CONTRAST','contrast'],['HUE SHIFT','tint']]};
+ for(const [gid,entries] of Object.entries(groups)){const el=$(gid);el.replaceChildren();for(const [label,key] of entries)el.append(knobControl(label,tr,key,visualSpec[key]));}}
+function buildDriveFader(tr){const mount=document.querySelector('.synth-fader-mount');mount.replaceChildren();const label=document.createElement('span');label.textContent='DRIVE';
+ const well=document.createElement('div');well.className='channel-fader-well';
+ well.innerHTML=`<div class="channel-fader-slot" aria-hidden="true"><div class="channel-fader-signal"></div><div class="channel-fader-cap"></div></div><div class="channel-fader-index" aria-hidden="true">${Array.from({length:11},()=>'<span class="channel-fader-tick"></span>').join('')}</div><input class="channel-fader" type="range" min="0" max="200" step="1" aria-label="Visual source drive">`;
+ mount.append(label,well);const fader=well.querySelector('input');fader.value=tr.drive*100;
+ fader.addEventListener('input',()=>{tr.drive=+fader.value/100;drawOutput(0)});
+ connectFader(well,fader);paintFader(fader);}
+function selectVisualTrack(i){selectedVisualTrack=i;const tr=visualTracks[i];
+ $('selectedTrackNum').textContent=String(i+1).padStart(2,'0');$('selectedTrackLabel').textContent=`TRACK ${String(i+1).padStart(2,'0')} · ${metadata[tr.primary]?.name||'SOURCE'}`;
+ for(const [id,key] of [['visPrimary','primary'],['visSecondary','secondary'],['visSourceMode','sourceMode']])$(id).value=tr[key];
+ document.querySelectorAll('.synth-choices').forEach(g=>{const p=g.dataset.param;g.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b.dataset.v===tr[p]))});
+ drawSynthKnobGroups(tr);$('sourceBlendDial').replaceChildren(knobControl('B MIX',tr,'mix',visualSpec.mix));buildDriveFader(tr);refreshVisualBank();}
+function setupSynthEditor(){chooseSourceOptions($('visPrimary'));chooseSourceOptions($('visSecondary'),true);
+ for(const [id,key] of [['visPrimary','primary'],['visSecondary','secondary'],['visSourceMode','sourceMode']])$(id).addEventListener('change',e=>{visualTracks[selectedVisualTrack][key]=e.target.value;selectVisualTrack(selectedVisualTrack);drawOutput(0)});
+ document.querySelectorAll('.synth-choices').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;visualTracks[selectedVisualTrack][g.dataset.param]=b.dataset.v;selectVisualTrack(selectedVisualTrack);drawOutput(0)}));
+ $('resetVisualTrack').onclick=()=>{const i=selectedVisualTrack;visualTracks[i]=initialVisualTrack(i);buildVisualTrackBank();selectVisualTrack(i);drawOutput(0)};
+ $('copyVisualTrack').onclick=()=>{const next=(selectedVisualTrack+1)%6;Object.assign(visualTracks[next],visualTracks[selectedVisualTrack]);visualTracks[next].on=true;selectVisualTrack(next);drawOutput(0)};
+ for(const [id,key] of [['combineFrom','from'],['combineInto','into']]){const el=$(id);for(let i=0;i<6;i++)el.add(new Option('OUTPUT '+(i+1),String(i)));el.value=String(trackMix[key]);el.onchange=()=>{trackMix[key]=+el.value;drawOutput(0)}}
+ $('combineMode').value=trackMix.mode;$('combineMode').onchange=e=>{trackMix.mode=e.target.value;drawOutput(0)};
+ $('combineAmountMount').append(knobControl('AMOUNT',trackMix,'amount',{min:0,max:1,fmt:v=>Math.round(v*100)+'%'}));
+ $('combineEnable').onclick=()=>{trackMix.on=!trackMix.on;$('combineEnable').setAttribute('aria-pressed',String(trackMix.on));$('combineEnable').textContent=trackMix.on?'ON':'OFF';drawOutput(0)};
+ $('tabInputs').onclick=()=>setWorkbench('input');$('tabSynthesis').onclick=()=>setWorkbench('synth');
+}
+function setWorkbench(which){const isSynth=which==='synth';$('inputWorkbench').hidden=isSynth;$('synthesisWorkbench').hidden=!isSynth;
+ $('tabInputs').classList.toggle('active',!isSynth);$('tabSynthesis').classList.toggle('active',isSynth);
+ $('tabInputs').setAttribute('aria-selected',String(!isSynth));$('tabSynthesis').setAttribute('aria-selected',String(isSynth));}
+function sampleMusic(id,t){if(id==='none')return 0;return value(id,Math.max(0,t));}
+function visualSignal(tr,t){const a=sampleMusic(tr.primary,t),b=tr.secondary==='none'?0:sampleMusic(tr.secondary,t);const mix=tr.mix;
+ let v=tr.secondary==='none'?a:tr.sourceMode==='multiply'?a*(1-mix+mix*b):tr.sourceMode==='difference'?Math.abs(a-b)*mix+a*(1-mix):a*(1-mix)+b*mix;
+ v=clamp(v*tr.drive);return clamp(Math.pow(v,tr.contrast));}
+function colorWithHue(hex,degrees){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);const f=(degrees*Math.PI/180),u=Math.cos(f),v=Math.sin(f);
+ return [clamp((.213+.787*u-.213*v)*r+(.715-.715*u-.715*v)*g+(.072-.072*u+.928*v)*b,0,255),clamp((.213-.213*u+.143*v)*r+(.715+.285*u+.140*v)*g+(.072-.072*u-.283*v)*b,0,255),clamp((.213-.213*u-.787*v)*r+(.715-.715*u+.715*v)*g+(.072+.928*u+.072*v)*b,0,255)].map(Math.round);}
+function drawVisualTrack(ctx,w,h,tr,t){
+ const rgb=colorWithHue(tr.colour,tr.tint),cx=w*.5,cy=h*.5,base=Math.min(w,h),count=Math.max(3,Math.round(tr.repeat));
+ const dir=tr.direction==='out'?1:tr.direction==='in'?-1:0;
+ const time=t*tr.speed*dir+tr.phase*tr.history;
+ const history=Math.max(.1,tr.history),scale=tr.scale,fold=Math.max(1,Math.round(tr.fold)),warp=tr.warp;
+ const last=visualSignal(tr,t),influence=.20+.80*last;
+ ctx.save();ctx.translate(cx,cy);ctx.rotate(tr.rotate*Math.PI/180);
+ ctx.strokeStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${(.15+.65*influence).toFixed(3)})`;
+ ctx.lineWidth=Math.max(.7,base*(.0012+.002*tr.width));
+ const pulse=tr.origin==='edge'?-1:1;
+ if(tr.style==='radial'){
+  const n=Math.max(8,Math.round(count*1.1)),points=72;
+  for(let j=0;j<n;j++){
+   const age=(((j/n+((time/history)%1)+100)%1));
+   const s=visualSignal(tr,Math.max(0,t-age*history));
+   const radius=(.04+age*.74)*base*.72*scale;
+   ctx.beginPath();
+   for(let k=0;k<=points;k++){
+    const angle=k/points*Math.PI*2, sym=Math.max(1,Math.round(tr.symmetry));
+    const curve=Math.sin(angle*sym+time*2+j*.12)*s*warp*radius*.25;
+    const rad=Math.max(1,radius+curve+Math.sin(angle*fold+(t-age*history)*1.5)*tr.width*6*s*pulse);
+    const x=Math.cos(angle)*rad,y=Math.sin(angle)*rad*(tr.origin==='edge'?1:.78);
+    if(!k)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+   }
+   ctx.stroke();
+  }
+ }else if(tr.style==='linear'){
+  const n=Math.max(5,count),points=60;
+  for(let j=0;j<n;j++){
+   ctx.beginPath();const offset=(j/(n-1)-.5)*h*.94*scale;
+   for(let k=0;k<=points;k++){
+    const u=k/points,signal=visualSignal(tr,Math.max(0,t-(1-u)*history));
+    const wave=Math.sin(u*fold*Math.PI*2+time*1.8+j*.4);
+    const x=(u-.5)*w*1.5,y=offset+(signal-.4)*(h*.18)*tr.width+(wave*signal*warp*h*.16)+pulse*Math.sin(u*Math.PI*2+j*.3)*2;
+    if(!k)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+   }ctx.stroke();
+  }
+ }else if(tr.style==='spiral'){
+  const arms=Math.max(1,Math.round(tr.symmetry)),points=180;
+  for(let arm=0;arm<arms;arm++){
+   ctx.beginPath();for(let k=0;k<=points;k++){
+    const u=k/points,s=visualSignal(tr,Math.max(0,t-(1-u)*history));
+    const a=u*Math.PI*2*fold+arm*2*Math.PI/arms+time,rad=(.04+u*.70)*base*.65*scale*(.7+s*.55);
+    const x=Math.cos(a)*(rad+warp*20*Math.sin(a*2)*s),y=Math.sin(a)*(rad+warp*20*Math.sin(a*2)*s);
+    if(!k)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+   }ctx.stroke();
+  }
+ }else if(tr.style==='field'){
+  // Crossed families of lines, both deformed by time-indexed musical history.
+  const n=Math.max(6,count),points=50;
+  for(let axis=0;axis<2;axis++)for(let j=0;j<n;j++){
+   ctx.beginPath();for(let k=0;k<=points;k++){
+    const u=k/points,s=visualSignal(tr,Math.max(0,t-(1-u)*history-(j/n)*history*.22));
+    const a=(j/(n-1)-.5)*base*1.45*scale;
+    const bend=warp*base*.15*(s-.4)*Math.sin(u*fold*Math.PI*2+time+j*.22);
+    const x=axis?((u-.5)*w*1.4):a+bend,y=axis?a+bend:(u-.5)*h*1.5;
+    if(!k)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+   }ctx.stroke();
+  }
+ }
+ ctx.restore();
+}
+let lastVisualSize='';
+function renderVisualOutput(){const wrap=output.getBoundingClientRect();
+ // One sensible performance budget on an older laptop; do not exceed 720p.
+ const scale=Math.min(1,1280/Math.max(1,wrap.width),720/Math.max(1,wrap.height));
+ const w=Math.max(1,Math.round(wrap.width*scale)),h=Math.max(1,Math.round(wrap.height*scale));
+ if(output.width!==w||output.height!==h){output.width=w;output.height=h}
+ const ctx=output.getContext('2d');ctx.fillStyle='#0a111e';ctx.fillRect(0,0,w,h);
+ if(!dataset){$('outputHint').hidden=false;$('outputStatus').textContent='Load and analyse an MP3 to drive the visual synthesis tracks.';return}
+ $('outputHint').hidden=true;
+ const t=audio.currentTime||0;
+ for(let i=0;i<6;i++){
+  const c=visualCanvases[i];if(c.width!==w||c.height!==h){c.width=w;c.height=h}
+  const g=visualCtx[i];g.clearRect(0,0,w,h);
+  const tr=visualTracks[i];if(tr.on&&tr.level>0)drawVisualTrack(g,w,h,tr,t);
+ }
+ if(trackMix.on&&trackMix.from!==trackMix.into&&visualTracks[trackMix.from].on&&visualTracks[trackMix.into].on){
+  if(combineSurface.width!==w||combineSurface.height!==h){combineSurface.width=w;combineSurface.height=h}
+  combineCtx.clearRect(0,0,w,h);combineCtx.globalCompositeOperation='source-over';combineCtx.globalAlpha=1;combineCtx.drawImage(visualCanvases[trackMix.into],0,0);
+  combineCtx.globalAlpha=trackMix.amount;
+  combineCtx.globalCompositeOperation=({over:'source-over',add:'lighter',multiply:'multiply',mask:'destination-in',difference:'difference'})[trackMix.mode]||'source-over';
+  combineCtx.drawImage(visualCanvases[trackMix.from],0,0);combineCtx.globalAlpha=1;combineCtx.globalCompositeOperation='source-over';
+ }
+ for(let i=0;i<6;i++){
+  const tr=visualTracks[i];if(!tr.on||tr.level===0)continue;
+  ctx.globalAlpha=tr.level;ctx.globalCompositeOperation='screen';
+  ctx.drawImage(trackMix.on&&i===trackMix.into&&trackMix.from!==trackMix.into?combineSurface:visualCanvases[i],0,0);
+ }
+ ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+ $('outputStatus').textContent=visualTracks.filter(x=>x.on).length+' active visual track(s) · rendered from music-derived input signals';
+}
+// Initializes the visual controls without assuming decoded audio is ready.
+buildVisualTrackBank();setupSynthEditor();selectVisualTrack(0);
+
 function loop(ms){let t=audio.currentTime||0,dur=audio.duration||0;const now=performance.now();updateLive();drawInput();drawOutput(ms);$('elapsed').textContent=fmt(t);$('duration').textContent=fmt(dur);
  if(playing){if(lastFrame){const interval=now-lastFrame;if(interval>0&&interval<500)fpsSamples.push(1000/interval);if(fpsSamples.length>40)fpsSamples.shift()}lastFrame=now;let fps=fpsSamples.length?fpsSamples.reduce((a,b)=>a+b,0)/fpsSamples.length:0;$('fpsLabel').textContent=fps?'Preview · '+Math.round(fps)+' fps':'Preview · running'}else{$('fpsLabel').textContent='Preview · paused';lastFrame=0;fpsSamples=[]}
  raf=requestAnimationFrame(loop)}
@@ -789,13 +1057,13 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
   waveform=prepared.waveform;badge('ANALYSING');msg('Starting established music-analysis libraries…','busy');drawInput();
   msg('Loading library files for analysis…','busy');
   const libraries=await getAnalysisLibraries();if(token!==fileToken)return;
-  worker=new Worker('./analysis-worker.js?v=0.1.026');
+  worker=new Worker('./analysis-worker.js?v=0.1.027');
   worker.onmessage=ev=>{if(token!==fileToken)return;const o=ev.data;
    if(o.type==='progress'){msg((o.detail||'Analysing music…')+' '+o.value+'%','busy')}
    if(o.type==='error'){badge('ERROR');msg('Analysis failed: '+o.message,'error');stopWorker()}
    if(o.type==='done'){
     dataset={dt:o.dt,t0:o.t0,signals:o.signals,events:o.events,lowEvents:o.lowEvents,beats:o.beats,bpm:o.bpm,beatConfidence:o.beatConfidence};
-    rebuildAllChannels();refreshTempoDisplay();badge('READY');msg('Essentia + Meyda signals ready. Play and shape the input channels.','ok');stopWorker();drawInput()
+    rebuildAllChannels();refreshTempoDisplay();drawOutput(0);badge('READY');msg('Essentia + Meyda signals ready. Play and shape the input channels.','ok');stopWorker();drawInput()
    }
   };
   worker.onerror=err=>{if(token!==fileToken)return;badge('ERROR');msg('Analysis worker error: '+(err.message||'unknown error'),'error');stopWorker()};
