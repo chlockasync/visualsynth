@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.024</title>
+<title>Visual Synth | Input Lab v0.1.025</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -220,7 +220,7 @@ body{background-image:none!important;}
 .mixer-foot{padding:9px 13px;letter-spacing:.012em;font-weight:400;color:#cbd2df;flex-wrap:wrap;border-top:2px solid #151916;}
 .mixer-foot b{color:var(--gold);}
 .mixer-scroll{overflow-x:auto;overscroll-behavior-x:contain;background:#384254;scrollbar-color:#a6b3c5 #151916;}
-.channel-rack{display:grid;grid-template-columns:repeat(13,92px);gap:2px;background:#151916;width:max-content;min-width:max-content;padding:0 0 2px;}
+.channel-rack{display:grid;grid-template-columns:repeat(13,116px);gap:2px;background:#151916;width:max-content;min-width:max-content;padding:0 0 2px;}
 .channel-strip{position:relative;min-width:0;background:#384254;padding:25px 6px 11px;display:flex;flex-direction:column;gap:8px;align-items:stretch;min-height:385px;}
 .channel-strip.monitor-off .channel-power{color:#96a3b7;}
 .channel-strip:focus-within{background:#3c485d;}
@@ -258,7 +258,7 @@ body{background-image:none!important;}
 
 /* v0.1.024: exact-width instrument rack, no stretched empty panel. */
 .brand .app-version{margin-left:0;margin-right:0;color:#f1c784;font-size:11px;}
-.mixer-frame{width:calc(13 * 92px + 12 * 2px + 12px);max-width:100%;padding:24px 0 0;}
+.mixer-frame{width:calc(13 * 116px + 12 * 2px + 12px);max-width:100%;padding:24px 0 0;}
 .mixer-scroll{width:100%;max-width:100%;}
 .channel-rack{min-width:max-content;}
 /* The main timeline is the current zoom, its own bottom edge shows the whole track. */
@@ -266,24 +266,66 @@ body{background-image:none!important;}
 @media(max-width:650px){.mixer-frame{width:100%;}}
 
 /* v0.1.024 - reference-inspired JUP/JP hardware controls; unchanged signal processing. */
-/* A narrow, flat-bottomed fader slot, white calibration ticks, and a two-tone cap. */
-.channel-main{gap:5px;height:123px;}
-.channel-fader-well{width:37px;height:114px;position:relative;display:flex;align-items:center;justify-content:flex-start;flex:0 0 37px;}
-.channel-fader-well::before{content:"";position:absolute;right:0;top:7px;bottom:7px;width:5px;pointer-events:none;
- background:repeating-linear-gradient(to bottom,rgba(231,236,242,.82) 0 1px,transparent 1px 9px);}
-.channel-fader{position:relative;display:block;writing-mode:vertical-lr;direction:rtl;
- -webkit-appearance:none;appearance:none;width:25px;height:108px;margin:0;background:transparent;border:0;border-radius:0;
- cursor:ns-resize;touch-action:none;accent-color:initial;}
-.channel-fader::-webkit-slider-runnable-track{box-sizing:border-box;width:13px;height:100%;border:1px solid #11161d;border-radius:2px;
- background:linear-gradient(to right,#070b10 0 25%,#1a2633 25% 39%,#7bb1b6 45% 51%,#121a27 58% 79%,#03060b 79% 100%);}
-.channel-fader::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;box-sizing:border-box;width:29px;height:14px;border:1px solid #07090e;border-radius:2px;
- background:linear-gradient(to bottom,#0b0e14 0 12%,#9ca8af 13% 38%,#4e5c67 39% 45%,#e0e3e3 46% 56%,#505966 57% 67%,#181d26 68% 100%);
- box-shadow:0 1px 2px #111720;}
-.channel-fader::-moz-range-track{box-sizing:border-box;width:13px;height:100%;border:1px solid #11161d;border-radius:2px;
- background:linear-gradient(to right,#070b10 0 25%,#1a2633 25% 39%,#7bb1b6 45% 51%,#121a27 58% 79%,#03060b 79% 100%);}
-.channel-fader::-moz-range-thumb{box-sizing:border-box;width:29px;height:14px;border:1px solid #07090e;border-radius:2px;
- background:linear-gradient(to bottom,#0b0e14 0 12%,#9ca8af 13% 38%,#4e5c67 39% 45%,#e0e3e3 46% 56%,#505966 57% 67%,#181d26 68% 100%);}
-.channel-fader:focus-visible{outline:2px solid #ffd48b;outline-offset:2px;}
+/* Fader-only refinement: one coordinate system for slot, cap, and printed scale.
+   Knob styling is intentionally untouched. */
+.channel-main{gap:6px;height:135px;}
+/* Fader study 04: explicit geometry from the user's rectangular construction.
+   Coordinates: slot 32x112, 5px central guide, 36x22 movable cap,
+   4px horizontal marker, 11 printed scale ticks to the right.
+   Surfaces are flat except light top/bottom recess shadows. */
+.channel-main{gap:6px;height:135px;}
+.channel-fader-well{
+ position:relative;flex:0 0 50px;width:50px;height:128px;
+ cursor:ns-resize;touch-action:none;user-select:none;
+}
+.channel-fader-slot{
+ position:absolute;box-sizing:border-box;
+ top:8px;left:3px;width:32px;height:112px;
+ border:1px solid #101416;border-radius:0;
+ background:linear-gradient(to bottom,
+   #1b1f27 0%,#2c3340 5%,#384254 12%,
+   #384254 88%,#303746 94%,#1b1f27 100%);
+ box-shadow:none;
+}
+/* The narrow centre track is a separate solid black rectangle. */
+.channel-fader-slot::before{
+ content:'';position:absolute;left:50%;transform:translateX(-50%);top:0;bottom:0;width:8px;
+ background:#191d1d;border:0;
+}
+.channel-fader-slot::after{display:none;}
+/* Printed scale aligns to the CAP INDICATOR at its travel extremes,
+   not to the ends of the slot. Slot 112px, cap 22px: the white cap pointer centres move
+   from 13px to 101px. Eleven ticks span those 88px at even intervals.
+   All ticks 8px long. End ticks 3px high; interiors 1px high. */
+.channel-fader-index{
+ position:absolute;left:40px;top:8px;width:8px;height:112px;
+ pointer-events:none;
+}
+.channel-fader-tick{
+ position:absolute;left:0;width:8px;
+ background:#e8edf2;border:0;padding:0;margin:0;
+ box-shadow:none;border-radius:0;box-sizing:border-box;
+}
+/* Solid cap, exactly centered over the slot; no chrome effects. */
+.channel-fader-cap{
+ position:absolute;z-index:2;left:-3px;top:44px;
+ box-sizing:border-box;width:36px;height:22px;
+ border:1px solid #141918;border-radius:1px;
+ background:#1d211f;box-shadow:none;pointer-events:none;
+}
+.channel-fader-cap::after{
+ content:'';position:absolute;left:0;right:0;top:9px;height:4px;
+ background:#f2f3ef;opacity:1;
+}
+/* Invisible native range preserves value, keyboard operation and labels.
+   Pointer input is handled by the existing fader controller. */
+.channel-fader{
+ position:absolute;inset:0;width:100%;height:100%;margin:0;
+ opacity:0;pointer-events:none;writing-mode:vertical-lr;direction:rtl;
+}
+.channel-fader-well:focus-within .channel-fader-slot{
+ outline:2px solid #ffcf83;outline-offset:3px;
+}
 /* Printed index ticks around small black ring and the silver/ivory position-indicator disc. */
 .channel-dial{gap:3px;}
 .channel-dial-face{width:35px;height:35px;box-sizing:border-box;border:0;border-radius:50%;position:relative;
@@ -298,12 +340,71 @@ body{background-image:none!important;}
 .channel-dial-title{color:#e0e5e9;font-weight:600;}
 .channel-dial:focus-visible .channel-dial-face{outline:2px solid #ffd48b;outline-offset:3px;}
 
+
+/* Knob geometry study 05: nested circles and positioned line segments.
+   No simulated chrome. Existing control labels and ranges remain unchanged. */
+.channel-dial-face,.channel-special .channel-dial-face{
+ display:block;position:relative;width:42px;height:42px;flex:0 0 42px;
+ background:none;border:0;border-radius:0;overflow:visible;
+}
+.channel-dial-face::before,.channel-dial-face::after{display:none;}
+.channel-dial-ticks{position:absolute;inset:0;pointer-events:none;}
+.channel-dial-tick{
+ position:absolute;left:50%;top:50%;width:1px;height:5px;
+ background:#e8eaf0;transform-origin:50% 50%;
+ transform:translate(-50%,-50%) rotate(var(--tick-angle)) translateY(-23px);
+}
+.channel-dial-tick.major{width:2px;height:8px;}
+.channel-dial-ring{
+ position:absolute;left:5px;top:5px;width:32px;height:32px;
+ background:#353638;border:4px solid #080a0b;border-radius:50%;
+}
+.channel-dial-arc{
+ position:absolute;left:6px;top:6px;width:30px;height:30px;border-radius:50%;
+ background:conic-gradient(from -135deg,#6df0eb 0deg var(--dial-sweep,0deg),transparent var(--dial-sweep,0deg) 360deg);
+ -webkit-mask:radial-gradient(circle,transparent 0 11px,#000 11.6px 13px,transparent 13.6px);
+ mask:radial-gradient(circle,transparent 0 11px,#000 11.6px 13px,transparent 13.6px);
+ pointer-events:none;
+}
+.channel-dial-core{
+ position:absolute;left:10px;top:10px;width:22px;height:22px;
+ background:#ecece9;border:1px solid #080a0b;border-radius:50%;pointer-events:none;
+}
+.channel-dial-pointer{
+ position:absolute;left:50%;top:50%;width:11px;height:2px;
+ background:#080a0b;transform-origin:0 50%;pointer-events:none;
+ transform:translateY(-50%) rotate(calc(var(--dial-angle,-135deg) - 90deg));
+}
+.channel-dials{gap:10px 4px;}
+.channel-dial:focus-visible .channel-dial-face{outline:2px solid #ffd48b;outline-offset:1px;border-radius:50%;}
+/* The separate live level meter has square corners, like the reference. */
+.channel-meter,.channel-meter-fill{border-radius:0;}
+
+
+/* Geometry revision: wider strips, fader-integrated activity, no redundant meter/readout. */
+.channel-rack{grid-template-columns:repeat(13,116px)}
+.mixer-frame{width:calc(13 * 116px + 12 * 2px + 12px)}
+.channel-strip{padding-left:9px;padding-right:9px;gap:9px}
+.channel-name{height:21px;font-size:11px;left:4px;right:4px}
+.channel-strip{padding-top:31px}
+.channel-main{justify-content:center;height:138px}
+.channel-fader-well{width:50px;flex-basis:50px}
+.channel-fader-signal{position:absolute;z-index:1;left:50%;transform:translateX(-50%);bottom:0;width:2px;height:0%;background:#72d6e8;pointer-events:none;}
+.channel-meter{flex:0 0 9px;width:9px;height:100px;border:1px solid #151916;border-radius:0;background:#172131;position:relative;overflow:hidden}
+.channel-meter-fill{position:absolute;bottom:0;left:0;right:0;height:0%;border-radius:0;background:var(--channel-color,#9dd9e3);transition:height 45ms linear}
+.channel-fader-slot::before{z-index:0}
+.channel-fader-cap{z-index:3}
+.channel-dials{margin-top:16px}
+.channel-dials{grid-template-columns:repeat(2, minmax(0,1fr));gap:14px 8px}
+.channel-dial{gap:5px}
+.channel-special{margin-top:10px;padding-top:13px}
+.channel-reset{margin-top:auto}
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.024</span></div>
+    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.025</span></div>
     <div class="header-actions" role="group" aria-label="Track and recording">
       
       <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -377,12 +478,16 @@ function badge(s){$('analysisPill').textContent=s;}
 const controls={gate:{min:0,max:.95,default:0,format:v=>Math.round(v*100)+'%'},attack:{min:0,max:1.2,default:.02,format:v=>Math.round(v*1000)+'ms'},release:{min:0,max:2.5,default:.12,format:v=>Math.round(v*1000)+'ms'},filter:{min:.25,max:20,default:20,format:v=>v>=10?v.toFixed(0)+'Hz':v.toFixed(1)+'Hz'},width:{min:.035,max:.6,default:.12,format:v=>Math.round(v*1000)+'ms'},rate:{min:.5,max:4,default:1,format:v=>v.toFixed(1)+'×'},curve:{min:.45,max:2.5,default:1,format:v=>v.toFixed(2)},range:{min:.5,max:2,default:1,format:v=>v.toFixed(2)+'×'}};
 function makeDial(source,key,label){
  const setting=controls[key];const wrap=document.createElement('div');wrap.className='channel-dial';wrap.dataset.control=key;wrap.setAttribute('role','slider');wrap.setAttribute('tabindex','0');wrap.setAttribute('aria-label',source.name+' '+label);wrap.setAttribute('aria-valuemin',String(setting.min));wrap.setAttribute('aria-valuemax',String(setting.max));
- wrap.innerHTML=`<span class="channel-dial-title">${label}</span><span class="channel-dial-face" aria-hidden="true"></span><span class="channel-dial-val"></span>`;
- const write=(v)=>{configs[source.id][key]=clamp(v,setting.min,setting.max);wrap.style.setProperty('--dial-angle',(configs[source.id][key]-setting.min)/(setting.max-setting.min)*270-135+'deg');wrap.lastElementChild.textContent=setting.format(configs[source.id][key]);wrap.setAttribute('aria-valuenow',String(+configs[source.id][key].toFixed(3)));wrap.setAttribute('aria-valuetext',setting.format(configs[source.id][key]));rebuildChannel(source.id);drawInput();};
+ // Printed ticks: identical spoke geometry at 17 calibrated positions.
+ const ticks=Array.from({length:17},(_,i)=>`<i class="channel-dial-tick${(i===0||i===8||i===16)?' major':''}" style="--tick-angle:${-135+i*(270/16)}deg"></i>`).join('');
+ wrap.innerHTML=`<span class="channel-dial-title">${label}</span><span class="channel-dial-face" aria-hidden="true"><span class="channel-dial-ticks">${ticks}</span><span class="channel-dial-ring"></span><span class="channel-dial-arc"></span><span class="channel-dial-core"></span><span class="channel-dial-pointer"></span></span><span class="channel-dial-val"></span>`;
+ const write=(v)=>{configs[source.id][key]=clamp(v,setting.min,setting.max);const unit=(configs[source.id][key]-setting.min)/(setting.max-setting.min);wrap.style.setProperty('--dial-angle',(unit*270-135)+'deg');wrap.style.setProperty('--dial-sweep',(unit*270)+'deg');wrap.lastElementChild.textContent=setting.format(configs[source.id][key]);wrap.setAttribute('aria-valuenow',String(+configs[source.id][key].toFixed(3)));wrap.setAttribute('aria-valuetext',setting.format(configs[source.id][key]));rebuildChannel(source.id);drawInput();};
  let dragY=0,dragVal=0,dragging=false;
  wrap.addEventListener('pointerdown',e=>{if(e.button!==0)return;dragging=true;dragY=e.clientY;dragVal=configs[source.id][key];wrap.setPointerCapture(e.pointerId);wrap.focus();e.preventDefault()});
  wrap.addEventListener('pointermove',e=>{if(dragging)write(dragVal+(dragY-e.clientY)*(setting.max-setting.min)/155)});
  for(const type of ['pointerup','pointercancel','lostpointercapture'])wrap.addEventListener(type,()=>dragging=false);
+ // Wheel adjusts the value only while the pointer is over this knob.
+ wrap.addEventListener('wheel',e=>{if(!e.deltaY)return;e.preventDefault();const step=(setting.max-setting.min)*(e.shiftKey?.005:.02);write(configs[source.id][key]+(e.deltaY<0?step:-step))},{passive:false});
  wrap.addEventListener('keydown',e=>{let delta;if(e.key==='ArrowUp'||e.key==='ArrowRight')delta=.02;else if(e.key==='ArrowDown'||e.key==='ArrowLeft')delta=-.02;else if(e.key==='Home'){write(setting.min);e.preventDefault();return}else if(e.key==='End'){write(setting.max);e.preventDefault();return}else return;write(configs[source.id][key]+delta*(setting.max-setting.min));e.preventDefault()});
  wrap.setChannelValue=write;write(configs[source.id][key]);return wrap;
 }
@@ -400,11 +505,39 @@ function updateChannelButtons(src,strip){
  strip.classList.toggle('monitor-off',!cfg.on);
  strip.classList.toggle('muted',cfg.mute);
 }
+function paintFader(fader){
+ const slot=fader.parentElement.querySelector('.channel-fader-slot');
+ const cap=slot.querySelector('.channel-fader-cap');
+ const travel=slot.clientHeight-cap.offsetHeight;
+ const amount=(+fader.value-(+fader.min))/(+fader.max-(+fader.min));
+ cap.style.top=(1-amount)*travel+'px';
+ const line=slot.querySelector('.channel-fader-signal');if(line)line.style.height=(amount*100)+'%';
+}
+function connectFader(well,fader){
+ let isDragging=false;
+ const setFromPointer=e=>{
+   const slot=well.querySelector('.channel-fader-slot');
+   const cap=slot.querySelector('.channel-fader-cap');
+   const b=slot.getBoundingClientRect();
+   const capHalf=cap.offsetHeight/2;
+   const frac=Math.max(0,Math.min(1,(b.bottom-capHalf-e.clientY)/(b.height-cap.offsetHeight)));
+   fader.value=String(Math.round((+fader.min)+frac*((+fader.max)-(+fader.min))));
+   fader.dispatchEvent(new Event('input',{bubbles:true}));
+ };
+ well.addEventListener('pointerdown',e=>{if(e.button!==0)return;isDragging=true;well.setPointerCapture(e.pointerId);fader.focus({preventScroll:true});setFromPointer(e);e.preventDefault();});
+ well.addEventListener('pointermove',e=>{if(isDragging)setFromPointer(e);});
+ for(const type of ['pointerup','pointercancel','lostpointercapture'])well.addEventListener(type,()=>{isDragging=false});
+ // Wheel steps the level fader, without scrolling the page.
+ well.addEventListener('wheel',e=>{if(!e.deltaY)return;e.preventDefault();const step=e.shiftKey?1:2;fader.value=String(clamp(+fader.value+(e.deltaY<0?step:-step),+fader.min,+fader.max));fader.dispatchEvent(new Event('input',{bubbles:true}))},{passive:false});
+ fader.addEventListener('input',()=>paintFader(fader));
+ requestAnimationFrame(()=>paintFader(fader));
+}
 function resetChannel(src,strip){
  Object.assign(configs[src.id],channelDefaults(src));
  const cfg=configs[src.id];
  const fader=strip.querySelector('.channel-fader');
  fader.value=100;
+ paintFader(fader);
  strip.querySelector('.channel-level-value').textContent='100%';
  updateChannelButtons(src,strip);
  // Set each physical knob as well as its underlying parameter.
@@ -416,13 +549,14 @@ function createSources(){
  for(const src of srcList){
   configs[src.id]=channelDefaults(src);
   const strip=document.createElement('div');strip.className='channel-strip';strip.id='channel-'+src.id;strip.title=src.desc;strip.style.setProperty('--channel-color',src.color);
-  strip.innerHTML=`<div class="channel-name">${src.name}</div><div class="channel-family">${src.family}</div><div class="channel-switches"><button class="channel-power" aria-label="Enable ${src.name} for monitor and synth send" aria-pressed="${configs[src.id].on}" type="button"><span class="led"></span>ON</button><button class="channel-mute" aria-label="Mute ${src.name} send to visual synthesiser" aria-pressed="false" type="button">MUTE</button></div><div class="channel-main"><div class="channel-fader-well"><input class="channel-fader" type="range" min="0" max="200" value="100" step="1" aria-label="${src.name} synth send level"></div><div class="channel-meter" aria-label="Live enabled input signal; inactive when channel is off"><div class="channel-meter-fill" id="bar-${src.id}"></div></div></div><div class="channel-level-label">LEVEL → SYNTH</div><div class="channel-level-value">100%</div><div class="channel-dials"></div><div class="channel-special"></div><div class="channel-readout" id="num-${src.id}">0.00</div><button class="channel-reset" type="button" aria-label="Reset ${src.name} channel controls">RESET</button>`;
+  strip.innerHTML=`<div class="channel-name">${src.name}</div><div class="channel-family">${src.family}</div><div class="channel-switches"><button class="channel-power" aria-label="Enable ${src.name} for monitor and synth send" aria-pressed="${configs[src.id].on}" type="button"><span class="led"></span>ON</button><button class="channel-mute" aria-label="Mute ${src.name} send to visual synthesiser" aria-pressed="false" type="button">MUTE</button></div><div class="channel-main"><div class="channel-fader-well"><div class="channel-fader-slot" aria-hidden="true"><div class="channel-fader-signal"></div><div class="channel-fader-cap"></div></div><div class="channel-fader-index" aria-hidden="true">${Array.from({length:11},(_,i)=>`<span class="channel-fader-tick" style="top:${Math.round(13+8.8*i)}px;height:${i===0||i===10?3:1}px;transform:translateY(-50%)"></span>`).join("")}</div><input class="channel-fader" type="range" min="0" max="200" value="100" step="1" aria-label="${src.name} synth send level"></div><div class="channel-meter" aria-label="${src.name} live input level"><div class="channel-meter-fill" id="bar-${src.id}"></div></div></div><div class="channel-dials"></div><div class="channel-special"></div><button class="channel-reset" type="button" aria-label="Reset ${src.name} channel controls">RESET</button>`;
   rack.appendChild(strip);
   const power=strip.querySelector('.channel-power'),mute=strip.querySelector('.channel-mute'),fader=strip.querySelector('.channel-fader');
   updateChannelButtons(src,strip);
   power.onclick=()=>{configs[src.id].on=!configs[src.id].on;updateChannelButtons(src,strip);updateLive();drawInput()};
   mute.onclick=()=>{configs[src.id].mute=!configs[src.id].mute;updateChannelButtons(src,strip);updateLive()};
   fader.addEventListener('input',()=>{configs[src.id].level=+fader.value/100;strip.querySelector('.channel-level-value').textContent=fader.value+'%';updateLive()});
+  connectFader(strip.querySelector('.channel-fader-well'),fader);
   for(const [key,label] of [['gate','GATE'],['attack','ATT'],['release','REL'],['filter','LPF']])strip.querySelector('.channel-dials').append(makeDial(src,key,label));
   strip.querySelector('.channel-special').append(makeDial(src,src.specialKind,src.special));
   strip.querySelector('.channel-reset').onclick=()=>resetChannel(src,strip);
@@ -455,7 +589,7 @@ function fit(canvas){const rect=canvas.getBoundingClientRect();const dpr=Math.mi
 function monitorValue(id,t){if(!dataset)return 0;const arr=conditioned[id]||dataset.signals[id];if(!arr||!arr.length)return 0;let pos=clamp((t-dataset.t0)/dataset.dt,0,arr.length-1),i=pos|0,f=pos-i;return (arr[i]||0)*(1-f)+(arr[Math.min(arr.length-1,i+1)]||0)*f}
 // OFF or MUTE silence the synth send, but only OFF also stops the live meter.
 function value(id,t){const cfg=configs[id];return !cfg?.on||cfg.mute?0:clamp(monitorValue(id,t)*(cfg.level??1))}
-function updateLive(){const t=audio.currentTime||0;for(const s of srcList){const monitored=configs[s.id]?.on?monitorValue(s.id,t):0;vals[s.id]=value(s.id,t);$('num-'+s.id).textContent=monitored.toFixed(2);$('bar-'+s.id).style.height=(100*monitored).toFixed(1)+'%'}}
+function updateLive(){const t=audio.currentTime||0;for(const s of srcList){const monitored=configs[s.id]?.on?monitorValue(s.id,t):0;vals[s.id]=value(s.id,t);$('bar-'+s.id).style.height=(100*monitored).toFixed(1)+'%'}}
 function clearData(){dataset=null;waveform=null;Object.keys(conditioned).forEach(x=>delete conditioned[x]);Object.keys(vals).forEach(x=>vals[x]=0);$('bpm').textContent='TEMPO —';$('fpsLabel').textContent='Preview · idle';updateLive();drawInput();drawOutput(0)}
 function stopWorker(){if(worker){worker.terminate();worker=null}}
 function getTiming(){
@@ -641,7 +775,7 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
   waveform=prepared.waveform;badge('ANALYSING');msg('Starting established music-analysis libraries…','busy');drawInput();
   msg('Loading library files for analysis…','busy');
   const libraries=await getAnalysisLibraries();if(token!==fileToken)return;
-  worker=new Worker('./analysis-worker.js?v=0.1.022');
+  worker=new Worker('./analysis-worker.js?v=0.1.025');
   worker.onmessage=ev=>{if(token!==fileToken)return;const o=ev.data;
    if(o.type==='progress'){msg((o.detail||'Analysing music…')+' '+o.value+'%','busy')}
    if(o.type==='error'){badge('ERROR');msg('Analysis failed: '+o.message,'error');stopWorker()}
