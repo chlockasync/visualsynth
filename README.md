@@ -1,4 +1,4 @@
-# Visual Synth v0.1.023
+# Visual Synth v0.1.024
 
 This version updates the existing 13-channel input mixer and timeline without replacing the audio analysis engine.
 
@@ -12,10 +12,16 @@ This version updates the existing 13-channel input mixer and timeline without re
 
 ## Deployment
 
-Upload `index.html` and `analysis-worker.js` together to the same GitHub Pages directory. Hard-refresh if a cached older version appears. The visible version should read `v0.1.023`.
+Upload `index.html` and `analysis-worker.js` together to the same GitHub Pages directory. Hard-refresh if a cached older version appears. The visible version should read `v0.1.024`.
 
 Analysis is performed in your browser. The existing Essentia.js and Meyda runtime scripts are downloaded from a CDN; the music stays local. This release doesn't change those libraries or the analysis algorithms.
 
 ## Verification
 
 Chromium rendering and startup were checked at 1920px and 1280px width. Automated interaction tests verified channel ON / MUTE routing and meter behaviour, and that the timeline's full-track overview can seek outside its current 8-second window. Full MP3 analysis with the external libraries was not rerun in this version.
+
+
+## v0.1.024 controls restyle
+- Reference-inspired hardware fader tracks and rectangular slider caps with calibration ticks.
+- Mini rotary controls styled with dark outer collars, fine white index marks and pale position discs.
+- Control labels, values, mouse/keyboard interactions, signal conditioning and audio analysis remain unchanged.
