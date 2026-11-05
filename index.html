@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Input Lab v0.1.025</title>
+<title>Visual Synth | Input Lab v0.1.026</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -293,19 +293,20 @@ body{background-image:none!important;}
  background:#191d1d;border:0;
 }
 .channel-fader-slot::after{display:none;}
-/* Printed scale aligns to the CAP INDICATOR at its travel extremes,
-   not to the ends of the slot. Slot 112px, cap 22px: the white cap pointer centres move
-   from 13px to 101px. Eleven ticks span those 88px at even intervals.
-   All ticks 8px long. End ticks 3px high; interiors 1px high. */
+/* Scale geometry derives from the cap's ACTUAL indicator travel.
+   Top/bottom tick = white marker at maximum/minimum respectively.
+   One set of ticks only: identical 8px lengths, 3px end weights, 1px interiors. */
 .channel-fader-index{
  position:absolute;left:40px;top:8px;width:8px;height:112px;
  pointer-events:none;
 }
 .channel-fader-tick{
- position:absolute;left:0;width:8px;
+ position:absolute;left:0;width:8px;height:1px;
  background:#e8edf2;border:0;padding:0;margin:0;
  box-shadow:none;border-radius:0;box-sizing:border-box;
+ transform:translateY(-50%);
 }
+.channel-fader-tick:first-child,.channel-fader-tick:last-child{height:3px;}
 /* Solid cap, exactly centered over the slot; no chrome effects. */
 .channel-fader-cap{
  position:absolute;z-index:2;left:-3px;top:44px;
@@ -314,7 +315,7 @@ body{background-image:none!important;}
  background:#1d211f;box-shadow:none;pointer-events:none;
 }
 .channel-fader-cap::after{
- content:'';position:absolute;left:0;right:0;top:9px;height:4px;
+ content:'';position:absolute;left:0;right:0;top:50%;height:4px;transform:translateY(-50%);
  background:#f2f3ef;opacity:1;
 }
 /* Invisible native range preserves value, keyboard operation and labels.
@@ -404,7 +405,7 @@ body{background-image:none!important;}
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.025</span></div>
+    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.026</span></div>
     <div class="header-actions" role="group" aria-label="Track and recording">
       
       <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -505,13 +506,27 @@ function updateChannelButtons(src,strip){
  strip.classList.toggle('monitor-off',!cfg.on);
  strip.classList.toggle('muted',cfg.mute);
 }
-function paintFader(fader){
- const slot=fader.parentElement.querySelector('.channel-fader-slot');
+// The cap position and scale ticks share ONE measured travel geometry.
+// No fixed tick offsets or independent spacing formulas.
+function faderGeometry(well){
+ const slot=well.querySelector('.channel-fader-slot');
  const cap=slot.querySelector('.channel-fader-cap');
+ const scale=well.querySelector('.channel-fader-index');
  const travel=slot.clientHeight-cap.offsetHeight;
+ // Absolute cap position begins at the slot's padding edge (inside its border).
+ // White marker is geometrically centred on the cap.
+ const start=slot.offsetTop+slot.clientTop+cap.offsetHeight/2-scale.offsetTop;
+ return {slot,cap,scale,travel,start};
+}
+function paintFader(fader){
+ const {slot,cap,scale,travel,start}=faderGeometry(fader.parentElement);
  const amount=(+fader.value-(+fader.min))/(+fader.max-(+fader.min));
  cap.style.top=(1-amount)*travel+'px';
- const line=slot.querySelector('.channel-fader-signal');if(line)line.style.height=(amount*100)+'%';
+ // Markers are constructed from the identical range used by the moving cap.
+ const ticks=scale.querySelectorAll('.channel-fader-tick');
+ ticks.forEach((tick,i)=>{tick.style.top=(start+travel*i/(ticks.length-1))+'px';});
+ const line=slot.querySelector('.channel-fader-signal');
+ if(line)line.style.height=(amount*100)+'%';
 }
 function connectFader(well,fader){
  let isDragging=false;
@@ -538,7 +553,6 @@ function resetChannel(src,strip){
  const fader=strip.querySelector('.channel-fader');
  fader.value=100;
  paintFader(fader);
- strip.querySelector('.channel-level-value').textContent='100%';
  updateChannelButtons(src,strip);
  // Set each physical knob as well as its underlying parameter.
  for(const dial of strip.querySelectorAll('.channel-dial'))dial.setChannelValue(cfg[dial.dataset.control]);
@@ -549,13 +563,13 @@ function createSources(){
  for(const src of srcList){
   configs[src.id]=channelDefaults(src);
   const strip=document.createElement('div');strip.className='channel-strip';strip.id='channel-'+src.id;strip.title=src.desc;strip.style.setProperty('--channel-color',src.color);
-  strip.innerHTML=`<div class="channel-name">${src.name}</div><div class="channel-family">${src.family}</div><div class="channel-switches"><button class="channel-power" aria-label="Enable ${src.name} for monitor and synth send" aria-pressed="${configs[src.id].on}" type="button"><span class="led"></span>ON</button><button class="channel-mute" aria-label="Mute ${src.name} send to visual synthesiser" aria-pressed="false" type="button">MUTE</button></div><div class="channel-main"><div class="channel-fader-well"><div class="channel-fader-slot" aria-hidden="true"><div class="channel-fader-signal"></div><div class="channel-fader-cap"></div></div><div class="channel-fader-index" aria-hidden="true">${Array.from({length:11},(_,i)=>`<span class="channel-fader-tick" style="top:${Math.round(13+8.8*i)}px;height:${i===0||i===10?3:1}px;transform:translateY(-50%)"></span>`).join("")}</div><input class="channel-fader" type="range" min="0" max="200" value="100" step="1" aria-label="${src.name} synth send level"></div><div class="channel-meter" aria-label="${src.name} live input level"><div class="channel-meter-fill" id="bar-${src.id}"></div></div></div><div class="channel-dials"></div><div class="channel-special"></div><button class="channel-reset" type="button" aria-label="Reset ${src.name} channel controls">RESET</button>`;
+  strip.innerHTML=`<div class="channel-name">${src.name}</div><div class="channel-family">${src.family}</div><div class="channel-switches"><button class="channel-power" aria-label="Enable ${src.name} for monitor and synth send" aria-pressed="${configs[src.id].on}" type="button"><span class="led"></span>ON</button><button class="channel-mute" aria-label="Mute ${src.name} send to visual synthesiser" aria-pressed="false" type="button">MUTE</button></div><div class="channel-main"><div class="channel-fader-well"><div class="channel-fader-slot" aria-hidden="true"><div class="channel-fader-signal"></div><div class="channel-fader-cap"></div></div><div class="channel-fader-index" aria-hidden="true">${Array.from({length:11},()=>`<span class="channel-fader-tick"></span>`).join("")}</div><input class="channel-fader" type="range" min="0" max="200" value="100" step="1" aria-label="${src.name} synth send level"></div><div class="channel-meter" aria-label="${src.name} live input level"><div class="channel-meter-fill" id="bar-${src.id}"></div></div></div><div class="channel-dials"></div><div class="channel-special"></div><button class="channel-reset" type="button" aria-label="Reset ${src.name} channel controls">RESET</button>`;
   rack.appendChild(strip);
   const power=strip.querySelector('.channel-power'),mute=strip.querySelector('.channel-mute'),fader=strip.querySelector('.channel-fader');
   updateChannelButtons(src,strip);
   power.onclick=()=>{configs[src.id].on=!configs[src.id].on;updateChannelButtons(src,strip);updateLive();drawInput()};
   mute.onclick=()=>{configs[src.id].mute=!configs[src.id].mute;updateChannelButtons(src,strip);updateLive()};
-  fader.addEventListener('input',()=>{configs[src.id].level=+fader.value/100;strip.querySelector('.channel-level-value').textContent=fader.value+'%';updateLive()});
+  fader.addEventListener('input',()=>{configs[src.id].level=+fader.value/100;updateLive()});
   connectFader(strip.querySelector('.channel-fader-well'),fader);
   for(const [key,label] of [['gate','GATE'],['attack','ATT'],['release','REL'],['filter','LPF']])strip.querySelector('.channel-dials').append(makeDial(src,key,label));
   strip.querySelector('.channel-special').append(makeDial(src,src.specialKind,src.special));
@@ -775,7 +789,7 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
   waveform=prepared.waveform;badge('ANALYSING');msg('Starting established music-analysis libraries…','busy');drawInput();
   msg('Loading library files for analysis…','busy');
   const libraries=await getAnalysisLibraries();if(token!==fileToken)return;
-  worker=new Worker('./analysis-worker.js?v=0.1.025');
+  worker=new Worker('./analysis-worker.js?v=0.1.026');
   worker.onmessage=ev=>{if(token!==fileToken)return;const o=ev.data;
    if(o.type==='progress'){msg((o.detail||'Analysing music…')+' '+o.value+'%','busy')}
    if(o.type==='error'){badge('ERROR');msg('Analysis failed: '+o.message,'error');stopWorker()}
