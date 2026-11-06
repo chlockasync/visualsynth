@@ -1,14 +1,12 @@
-# Visual Synth v0.1.036 — Smooth Sound Lab playback
+# Visual Synth v0.1.037: Sound Lab inspection controls
 
-Upload all 5 files to the same GitHub Pages folder. The existing Visual Synth synthesis and analysis code is preserved; only Sound Event Lab playback presentation is changed.
+This is a focused UI update to the working v0.1.036. The signal-detection algorithms, five music inputs, synthesis engine, borders and control geometry are unchanged.
 
-Changes:
-- Sound Lab draws the complete event graph only when data, selection, window, or size changes.
-- A separate gold playhead overlay follows HTMLAudioElement.currentTime via requestAnimationFrame, not timeupdate redraws. The audio clock remains the reference.
-- Playback time label updates with the animation loop; 30-second excerpt boundary is enforced.
-- Added 0.5×, 0.75×, 1× and 1.25× Sound Lab playback speed options for comparison.
-- Reduced a redundant repeated maximum calculation inside spectrogram plotting.
+- Moved PLAY/STOP and explicit playback speed buttons into the top Sound Lab monitor so they remain visible while inspecting the graph.
+- Created a taller, labelled timeline axis so timestamps are readable and the last label stays within the canvas.
+- On finishing analysis, automatically shows the spectral signature and matches of a strong representative onset.
+- Added five clickable Pattern cards with the approximate strongest frequency bands and the time of their highest activity. Selecting one highlights its curve and seeks to its strongest moment.
+- Added PLAY PATTERN PEAK and PLAY SELECTED EVENT. Both play the original full mix, *not isolated audio components*.
+- All pattern descriptions are tentative spectral characteristics, not instrument identifications.
 
-This does not change the detection algorithms, source routing, main instrument styling, or audio quality.
-- Playhead and elapsed-time readout update independently of canvas redraws and support centisecond precision.
-- Play button changes to PAUSE while playing; click again to pause.
+Upload all five files together.
