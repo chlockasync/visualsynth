@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Synthesis v0.1.034</title>
+<title>Visual Synth | Synthesis v0.1.035</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -466,7 +466,7 @@ body{background-image:none!important;}
 .source-route-status{margin:3px 5px 0!important;min-height:12px;color:#edbf76;font-size:10px;line-height:1.35;}
 .source-route-status:empty{display:none;}
 
-/* v0.1.034: compact, side-by-side instruments. One six-pixel seam between them.
+/* v0.1.035: compact, side-by-side instruments. One six-pixel seam between them.
    Output level knobs are arranged horizontally in the top of the SYNTHESIS panel.
    Established fader/tick/knob geometry is intentionally left untouched. */
 .creative-row{display:flex;align-items:flex-start;justify-content:flex-start;gap:0;flex-wrap:wrap;padding:0;margin-top:10px;min-width:0}
@@ -496,7 +496,7 @@ body{background-image:none!important;}
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.034</span></div>
+    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.035</span></div>
     <div class="header-actions" role="group" aria-label="Track and recording">
       
       <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -505,7 +505,7 @@ body{background-image:none!important;}
   </header>
   <div class="monitor-grid" id="monitorGrid">
     <section class="panel" id="inputPanel" aria-label="Input monitor">
-      <div class="paneltop"><div><div class="eyebrow">01 / MUSIC ARRANGEMENT</div><div class="paneltitle" id="trackname" title="No track loaded">No track loaded</div></div><div class="paneltools"><label class="monitor-window" for="window">WINDOW <select id="window" aria-label="Visible timeline duration"><option value="2">2 s</option><option value="4">4 s</option><option value="8" selected>8 s</option><option value="16">16 s</option><option value="20">20 s</option><option value="32">32 s</option><option value="60">60 s</option></select></label><div class="monitor-bpm" id="bpm" title="Essentia.js beat and tempo tracking">TEMPO —</div><button class="smallbtn" id="rawPitchMode" type="button" aria-pressed="false" title="Compare original detector candidates with grouped musical voices">RAW PITCH</button><button class="smallbtn" id="exportPitchData" type="button" disabled title="Download pitch candidates and voice assignments for inspection">EXPORT</button><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
+      <div class="paneltop"><div><div class="eyebrow">01 / MUSIC ARRANGEMENT</div><div class="paneltitle" id="trackname" title="No track loaded">No track loaded</div></div><div class="paneltools"><label class="monitor-window" for="window">WINDOW <select id="window" aria-label="Visible timeline duration"><option value="2">2 s</option><option value="4">4 s</option><option value="8" selected>8 s</option><option value="16">16 s</option><option value="20">20 s</option><option value="32">32 s</option><option value="60">60 s</option></select></label><div class="monitor-bpm" id="bpm" title="Essentia.js beat and tempo tracking">TEMPO —</div><a class="smallbtn" href="./event-lab.html" style="text-decoration:none;display:inline-flex;align-items:center" title="Experiment with attacks, recurring sound patterns and instrument matching">SOUND LAB</a><button class="smallbtn" id="rawPitchMode" type="button" aria-pressed="false" title="Compare original detector candidates with grouped musical voices">RAW PITCH</button><button class="smallbtn" id="exportPitchData" type="button" disabled title="Download pitch candidates and voice assignments for inspection">EXPORT</button><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
       <div class="canvas-wrap" id="inputCanvasWrap"><canvas id="inputCanvas" aria-label="Music arrangement with beat, bass and melody note lanes, plus builds and breaks. Drag to seek." title="Drag to seek; bottom overview rail navigates the whole track."></canvas></div>
       <div class="compact-transport" role="group" aria-label="Music playback controls">
         <button id="play" class="transport-icon" disabled title="Play / Pause" aria-label="Play or pause">▶</button>
@@ -743,7 +743,7 @@ function drawRawPitchDiagnostic(ctx,info){
  const debug=dataset?.rawDebug;
  if(!debug){
   ctx.fillStyle='#b2bfd0';ctx.font='12px system-ui';
-  ctx.fillText(dataset?'No raw detector data in this analysis. Re-analyse with v0.1.034.':'Load an MP3 to inspect pitch detection.',left+12,h*.53);
+  ctx.fillText(dataset?'No raw detector data in this analysis. Re-analyse with v0.1.035.':'Load an MP3 to inspect pitch detection.',left+12,h*.53);
   return;
  }
  const rawStart=topOf(.27),rawBottom=topOf(.65),groupTop=topOf(.65),groupBottom=contentBottom;
@@ -952,7 +952,7 @@ function drawInput(){
 }
 function drawOutput(ms){renderVisualOutput(ms)}
 
-/* VISUAL SYNTHESIS v0.1.034. Six reusable visual tracks. Music signal histories,
+/* VISUAL SYNTHESIS v0.1.035. Six reusable visual tracks. Music signal histories,
    not independent oscillators, supply the evolving pattern values. */
 const visualSpec={
  mix:{min:0,max:1,def:.45,fmt:v=>Math.round(v*100)+'%'},
