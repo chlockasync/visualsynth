@@ -57,44 +57,163 @@ function pitchCurve(series,confidence,n,dt,hopSeconds,minHz,maxHz,energy,minConf
  }
  return {contour:out,movement:normalize(average(move,2),.975,.78),voiced:hz.reduce((a,x)=>a+(x>0),0)};
 }
-function extractPitchTracks(e,s,n,dt,bassEnergy,upperEnergy){
- if(typeof e.PitchYinProbabilistic!=='function'||typeof e.PredominantPitchMelodia!=='function')
-  throw Error('The loaded Essentia.js build does not expose the required YIN and MELODIA pitch trackers.');
- const sr=22050,hop=512,dtPitch=hop/sr;
+/* Five performable musical parts:
+   Essentia RhythmExtractor -> beat
+   Essentia probabilistic YIN -> bass
+   Essentia MultiPitchMelodia -> simultaneous pitched candidates
+   Time-continuity assignment -> THREE provisional melodic voices.
+   Melodia outputs pitch candidates, NOT instrument identity or separated stems. */
+function readPitchRows(vec){
+ if(!vec || typeof vec.size!=='function' || typeof vec.get!=='function')
+  throw Error('MultiPitchMelodia returned an unexpected pitch-vector structure.');
+ const rows=[];
+ try{
+  const count=vec.size();
+  for(let i=0;i<count;i++){
+   const row=vec.get(i),pitches=[];
+   try{
+    if(row && typeof row.size==='function'){
+     for(let j=0;j<row.size();j++){
+      const f=Number(row.get(j));if(f>=145&&f<=3500&&Number.isFinite(f))pitches.push(f);
+     }
+    }
+   }finally{row?.delete?.()}
+   // Suppress duplicate estimates of the same note (within 30 cents).
+   pitches.sort((a,b)=>a-b);
+   rows.push(pitches.filter((v,k)=>k===0||1200*Math.log2(v/pitches[k-1])>30));
+  }
+ }finally{vec.delete?.()}
+ return rows;
+}
+function assignMelodyVoices(rows,frameDt){
+ const defaults=[285,630,1300],states=defaults.map(f=>({pitch:f,last:-100}));
+ const output=Array.from({length:3},()=>new Float32Array(rows.length));
+ for(let i=0;i<rows.length;i++){
+  const frequencies=rows[i]||[],used=new Set();
+  // Preserve continuity when pitches overlap. A frame can only belong to one voice.
+  const choices=[];
+  for(let k=0;k<3;k++)for(let q=0;q<frequencies.length;q++){
+   const last=states[k],dt=(i-last.last)*frameDt;
+   const recent=dt<.36;
+   const reference=recent?last.pitch:defaults[k];
+   const cents=Math.abs(1200*Math.log2(frequencies[q]/reference));
+   choices.push({k,q,cost:cents+(recent?0:125),recent});
+  }
+  choices.sort((a,b)=>a.cost-b.cost);
+  const assigned=new Set();
+  for(const pick of choices){
+   if(assigned.has(pick.k)||used.has(pick.q))continue;
+   // Reject implausible note leaps inside a phrase but allow new phrases to start.
+   if(pick.recent&&pick.cost>690)continue;
+   if(!pick.recent&&pick.cost>1900)continue;
+   output[pick.k][i]=frequencies[pick.q];
+   states[pick.k].pitch=frequencies[pick.q];states[pick.k].last=i;
+   assigned.add(pick.k);used.add(pick.q);
+  }
+ }
+ return output;
+}
+function noteSegments(pitchArray,dt,minDuration=.085){
+ const notes=[];let start=-1,prev=0,sum=0,count=0;
+ const push=end=>{if(start<0)return;const duration=(end-start)*dt;
+  if(duration>=minDuration&&count){const hz=sum/count;notes.push({t0:start*dt,t1:end*dt,hz,midi:Math.round(69+12*Math.log2(hz/440))})}
+  start=-1;sum=0;count=0;prev=0;
+ };
+ for(let i=0;i<=pitchArray.length;i++){
+  const p=pitchArray[i]||0;
+  if(!p){push(i);continue}
+  if(start<0){start=i;sum=p;count=1;prev=p;continue}
+  if(Math.abs(12*Math.log2(p/prev))>.85){push(i);start=i;sum=p;count=1;prev=p;continue}
+  sum+=p;count++;prev=p;
+ }
+ return notes;
+}
+function notesToSignal(pitches,n,dt,frameDt,min,max,energy){
+ const out=new Float32Array(n),hz=new Float32Array(n);
+ const span=Math.log2(max/min);
+ for(let i=0;i<n;i++){
+  const j=Math.max(0,Math.min(pitches.length-1,Math.round(i*dt/frameDt)));
+  const p=pitches[j]||0;
+  if(p<min||p>max||energy[i]<.024)continue;
+  hz[i]=p;out[i]=(.16+.84*clamp(Math.log2(p/min)/span))*Math.min(1,energy[i]*5);
+ }
+ return {out,hz};
+}
+function activityFromNotes(notes,n,dt){
+ const out=new Float32Array(n);
+ for(const note of notes){
+  const a=Math.max(0,Math.floor(note.t0/dt)),b=Math.min(n,Math.ceil(note.t1/dt));
+  for(let i=a;i<b;i++)out[i]=1;
+ }
+ return out;
+}
+async function extractMusicalVoices(e,s,n,dt,bassEnergy,upperEnergy){
+ if(typeof e.PitchYinProbabilistic!=='function')throw Error('Essentia YIN pitch tracking is not available in this build.');
+ if(typeof e.MultiPitchMelodia!=='function')throw Error('Essentia MultiPitchMelodia is not available in this build.');
+ const sr=22050,hop=512,frameDt=hop/sr;
  const reduced=halfRate(s);
  const bassSignal=filterBand(reduced,sr,38,290);
- const upperSignal=filterBand(reduced,sr,220,3500);
- postMessage({type:'progress',value:92,detail:'Tracking bass fundamentals with Essentia probabilistic YIN…'});
+ postMessage({type:'progress',value:90,detail:'Following bass notes with Essentia YIN…'});
  let bassP,bassC;
  const bassVec=e.arrayToVector(bassSignal);
- try{
-  const r=e.PitchYinProbabilistic(bassVec,2048,hop,.01,'zero',false,sr);
-  bassP=vecToArray(e,r.pitch);
-  bassC=vecToArray(e,r.voicedProbabilities);
- }finally{if(bassVec.delete)bassVec.delete()}
- if(bassP.length<2)throw Error('Bass pitch tracker returned no usable pitch frames.');
- postMessage({type:'progress',value:96,detail:'Tracking predominant upper melody with Essentia MELODIA…'});
- let upperP,upperC;
- const upperVec=e.arrayToVector(upperSignal);
- try{
-  // Algorithm signature: signal, binResolution, filterIterations, frameSize,
-  // guessUnvoiced, harmonicWeight, hopSize, magnitudeCompression,
-  // magnitudeThreshold, maxFrequency, minDuration, minFrequency,
-  // numberHarmonics, peakDistributionThreshold, peakFrameThreshold,
-  // pitchContinuity, referenceFrequency, sampleRate, timeContinuity,
-  // voiceVibrato, voicingTolerance.
-  const r=e.PredominantPitchMelodia(upperVec,10,3,2048,false,.8,hop,1,40,
-    3400,100,250,20,.9,.9,27.5625,55,sr,100,false,.2);
-  upperP=vecToArray(e,r.pitch);
-  upperC=vecToArray(e,r.pitchConfidence);
- }finally{if(upperVec.delete)upperVec.delete()}
- if(upperP.length<2)throw Error('Upper melody tracker returned no usable pitch frames.');
- const bass=pitchCurve(bassP,bassC,n,dt,dtPitch,48,355,bassEnergy,.52);
- const upper=pitchCurve(upperP,upperC,n,dt,dtPitch,250,3400,upperEnergy,.12);
- return {bassContour:bass.contour,bassMovement:bass.movement,
-  upperContour:upper.contour,upperMovement:upper.movement,
-  pitchDiagnostics:{bassVoicedFrames:bass.voiced,upperVoicedFrames:upper.voiced,
-   algorithm:'Essentia probabilistic YIN (filtered bass) + predominant MELODIA (filtered upper)'}};
+ try{const r=e.PitchYinProbabilistic(bassVec,2048,hop,.01,false,false,sr);
+  bassP=vecToArray(e,r.pitch);bassC=vecToArray(e,r.voicedProbabilities);
+ }finally{bassVec.delete?.()}
+ if(bassP.length<2)throw Error('Bass pitch tracker produced no frames.');
+ const bassHz=new Float32Array(bassP.length);
+ for(let i=0;i<bassP.length;i++)if(bassP[i]>=40&&bassP[i]<=380&&(bassC[i]??0)>=.47)bassHz[i]=bassP[i];
+ const upperSignal=filterBand(reduced,sr,160,3600);
+ const frameCount=Math.ceil((s.length/44100)/frameDt)+2;
+ const allRows=new Array(frameCount);
+ const duration=s.length/44100, chunkLength=24;
+ for(let coreStart=0;coreStart<duration;coreStart+=chunkLength){
+  const from=Math.max(0,coreStart-.55),to=Math.min(duration,coreStart+chunkLength+.55);
+  const chunk=upperSignal.subarray(Math.floor(from*sr),Math.min(upperSignal.length,Math.ceil(to*sr)));
+  const v=e.arrayToVector(chunk);
+  let rows;
+  try{
+   const r=e.MultiPitchMelodia(v,10,3,2048,false,.8,hop,1,40,3500,95,165,20,.9,.9,27.5625,55,sr,100);
+   rows=readPitchRows(r.pitch);
+  }finally{v.delete?.()}
+  for(let i=0;i<rows.length;i++){
+   const time=from+i*frameDt;
+   if(time<coreStart || time>=Math.min(duration,coreStart+chunkLength))continue;
+   const ix=Math.round(time/frameDt);
+   if(ix>=0&&ix<allRows.length)allRows[ix]=rows[i];
+  }
+  postMessage({type:'progress',value:92+Math.round(Math.min(1,(coreStart+chunkLength)/duration)*7),
+    detail:'Following simultaneous melodies: '+Math.round(Math.min(duration,coreStart+chunkLength))+' / '+Math.round(duration)+' seconds…'});
+ }
+ const voiceHz=assignMelodyVoices(allRows,frameDt);
+ // Unlike band-energy curves, these signals are silent during unvoiced notes.
+ const result={signals:{},notes:{},diagnostics:{method:'Essentia YIN + multi-pitch MELODIA; register/continuity-based assignment'}};
+ const bassTrack=notesToSignal(bassHz,n,dt,frameDt,40,380,bassEnergy);
+ result.signals.bass=bassTrack.out;
+ result.notes.bass=noteSegments(bassHz,frameDt);
+ for(let k=0;k<3;k++){
+  const id='melody'+String.fromCharCode(65+k);
+  const line=notesToSignal(voiceHz[k],n,dt,frameDt,155,3500,upperEnergy);
+  result.signals[id]=line.out;
+  result.notes[id]=noteSegments(voiceHz[k],frameDt);
+ }
+ // When trackers find no stable notes, the lane stays empty rather than faking activity.
+ return result;
+}
+function arrangementAnalysis(signals,loudness,n,dt){
+ const activity=new Float32Array(n), voices=['bass','melodyA','melodyB','melodyC'];
+ for(let i=0;i<n;i++){
+  let count=0;for(const id of voices)if(signals[id][i]>.035)count++;
+  activity[i]=clamp(count*.18+(loudness[i]||0)*.28);
+ }
+ const smooth=average(activity,Math.max(1,Math.round(.7/dt)));
+ const markers=[];const look=Math.max(1,Math.round(2.0/dt));let lastTime=-10;
+ for(let i=look;i+look<n;i+=Math.max(1,Math.round(.25/dt))){
+  const before=smooth[i-look],after=smooth[i+look];const delta=after-before;
+  if(i*dt-lastTime<3.5)continue;
+  if(delta>.20 && after>.32){markers.push({t:i*dt,type:'BUILD'});lastTime=i*dt}
+  else if(delta<-.20&&before>.37){markers.push({t:i*dt,type:'BREAK'});lastTime=i*dt}
+ }
+ return {curve:smooth,markers};
 }
 async function init(libraries){
   if(!libraries?.wasm || !libraries?.core || !libraries?.meyda)throw Error("Analysis libraries were not supplied to the worker.");
@@ -180,10 +299,13 @@ async function analyse(samples,rate,libraries){
  // Bass and upper tracks remain independent, and unvoiced segments stay at zero.
  const pitchBassEnergy=new Float32Array(n),pitchUpperEnergy=new Float32Array(n);
  for(let i=0;i<n;i++){pitchBassEnergy[i]=clamp(bass[i]*.85+mid[i]*.2);pitchUpperEnergy[i]=Math.max(mid[i],high[i]);}
- const pitch=extractPitchTracks(e,s,n,dt,pitchBassEnergy,pitchUpperEnergy);
- const {bassContour,bassMovement,upperContour,upperMovement}=pitch;
+ const voices=await extractMusicalVoices(e,s,n,dt,pitchBassEnergy,pitchUpperEnergy);
  const {phase, pulse}=sourcePhase(beats,n,dt);
- const signals={loudness,bass,mid,high,brightness,texture,harmonic,activity,intensity,onsets,attack,beat:pulse,phase,bassContour,bassMovement,upperContour,upperMovement};
- postMessage({type:'done',dt,t0:0,signals,events,lowEvents:[],beats,bpm,beatConfidence,engine:'Essentia YIN + MELODIA + Meyda',pitchDiagnostics:pitch.pitchDiagnostics,count:n},Object.values(signals).map(x=>x.buffer));
+ const beatSignal=Float32Array.from(pulse,(x,i)=>loudness[i]<.015?0:x*Math.min(1,loudness[i]*6));
+ const signals={beat:beatSignal,...voices.signals};
+ const arrangement=arrangementAnalysis(signals,loudness,n,dt);
+ postMessage({type:'done',dt,t0:0,signals,notes:voices.notes,arrangement,events,lowEvents:[],beats,bpm,beatConfidence,
+   engine:'Essentia RhythmExtractor + YIN + MultiPitchMelodia; Meyda loudness for arrangement',
+   pitchDiagnostics:voices.diagnostics,count:n},[...Object.values(signals).map(x=>x.buffer),arrangement.curve.buffer]);
 }
 onmessage=async ev=>{if(ev.data.type!=='analyse')return;try{await analyse(ev.data.samples,ev.data.sampleRate,ev.data.libraries)}catch(err){postMessage({type:'error',message:String(err?.message||err),stack:String(err?.stack||'')})}};

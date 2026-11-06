@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Synthesis v0.1.030</title>
+<title>Visual Synth | Synthesis v0.1.031</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -469,7 +469,7 @@ body{background-image:none!important;}
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.030</span></div>
+    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.031</span></div>
     <div class="header-actions" role="group" aria-label="Track and recording">
       
       <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -478,8 +478,8 @@ body{background-image:none!important;}
   </header>
   <div class="monitor-grid" id="monitorGrid">
     <section class="panel" id="inputPanel" aria-label="Input monitor">
-      <div class="paneltop"><div><div class="eyebrow">01 / INPUT MONITOR</div><div class="paneltitle" id="trackname" title="No track loaded">No track loaded</div></div><div class="paneltools"><label class="monitor-window" for="window">WINDOW <select id="window" aria-label="Visible timeline duration"><option value="2">2 s</option><option value="4">4 s</option><option value="8" selected>8 s</option><option value="16">16 s</option><option value="20">20 s</option><option value="32">32 s</option><option value="60">60 s</option></select></label><div class="monitor-bpm" id="bpm" title="Essentia.js beat and tempo tracking">TEMPO —</div><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
-      <div class="canvas-wrap" id="inputCanvasWrap"><canvas id="inputCanvas" aria-label="Music timeline. Drag in the graph to seek within the current window, or use the lower overview rail to seek anywhere in the full track." title="Drag the graph to seek. Drag the bottom overview rail to seek anywhere in the song."></canvas></div>
+      <div class="paneltop"><div><div class="eyebrow">01 / MUSIC ARRANGEMENT</div><div class="paneltitle" id="trackname" title="No track loaded">No track loaded</div></div><div class="paneltools"><label class="monitor-window" for="window">WINDOW <select id="window" aria-label="Visible timeline duration"><option value="2">2 s</option><option value="4">4 s</option><option value="8" selected>8 s</option><option value="16">16 s</option><option value="20">20 s</option><option value="32">32 s</option><option value="60">60 s</option></select></label><div class="monitor-bpm" id="bpm" title="Essentia.js beat and tempo tracking">TEMPO —</div><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
+      <div class="canvas-wrap" id="inputCanvasWrap"><canvas id="inputCanvas" aria-label="Music arrangement with beat, bass and melody note lanes, plus builds and breaks. Drag to seek." title="Drag to seek; bottom overview rail navigates the whole track."></canvas></div>
       <div class="compact-transport" role="group" aria-label="Music playback controls">
         <button id="play" class="transport-icon" disabled title="Play / Pause" aria-label="Play or pause">▶</button>
         <button id="stop" class="transport-icon" disabled title="Stop" aria-label="Stop">■</button>
@@ -502,8 +502,8 @@ body{background-image:none!important;}
     <button class="tab" disabled title="Extended modulation routing is a later stage">MODULATION · LATER</button>
     <button class="tab" disabled title="Video recording is a later stage">RECORDING · LATER</button>
   </nav>
-  <section class="mixer-frame" id="inputWorkbench" aria-label="13 input conditioning channels">
-    <h2 class="mixer-heading">03 / INPUT CHANNELS</h2>
+  <section class="mixer-frame" id="inputWorkbench" aria-label="Five musical input channels">
+    <h2 class="mixer-heading">03 / MUSICAL INPUTS</h2>
     <div class="mixer-scroll" tabindex="0" aria-label="Input channel mixer; scroll horizontally if required"><div id="channelRack" class="channel-rack"></div></div>
   </section>
   <section class="synth-workbench" id="synthesisWorkbench" aria-label="Visual synthesis control workbench" hidden>
@@ -548,23 +548,16 @@ body{background-image:none!important;}
 const $=id=>document.getElementById(id);
 const audio=$('player'),input=$('inputCanvas'),output=$('outputCanvas');
 const monitorGrid=$('monitorGrid'),splitter=$('monitorSplitter');
+/* Five meaningful, music-derived sources. Channel geometry deliberately untouched. */
 const srcList=[
- {id:'beat',name:'BEAT',family:'TIMING',color:'#e5b15d',desc:'Essentia beat events, shaped as trigger pulses',special:'WIDTH',specialKind:'width'},
- {id:'phase',name:'PHASE',family:'TIMING',color:'#e6ce91',desc:'Position between detected beats, with an adjustable cycle multiplier',special:'RATE',specialKind:'rate'},
- {id:'onsets',name:'ONSETS',family:'TIMING',color:'#eda689',desc:'Each detected musical attack, whether or not on the beat',special:'CURVE',specialKind:'curve'},
- {id:'attack',name:'STRENGTH',family:'TIMING',color:'#e69a9a',desc:'Strength envelope from detected musical attacks',special:'CURVE',specialKind:'curve'},
- {id:'bassContour',name:'BASS PITCH',family:'LOW',color:'#e9a4c8',desc:'Essentia YIN-estimated bass fundamental (band-isolated; not stem separation)',special:'RANGE',specialKind:'range'},
- {id:'bassMovement',name:'BASS MOVE',family:'LOW',color:'#cb92bb',desc:'Pitch movement derived from voiced Essentia YIN bass fundamentals',special:'CURVE',specialKind:'curve'},
- {id:'upperContour',name:'UPPER PITCH',family:'UPPER',color:'#a6d0e7',desc:'Essentia MELODIA predominant upper-line pitch (not stem separation)',special:'RANGE',specialKind:'range'},
- {id:'upperMovement',name:'UPPER MOVE',family:'UPPER',color:'#9da9f2',desc:'Pitch movement derived from voiced Essentia MELODIA upper estimates',special:'CURVE',specialKind:'curve'},
- {id:'loudness',name:'LOUDNESS',family:'STATE',color:'#88c8fa',desc:'Meyda perceptual loudness',special:'CURVE',specialKind:'curve'},
- {id:'intensity',name:'INTENSITY',family:'STATE',color:'#ffcf83',desc:'Musical energy combining loudness, brightness and attack activity',special:'CURVE',specialKind:'curve'},
- {id:'brightness',name:'BRIGHTNESS',family:'STATE',color:'#e7bf8f',desc:'Meyda spectral centroid, showing whether a sound is bright or dark',special:'CURVE',specialKind:'curve'},
- {id:'activity',name:'ACTIVITY',family:'STATE',color:'#a9d5aa',desc:'Density of musical attacks through time',special:'CURVE',specialKind:'curve'},
- {id:'texture',name:'TEXTURE',family:'STATE',color:'#91cbd3',desc:'Spectral flatness, tonal versus noisy texture',special:'CURVE',specialKind:'curve'}
+ {id:'beat',name:'BEAT',family:'RHYTHM',color:'#e5b15d',desc:'Essentia detected beats, time-aligned to the song',special:'WIDTH',specialKind:'width'},
+ {id:'bass',name:'BASS',family:'PITCHED VOICE',color:'#e7a4c8',desc:'YIN bass pitch estimates; notes and gaps (not an isolated audio stem)',special:'RANGE',specialKind:'range'},
+ {id:'melodyA',name:'MELODY A',family:'PITCHED VOICE',color:'#9bd5f6',desc:'Lower/mid-register estimated melodic line, from multi-pitch tracking',special:'RANGE',specialKind:'range'},
+ {id:'melodyB',name:'MELODY B',family:'PITCHED VOICE',color:'#b8aaf3',desc:'Mid/upper-register estimated melodic line, from multi-pitch tracking',special:'RANGE',specialKind:'range'},
+ {id:'melodyC',name:'MELODY C',family:'PITCHED VOICE',color:'#a6dfbf',desc:'Upper-register estimated melodic line, from multi-pitch tracking',special:'RANGE',specialKind:'range'}
 ];
 const metadata=Object.fromEntries(srcList.map(x=>[x.id,x]));
-const defaultMonitored=new Set(['beat','bassContour','upperContour','intensity']);
+const defaultMonitored=new Set(['beat','bass','melodyA','melodyB','melodyC']);
 const configs={}, conditioned={};
 let vals={},dataset=null,waveform=null,worker=null,url=null;
 let fileToken=0,windowSec=8,playing=false,raf=0,lastFrame=0,fpsSamples=[],lastDisplay={start:0,end:20},started=false;
@@ -721,96 +714,126 @@ function drawInput(){
  const sec=audio.currentTime||0,dur=audio.duration||0;
  const start=scrubbingInput?dragWindowStart:clamp(sec-windowSec*.48,0,Math.max(0,dur-windowSec)),end=start+windowSec;
  lastDisplay={start,end};
- const dpr=w/Math.max(1,input.getBoundingClientRect().width);const left=Math.round(56*dpr),right=w-12,plotw=right-left,pixelsPerSec=plotw/windowSec;
- // Shared time axis, but separate vertical axes. Trace overlap in v0.1.000
- // made even correct signals almost impossible to interpret.
+ const dpr=w/Math.max(1,input.getBoundingClientRect().width);
+ const left=Math.round(74*dpr),right=w-12,plotw=Math.max(1,right-left),pixelsPerSec=plotw/windowSec;
+ const tX=t=>left+(t-start)*pixelsPerSec;
  const clockStep=windowSec<=2?.25:windowSec<=4?.5:windowSec<=8?1:windowSec<=20?2:windowSec<=32?4:10;
  ctx.font=`${Math.max(10,Math.floor(h*.032))}px system-ui`;
- for(let t=Math.ceil(start/clockStep)*clockStep;t<=end;t+=clockStep){
-  const x=left+(t-start)*pixelsPerSec;
-  ctx.strokeStyle='#263348';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,17);ctx.lineTo(x,h-25);ctx.stroke();
-  ctx.fillStyle='#95a4b9';ctx.fillText(fmtAxis(t),Math.min(w-(windowSec<=4?61:41),x+3),14);
+ for(let t=Math.ceil(start/clockStep)*clockStep;t<=end+.001;t+=clockStep){
+  const x=tX(t);ctx.strokeStyle='#263348';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(x,17);ctx.lineTo(x,h-26);ctx.stroke();
+  ctx.fillStyle='#95a4b9';ctx.fillText(fmtAxis(t),Math.min(w-45,x+3),14);
  }
- const waveTop=h*.10,waveBottom=h*.32,waveMid=(waveTop+waveBottom)*.5;
- ctx.fillStyle='#111d2c';ctx.fillRect(left,waveTop,plotw,waveBottom-waveTop);
- ctx.fillStyle='#b0c2d7';ctx.font=`${Math.max(10,Math.floor(h*.034))}px system-ui`;ctx.fillText('Wave',11,waveMid+4);
+ const contentTop=Math.max(20,h*.09),contentBottom=h-25,area=contentBottom-contentTop;
+ const laneSpecs=[
+  {id:'wave',name:'WAVE',top:0,bottom:.19},
+  {id:'beat',name:'BEAT',top:.19,bottom:.30,color:'#e5b15d'},
+  {id:'bass',name:'BASS',top:.30,bottom:.43,color:'#e7a4c8'},
+  {id:'melodyA',name:'MELODY A',top:.43,bottom:.56,color:'#9bd5f6'},
+  {id:'melodyB',name:'MELODY B',top:.56,bottom:.69,color:'#b8aaf3'},
+  {id:'melodyC',name:'MELODY C',top:.69,bottom:.82,color:'#a6dfbf'},
+  {id:'arrangement',name:'BUILD / BREAK',top:.82,bottom:1,color:'#f3c17a'}
+ ];
+ const topOf=r=>contentTop+r*area;
+ // Faint vertical grid and alternating strips are informational, not visual synthesis.
+ laneSpecs.forEach((lane,i)=>{
+  const top=topOf(lane.top),bottom=topOf(lane.bottom);
+  ctx.fillStyle=i%2?'#101b2b':'#152132';ctx.fillRect(left,top,plotw,bottom-top-1);
+  ctx.fillStyle=lane.color||'#9faec4';ctx.font=`${Math.max(9,Math.min(12,Math.round((bottom-top)*.22)))}px system-ui`;
+  ctx.fillText(lane.name,5,top+(bottom-top)*.55);
+ });
+ const waveTop=topOf(0),waveBottom=topOf(.19),waveMid=(waveTop+waveBottom)/2;
  if(waveform){
-  const amp=(waveBottom-waveTop)*.44;ctx.strokeStyle='#8ba9d9';ctx.globalAlpha=.92;
+  const amp=(waveBottom-waveTop)*.43;ctx.strokeStyle='#8ba9d9';ctx.globalAlpha=.92;
   ctx.beginPath();for(let x=Math.floor(left);x<right;x++){
-   const t=start+(x-left)/plotw*windowSec,idx=Math.floor(t*waveform.hz);
+   const idx=Math.floor((start+(x-left)/plotw*windowSec)*waveform.hz);
    const a=waveform.min[idx]??0,b=waveform.max[idx]??0;
    ctx.moveTo(x,waveMid-b*amp);ctx.lineTo(x,waveMid-a*amp);
   }ctx.stroke();ctx.globalAlpha=1;
  }
  if(dataset){
-  const active=srcList.filter(src=>configs[src.id]?.on);
-  const bandsTop=h*.34,bandsBottom=h*.91,each=(bandsBottom-bandsTop)/Math.max(1,active.length);
-  if(!active.length){ctx.fillStyle='#a6b6cc';ctx.fillText('Select a signal to examine its timeline.',left+20,h*.69)}
-  active.forEach((src,i)=>{
-   const top=bandsTop+i*each,bottom=top+each,labelY=top+each*.55;
-   ctx.fillStyle=i%2?'#101b2b':'#162235';ctx.fillRect(left,top,plotw,each-1);
-   ctx.font=`${Math.max(10,Math.min(12,Math.round(each*.22)))}px system-ui`;
-   ctx.fillStyle=src.color;
-   // Small left label so even four lanes fit side by side.
-   const labels={beat:'Beat',phase:'Phase',onsets:'Onsets',attack:'Strength',bassContour:'Bass pitch',bassMovement:'Bass move',upperContour:'Upper pitch',upperMovement:'Upper move',loudness:'Loud',intensity:'Energy',brightness:'Bright',activity:'Activity',texture:'Texture'};
-   ctx.fillText(labels[src.id]||src.name,7,labelY);
-   const pad=Math.min(6,each*.15),height=each-pad*2,baseline=bottom-pad;
-   const y=monitorValue(src.id,start);
-   ctx.beginPath();ctx.moveTo(left,baseline-y*height);
-   for(let x=Math.floor(left)+2;x<right;x+=2){const t=start+(x-left)/plotw*windowSec;ctx.lineTo(x,baseline-monitorValue(src.id,t)*height)}
-   ctx.strokeStyle=src.color;ctx.lineWidth=Math.max(1.5,w/860);ctx.stroke();
-   // A small live position dot makes comparisons to the heard sound more direct.
-   const current=clamp(monitorValue(src.id,sec));
-   const px=left+(sec-start)*pixelsPerSec;
-   ctx.fillStyle=src.color;ctx.beginPath();ctx.arc(px,baseline-current*height,2.8,0,Math.PI*2);ctx.fill();
-  });
-  // Beat/bar grid is a time alignment aid, not a claim that all musical accents were detected.
-  const timing=getTiming();
-  if(timing){
-   const {interval,origin,beatsPerBar}=timing;
-   const minBeat=Math.max(0,Math.ceil((start-origin)/interval));
-   const maxBeat=Math.floor((end-origin)/interval);
-   const maxLines=1200;
-   let prevLabelX=-1000;
-   for(let i=minBeat;i<=maxBeat && i<minBeat+maxLines;i++){
-    const isBar=i%beatsPerBar===0;
-
-    const t=origin+i*interval,x=left+(t-start)*pixelsPerSec;
-    ctx.save();ctx.strokeStyle=isBar?'#e8bb74':'#8998b1';ctx.globalAlpha=isBar?.72:.27;
-    ctx.lineWidth=isBar?Math.max(1.5,w/960):1;
-    ctx.setLineDash(isBar?[]:[3,5]);ctx.beginPath();ctx.moveTo(x,waveTop);ctx.lineTo(x,h*.91);ctx.stroke();ctx.restore();
-    if(isBar && x>left+6 && x>prevLabelX+35 && x<right-20){
-      ctx.fillStyle='#f0bd76';ctx.font=`bold ${Math.max(10,Math.floor(h*.028))}px system-ui`;
-      ctx.fillText('BAR '+(Math.floor(i/beatsPerBar)+1),x+4,Math.max(27,waveTop-6));prevLabelX=x;
-    }
-   }
+  // Use the ACTUAL beat timestamps, never guessed bar numbers or a synthetic 4/4 grid.
+  const beats=dataset.beats||[],beatTop=topOf(.19),beatBottom=topOf(.30);
+  if(configs.beat?.on)for(const beat of beats){
+   if(beat<start)continue;if(beat>end)break;
+   const x=tX(beat);ctx.strokeStyle='#e5b15d';ctx.globalAlpha=.9;ctx.lineWidth=Math.max(1.5,w/1000);
+   ctx.beginPath();ctx.moveTo(x,beatTop+3);ctx.lineTo(x,beatBottom-3);ctx.stroke();ctx.globalAlpha=1;
   }
-
+  // Each part shows individual musical note spans. No filled-in invented notes.
+  for(const lane of laneSpecs){
+   if(!lane.id.startsWith('melody')&&lane.id!=='bass')continue;
+   if(!configs[lane.id]?.on)continue;
+   const top=topOf(lane.top),bottom=topOf(lane.bottom),height=bottom-top;
+   const notes=dataset.notes?.[lane.id]||[];
+   // Notes are sorted; binary search makes scrolling a long recording efficient.
+   let lo=0,hi=notes.length;
+   while(lo<hi){const mid=(lo+hi)>>1;if(notes[mid].t1<start)lo=mid+1;else hi=mid;}
+   for(let i=lo;i<notes.length;i++){
+    const note=notes[i];if(note.t0>end)break;
+    const x1=Math.max(left,tX(Math.max(start,note.t0)));
+    const x2=Math.min(right,tX(Math.min(end,note.t1)));
+    if(x2-x1<.7)continue;
+    const minMidi=lane.id==='bass'?29:48,maxMidi=lane.id==='bass'?62:94;
+    const relative=clamp((note.midi-minMidi)/(maxMidi-minMidi));
+    const midY=bottom-4-relative*(height-8);
+    const thick=clamp(height*.18,3,Math.max(3,height*.27));
+    ctx.fillStyle=lane.color;ctx.globalAlpha=.87;
+    ctx.fillRect(x1,midY-thick/2,Math.max(1,x2-x1),thick);
+    ctx.globalAlpha=1;
+   }
+   if(!notes.length){ctx.fillStyle='#8694ab';ctx.font='10px system-ui';ctx.fillText('No stable pitch line detected',left+8,top+height*.62)}
+  }
+  // Musical arrangement: a smoothed estimate of simultaneous pitched activity plus loudness.
+  const aTop=topOf(.82),aBottom=contentBottom-3,aHeight=aBottom-aTop-3;
+  const curve=dataset.arrangement?.curve;
+  if(curve?.length){
+   ctx.beginPath();ctx.moveTo(left,aBottom);
+   for(let x=Math.floor(left);x<right;x+=2){
+    const t=start+(x-left)/plotw*windowSec,idx=Math.floor(t/dataset.dt);
+    const fraction=clamp((t/dataset.dt)-idx);
+    const v=(curve[Math.max(0,idx)]||0)*(1-fraction)+(curve[Math.min(curve.length-1,idx+1)]||0)*fraction;
+    ctx.lineTo(x,aBottom-clamp(v)*aHeight);
+   }
+   ctx.lineTo(right,aBottom);ctx.closePath();ctx.fillStyle='rgba(241,183,105,.19)';ctx.fill();
+   ctx.strokeStyle='#efb86d';ctx.lineWidth=1.6;ctx.stroke();
+  }
+  for(const mark of dataset.arrangement?.markers||[]){
+   if(mark.t<start||mark.t>end)continue;
+   const x=tX(mark.t);
+   ctx.strokeStyle=mark.type==='BUILD'?'#9bdfbf':'#e5a69c';ctx.lineWidth=1;ctx.setLineDash([3,4]);
+   ctx.beginPath();ctx.moveTo(x,aTop);ctx.lineTo(x,aBottom);ctx.stroke();ctx.setLineDash([]);
+   ctx.fillStyle=mark.type==='BUILD'?'#9bdfbf':'#e5a69c';
+   ctx.font=`bold ${Math.max(9,Math.min(11,h*.024))}px system-ui`;
+   ctx.fillText(mark.type,Math.min(right-43,x+3),aTop+12);
+  }
  }else{
-  ctx.fillStyle='#8491a8';ctx.font=`${Math.max(12,Math.floor(h*.045))}px system-ui`;
-  ctx.fillText(waveform?'Computing independent signals…':'Load an MP3 to see the waveform and its musical signals.',left+15,h*.60);
+  ctx.fillStyle='#8491a8';ctx.font=`${Math.max(12,Math.floor(h*.042))}px system-ui`;
+  ctx.fillText(waveform?'Following musical voices…':'Load an MP3 to see its beat, bass and melody lines.',left+15,h*.54);
  }
- const px=left+(sec-start)*pixelsPerSec;
- ctx.strokeStyle='#ffdc99';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px,h*.085);ctx.lineTo(px,h*.91);ctx.stroke();
- ctx.fillStyle='#ffdc99';ctx.beginPath();ctx.moveTo(px-5,h*.085);ctx.lineTo(px+5,h*.085);ctx.lineTo(px,h*.085+7);ctx.fill();
- ctx.strokeStyle='#46556b';ctx.lineWidth=1;ctx.strokeRect(left+.5,h*.095,plotw,h*.815);
- // Full-song overview integrated into the bottom of the same timeline.
- // The filled window indicates what portion the upper detailed graph is showing.
+ const px=tX(sec);ctx.strokeStyle='#ffdc99';ctx.lineWidth=1.5;
+ ctx.beginPath();ctx.moveTo(px,contentTop-4);ctx.lineTo(px,contentBottom);ctx.stroke();
+ ctx.fillStyle='#ffdc99';ctx.beginPath();ctx.moveTo(px-5,contentTop-4);ctx.lineTo(px+5,contentTop-4);ctx.lineTo(px,contentTop+3);ctx.fill();
+ ctx.strokeStyle='#46556b';ctx.lineWidth=1;ctx.strokeRect(left+.5,contentTop+.5,plotw,area);
+ // Lower strip always navigates the whole song; upcoming builds/breaks marked here too.
  const railTop=h-22,railY=h-12,trackDuration=Math.max(dur,windowSec);
  ctx.fillStyle='#172334';ctx.fillRect(left,railTop,plotw,18);
  ctx.strokeStyle='#4b596d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(left,railY);ctx.lineTo(right,railY);ctx.stroke();
+ for(const mark of dataset?.arrangement?.markers||[]){
+  const x=left+clamp(mark.t/trackDuration)*plotw;
+  ctx.fillStyle=mark.type==='BUILD'?'#9bdfbf':'#e5a69c';ctx.fillRect(x-1,railY-5,2,10);
+ }
  if(dur>0){
-  const windowL=left+clamp(start/trackDuration)*plotw,windowR=left+clamp(end/trackDuration)*plotw;
-  ctx.fillStyle='rgba(166,184,211,.22)';ctx.fillRect(windowL,railY-5,Math.max(3,windowR-windowL),10);
-  ctx.strokeStyle='#8797ae';ctx.lineWidth=1;ctx.strokeRect(windowL+.5,railY-5.5,Math.max(3,windowR-windowL),10);
+  const l=left+clamp(start/trackDuration)*plotw,r=left+clamp(end/trackDuration)*plotw;
+  ctx.fillStyle='rgba(166,184,211,.22)';ctx.fillRect(l,railY-5,Math.max(3,r-l),10);
+  ctx.strokeStyle='#8797ae';ctx.lineWidth=1;ctx.strokeRect(l+.5,railY-5.5,Math.max(3,r-l),10);
  }
  const songX=left+clamp(sec/trackDuration)*plotw;
  ctx.strokeStyle='#e5b15d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(songX,railY-9);ctx.lineTo(songX,railY+9);ctx.stroke();
  ctx.fillStyle='#e5b15d';ctx.beginPath();ctx.arc(songX,railY,4,0,Math.PI*2);ctx.fill();
 }
-function drawOutput(ms){renderVisualOutput(ms);}
+function drawOutput(ms){renderVisualOutput(ms)}
 
-/* VISUAL SYNTHESIS v0.1.030. Six reusable visual tracks. Music signal histories,
+/* VISUAL SYNTHESIS v0.1.031. Six reusable visual tracks. Music signal histories,
    not independent oscillators, supply the evolving pattern values. */
 const visualSpec={
  mix:{min:0,max:1,def:.45,fmt:v=>Math.round(v*100)+'%'},
@@ -830,7 +853,7 @@ const visualSpec={
 };
 function initialVisualTrack(i){return {
  on:i<2,level:i===0?.85:i===1?.70:.65,
- primary:['beat','bassContour','upperContour','onsets','intensity','brightness'][i],
+ primary:['beat','bass','melodyA','melodyB','melodyC','melodyA'][i],
  secondary:'none',sourceMode:'mix',style:['radial','linear','spiral','field','radial','spiral'][i],
  origin:'centre',direction:i===1?'still':'out',colour:['#86d9e9','#efb86d','#b5a0e9','#b9e6c1','#ec9ec2','#e1c78b'][i],
  ...Object.fromEntries(Object.entries(visualSpec).map(([k,v])=>[k,v.def]))
@@ -1063,7 +1086,7 @@ function renderVisualOutput(){const wrap=output.getBoundingClientRect();
   ctx.drawImage(trackMix.on&&i===trackMix.into&&trackMix.from!==trackMix.into?combineSurface:visualCanvases[i],0,0);
  }
  ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
- $('outputStatus').textContent=visualTracks.filter(x=>x.on).length+' active visual track(s) · rendered from music-derived input signals';
+ $('outputStatus').textContent=visualTracks.filter(x=>x.on).length+' active visual track(s) · driven by beat / estimated pitched voices';
 }
 // Initializes the visual controls without assuming decoded audio is ready.
 buildVisualTrackBank();setupSynthEditor();selectVisualTrack(0);
@@ -1128,16 +1151,16 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
   $('duration').textContent=fmt(decoded.duration);badge('PREPARING');msg('Preparing the waveform and analysis worker…','busy');
   await new Promise(r=>setTimeout(r,40));
   const prepared=await prepareAudio(decoded);if(token!==fileToken)return;
-  waveform=prepared.waveform;badge('ANALYSING');msg('Starting established music-analysis libraries…','busy');drawInput();
+  waveform=prepared.waveform;badge('ANALYSING');msg('Finding beat, bass, and independent melodic candidates…','busy');drawInput();
   msg('Loading library files for analysis…','busy');
   const libraries=await getAnalysisLibraries();if(token!==fileToken)return;
-  worker=new Worker('./analysis-worker.js?v=0.1.029');
+  worker=new Worker('./analysis-worker.js?v=0.1.031');
   worker.onmessage=ev=>{if(token!==fileToken)return;const o=ev.data;
    if(o.type==='progress'){msg((o.detail||'Analysing music…')+' '+o.value+'%','busy')}
    if(o.type==='error'){badge('ERROR');msg('Analysis failed: '+o.message,'error');stopWorker()}
    if(o.type==='done'){
-    dataset={dt:o.dt,t0:o.t0,signals:o.signals,events:o.events,lowEvents:o.lowEvents,beats:o.beats,bpm:o.bpm,beatConfidence:o.beatConfidence};
-    rebuildAllChannels();refreshTempoDisplay();drawOutput(0);badge('READY');msg('Essentia + Meyda signals ready. Play and shape the input channels.','ok');stopWorker();drawInput()
+    dataset={dt:o.dt,t0:o.t0,signals:o.signals,notes:o.notes||{},arrangement:o.arrangement||null,events:o.events,lowEvents:o.lowEvents,beats:o.beats,bpm:o.bpm,beatConfidence:o.beatConfidence,pitchDiagnostics:o.pitchDiagnostics};
+    rebuildAllChannels();refreshTempoDisplay();drawOutput(0);badge('READY');msg('Beat and musical voice estimates ready. Select lanes, then shape them in SYNTHESIS.','ok');stopWorker();drawInput()
    }
   };
   worker.onerror=err=>{if(token!==fileToken)return;badge('ERROR');msg('Analysis worker error: '+(err.message||'unknown error'),'error');stopWorker()};
@@ -1204,7 +1227,7 @@ $('window').onchange=()=>{windowSec=Number($('window').value);drawInput()};
 let scrubbingWholeTrack=false;
 function scrubInput(e){
  const dur=audio.duration;if(!Number.isFinite(dur)||dur<=0)return;
- const rect=input.getBoundingClientRect(),x=e.clientX-rect.left,left=56,right=rect.width-12;
+ const rect=input.getBoundingClientRect(),x=e.clientX-rect.left,left=74,right=rect.width-12;
  const fraction=(x-left)/Math.max(1,right-left);
  if(scrubbingWholeTrack){
   // The slim bottom strip represents the entire song, independent of window size.
