@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Synthesis v0.1.033</title>
+<title>Visual Synth | Synthesis v0.1.034</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -466,7 +466,7 @@ body{background-image:none!important;}
 .source-route-status{margin:3px 5px 0!important;min-height:12px;color:#edbf76;font-size:10px;line-height:1.35;}
 .source-route-status:empty{display:none;}
 
-/* v0.1.033: compact, side-by-side instruments. One six-pixel seam between them.
+/* v0.1.034: compact, side-by-side instruments. One six-pixel seam between them.
    Output level knobs are arranged horizontally in the top of the SYNTHESIS panel.
    Established fader/tick/knob geometry is intentionally left untouched. */
 .creative-row{display:flex;align-items:flex-start;justify-content:flex-start;gap:0;flex-wrap:wrap;padding:0;margin-top:10px;min-width:0}
@@ -488,12 +488,15 @@ body{background-image:none!important;}
  .synth-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:520px){.synth-module-grid{grid-template-columns:minmax(0,1fr)}}
+/* Diagnostic mode is a monitor view, not a new panel or synthesis control. */
+#rawPitchMode[aria-pressed=true]{color:#efbd69;border-color:#b88c54;background:#222c3b}
+#exportPitchData:disabled{opacity:.45;cursor:default}
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.033</span></div>
+    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.034</span></div>
     <div class="header-actions" role="group" aria-label="Track and recording">
       
       <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -502,7 +505,7 @@ body{background-image:none!important;}
   </header>
   <div class="monitor-grid" id="monitorGrid">
     <section class="panel" id="inputPanel" aria-label="Input monitor">
-      <div class="paneltop"><div><div class="eyebrow">01 / MUSIC ARRANGEMENT</div><div class="paneltitle" id="trackname" title="No track loaded">No track loaded</div></div><div class="paneltools"><label class="monitor-window" for="window">WINDOW <select id="window" aria-label="Visible timeline duration"><option value="2">2 s</option><option value="4">4 s</option><option value="8" selected>8 s</option><option value="16">16 s</option><option value="20">20 s</option><option value="32">32 s</option><option value="60">60 s</option></select></label><div class="monitor-bpm" id="bpm" title="Essentia.js beat and tempo tracking">TEMPO —</div><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
+      <div class="paneltop"><div><div class="eyebrow">01 / MUSIC ARRANGEMENT</div><div class="paneltitle" id="trackname" title="No track loaded">No track loaded</div></div><div class="paneltools"><label class="monitor-window" for="window">WINDOW <select id="window" aria-label="Visible timeline duration"><option value="2">2 s</option><option value="4">4 s</option><option value="8" selected>8 s</option><option value="16">16 s</option><option value="20">20 s</option><option value="32">32 s</option><option value="60">60 s</option></select></label><div class="monitor-bpm" id="bpm" title="Essentia.js beat and tempo tracking">TEMPO —</div><button class="smallbtn" id="rawPitchMode" type="button" aria-pressed="false" title="Compare original detector candidates with grouped musical voices">RAW PITCH</button><button class="smallbtn" id="exportPitchData" type="button" disabled title="Download pitch candidates and voice assignments for inspection">EXPORT</button><button class="smallbtn" id="focusInput" type="button" aria-pressed="false" title="Expand input timeline to use the full monitor area">⛶ Expand input</button></div></div>
       <div class="canvas-wrap" id="inputCanvasWrap"><canvas id="inputCanvas" aria-label="Music arrangement with beat, bass and melody note lanes, plus builds and breaks. Drag to seek." title="Drag to seek; bottom overview rail navigates the whole track."></canvas></div>
       <div class="compact-transport" role="group" aria-label="Music playback controls">
         <button id="play" class="transport-icon" disabled title="Play / Pause" aria-label="Play or pause">▶</button>
@@ -586,6 +589,7 @@ const metadata=Object.fromEntries(srcList.map(x=>[x.id,x]));
 const defaultMonitored=new Set(['beat','bass','melodyA','melodyB','melodyC']);
 const configs={}, conditioned={};
 let vals={},dataset=null,waveform=null,worker=null,url=null;
+let rawPitchMode=false;
 let fileToken=0,windowSec=8,playing=false,raf=0,lastFrame=0,fpsSamples=[],lastDisplay={start:0,end:20},started=false;
 let canvasWidth=0,canvasHeight=0,diagWidth=0,diagHeight=0;
 const fmt=(v)=>{if(!Number.isFinite(v))return '0:00';let h=Math.floor(v/3600),m=Math.floor(v%3600/60),s=Math.floor(v%60);return (h?h+':'+String(m).padStart(2,'0'):String(m))+':'+String(s).padStart(2,'0')};
@@ -721,7 +725,7 @@ function monitorValue(id,t){if(!dataset)return 0;const arr=conditioned[id]||data
 // OFF or MUTE silence the synth send, but only OFF also stops the live meter.
 function value(id,t){const cfg=configs[id];return !cfg?.on||cfg.mute?0:clamp(monitorValue(id,t)*(cfg.level??1))}
 function updateLive(){const t=audio.currentTime||0;for(const s of srcList){const monitored=configs[s.id]?.on?monitorValue(s.id,t):0;vals[s.id]=value(s.id,t);$('bar-'+s.id).style.height=(100*monitored).toFixed(1)+'%'}}
-function clearData(){dataset=null;waveform=null;Object.keys(conditioned).forEach(x=>delete conditioned[x]);Object.keys(vals).forEach(x=>vals[x]=0);$('bpm').textContent='TEMPO —';$('fpsLabel').textContent='Preview · idle';updateLive();drawInput();drawOutput(0)}
+function clearData(){dataset=null;waveform=null;$('exportPitchData').disabled=true;Object.keys(conditioned).forEach(x=>delete conditioned[x]);Object.keys(vals).forEach(x=>vals[x]=0);$('bpm').textContent='TEMPO —';$('fpsLabel').textContent='Preview · idle';updateLive();drawInput();drawOutput(0)}
 function stopWorker(){if(worker){worker.terminate();worker=null}}
 function getTiming(){
  const bpm=dataset?.bpm;
@@ -733,6 +737,91 @@ function getTiming(){
 function refreshTempoDisplay(){
  const timing=getTiming();
  $('bpm').textContent=timing?Math.round(timing.bpm)+' BPM':'TEMPO —';
+}
+function drawRawPitchDiagnostic(ctx,info){
+ const {w,h,left,right,plotw,start,end,sec,contentTop,contentBottom,topOf,tX}=info;
+ const debug=dataset?.rawDebug;
+ if(!debug){
+  ctx.fillStyle='#b2bfd0';ctx.font='12px system-ui';
+  ctx.fillText(dataset?'No raw detector data in this analysis. Re-analyse with v0.1.034.':'Load an MP3 to inspect pitch detection.',left+12,h*.53);
+  return;
+ }
+ const rawStart=topOf(.27),rawBottom=topOf(.65),groupTop=topOf(.65),groupBottom=contentBottom;
+ if(dataset?.beats){
+  ctx.strokeStyle='#e5b15d';ctx.lineWidth=1.6;
+  for(const t of dataset.beats){if(t<start)continue;if(t>end)break;
+   const x=tX(t);ctx.beginPath();ctx.moveTo(x,topOf(.19)+2);ctx.lineTo(x,topOf(.27)-2);ctx.stroke();
+  }
+ }
+ const lo=50,hi=3400,logRange=Math.log2(hi/lo);
+ const pitchY=(freq,top,bottom)=>bottom-5-(Math.log2(Math.max(lo,Math.min(hi,freq))/lo)/logRange)*(bottom-top-10);
+ for(const [top,bottom,label] of [[rawStart,rawBottom,'RAW PITCH'],[groupTop,groupBottom,'GROUPED']]){
+  ctx.fillStyle=top===rawStart?'#111b2b':'#152031';ctx.fillRect(left,top,plotw,bottom-top-1);
+  ctx.fillStyle='#b3c0d5';ctx.font='bold 10px system-ui';ctx.fillText(label,5,top+(bottom-top)/2);
+  for(const [hz,name] of [[65.4,'C2'],[130.8,'C3'],[261.6,'C4'],[523.25,'C5'],[1046.5,'C6'],[2093,'C7']]){
+   const y=pitchY(hz,top,bottom);ctx.strokeStyle='#273449';ctx.lineWidth=1;
+   ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();
+   ctx.fillStyle='#73859d';ctx.font='9px system-ui';ctx.fillText(name,left+3,y-3);
+  }
+ }
+ // A low-opacity spectrogram helps show whether the algorithm follows a visible spectral ridge.
+ const spec=debug.specPixels,ns=debug.specBands,dt=debug.specDt;
+ if(spec?.length&&ns&&dt){
+  const gap=rawBottom-rawStart,bandH=Math.max(.9,gap/ns);
+  for(let x=Math.ceil(left);x<right;x+=2){
+   const time=start+(x-left)/plotw*(end-start),frame=Math.floor(time/dt);
+   if(frame<0||frame>=spec.length/ns)continue;
+   for(let k=0;k<ns;k++){
+    const v=spec[frame*ns+k];if(v<22)continue;
+    const freq=debug.specMinHz*Math.pow(debug.specMaxHz/debug.specMinHz,(k+.5)/ns);
+    const y=pitchY(freq,rawStart,rawBottom);
+    ctx.fillStyle=`rgba(103,149,179,${(v/255*.23).toFixed(3)})`;
+    ctx.fillRect(x,y-bandH/2,2,bandH+1);
+   }
+  }
+ }
+ // Original simultaneous estimates, before continuity assignment.
+ const pitches=debug.rawPitches,slots=debug.rawSlots,frameDt=debug.frameDt;
+ if(pitches?.length&&slots&&frameDt){
+  const count=pitches.length/slots,first=Math.max(0,Math.floor(start/frameDt)),last=Math.min(count,Math.ceil(end/frameDt));
+  for(let i=first;i<last;i++){
+   const x=tX(i*frameDt);
+   for(let j=0;j<slots;j++){
+    const hz=pitches[i*slots+j];if(!(hz>0))continue;
+    const y=pitchY(hz,rawStart,rawBottom);
+    ctx.fillStyle=j===0?'#bde6ff':'#76b8e0';ctx.fillRect(x,y-1.4,Math.max(1.1,(frameDt/(end-start))*plotw*.55),2.6);
+   }
+  }
+ }
+ // YIN's unfiltered bass values are separate from its post-processed bass notes.
+ const bass=debug.rawBass,conf=debug.rawBassProbability;
+ if(bass?.length){
+  const first=Math.max(0,Math.floor(start/frameDt)),last=Math.min(bass.length,Math.ceil(end/frameDt));
+  for(let i=first;i<last;i++){
+   const hz=bass[i];if(!(hz>=lo&&hz<=hi))continue;
+   const x=tX(i*frameDt),y=pitchY(hz,rawStart,rawBottom);
+   ctx.fillStyle=(conf?.[i]??0)>.25?'#f3a3d0':'#935878';
+   ctx.fillRect(x,y-1.5,Math.max(1.6,frameDt/(end-start)*plotw*.65),3);
+  }
+ }
+ // Final allocated voice notes on the SAME logarithmic pitch scale, not collapsed to lane centres.
+ for(const id of ['bass','melodyA','melodyB','melodyC']){
+  const notes=dataset.notes?.[id]||[];
+  ctx.fillStyle=metadata[id]?.color||'#fff';
+  for(const note of notes){if(note.t1<start)continue;if(note.t0>end)break;
+   const x=Math.max(left,tX(Math.max(start,note.t0))),xx=Math.min(right,tX(Math.min(end,note.t1)));
+   if(xx<=x)continue;
+   const y=pitchY(note.hz,groupTop,groupBottom);
+   ctx.fillRect(x,y-2,Math.max(1,xx-x),4);
+  }
+ }
+ // Raw note-attack markers are independent of the pitch detectors.
+ for(const ev of dataset.events||[]){if(ev.t<start)continue;if(ev.t>end)break;
+  const x=tX(ev.t);ctx.fillStyle='rgba(241,185,104,.68)';ctx.fillRect(x,rawStart,1,5);
+ }
+ ctx.fillStyle='#c5cfdf';ctx.font='10px system-ui';
+ ctx.fillStyle='#bcc9db';ctx.font='10px system-ui';
+ ctx.fillText('Cyan: pitch candidates  ·  Pink: raw bass  ·  Blue: spectrum',left+75,rawStart+12);
 }
 function drawInput(){
  const [w,h]=fit(input),ctx=input.getContext('2d');canvasWidth=w;canvasHeight=h;
@@ -763,6 +852,7 @@ function drawInput(){
  const topOf=r=>contentTop+r*area;
  // Faint vertical grid and alternating strips are informational, not visual synthesis.
  laneSpecs.forEach((lane,i)=>{
+  if(rawPitchMode && lane.id!=='wave' && lane.id!=='beat')return;
   const top=topOf(lane.top),bottom=topOf(lane.bottom);
   ctx.fillStyle=i%2?'#101b2b':'#152132';ctx.fillRect(left,top,plotw,bottom-top-1);
   ctx.fillStyle=lane.color||'#9faec4';ctx.font=`${Math.max(9,Math.min(12,Math.round((bottom-top)*.22)))}px system-ui`;
@@ -777,7 +867,10 @@ function drawInput(){
    ctx.moveTo(x,waveMid-b*amp);ctx.lineTo(x,waveMid-a*amp);
   }ctx.stroke();ctx.globalAlpha=1;
  }
- if(dataset){
+ if(rawPitchMode){
+  drawRawPitchDiagnostic(ctx,{w,h,left,right,plotw,start,end,sec,contentTop,contentBottom,topOf,tX});
+ }
+ else if(dataset){
   // Use the ACTUAL beat timestamps, never guessed bar numbers or a synthetic 4/4 grid.
   const beats=dataset.beats||[],beatTop=topOf(.19),beatBottom=topOf(.30);
   if(configs.beat?.on)for(const beat of beats){
@@ -859,7 +952,7 @@ function drawInput(){
 }
 function drawOutput(ms){renderVisualOutput(ms)}
 
-/* VISUAL SYNTHESIS v0.1.033. Six reusable visual tracks. Music signal histories,
+/* VISUAL SYNTHESIS v0.1.034. Six reusable visual tracks. Music signal histories,
    not independent oscillators, supply the evolving pattern values. */
 const visualSpec={
  mix:{min:0,max:1,def:.45,fmt:v=>Math.round(v*100)+'%'},
@@ -1186,12 +1279,13 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
   waveform=prepared.waveform;badge('ANALYSING');msg('Finding beat, bass, and independent melodic candidates…','busy');drawInput();
   msg('Loading library files for analysis…','busy');
   const libraries=await getAnalysisLibraries();if(token!==fileToken)return;
-  worker=new Worker('./analysis-worker.js?v=0.1.033');
+  worker=new Worker('./analysis-worker.js?v=0.1.034');
   worker.onmessage=ev=>{if(token!==fileToken)return;const o=ev.data;
    if(o.type==='progress'){msg((o.detail||'Analysing music…')+' '+o.value+'%','busy')}
    if(o.type==='error'){badge('ERROR');msg('Analysis failed: '+o.message,'error');stopWorker()}
    if(o.type==='done'){
-    dataset={dt:o.dt,t0:o.t0,signals:o.signals,notes:o.notes||{},arrangement:o.arrangement||null,events:o.events,lowEvents:o.lowEvents,beats:o.beats,bpm:o.bpm,beatConfidence:o.beatConfidence,pitchDiagnostics:o.pitchDiagnostics};
+    dataset={dt:o.dt,t0:o.t0,signals:o.signals,notes:o.notes||{},arrangement:o.arrangement||null,events:o.events,lowEvents:o.lowEvents,beats:o.beats,bpm:o.bpm,beatConfidence:o.beatConfidence,pitchDiagnostics:o.pitchDiagnostics,rawDebug:o.rawDebug||null};
+    $('exportPitchData').disabled=!dataset.rawDebug;
     rebuildAllChannels();refreshTempoDisplay();drawOutput(0);badge('READY');msg('Beat and musical voice estimates ready. Select lanes, then shape them in SYNTHESIS.','ok');stopWorker();drawInput()
    }
   };
@@ -1255,6 +1349,30 @@ $('play').onclick=playpause;
 $('stop').onclick=()=>{audio.pause();audio.currentTime=0};
 
 $('window').onchange=()=>{windowSec=Number($('window').value);drawInput()};
+$('rawPitchMode').addEventListener('click',()=>{
+ rawPitchMode=!rawPitchMode;
+ $('rawPitchMode').setAttribute('aria-pressed',String(rawPitchMode));
+ $('rawPitchMode').textContent=rawPitchMode?'ARRANGEMENT':'RAW PITCH';
+ $('rawPitchMode').title=rawPitchMode?'Return to musical arrangement':'Inspect pre-grouping pitches, bass, spectrum and raw onset events';
+ drawInput();
+});
+$('exportPitchData').addEventListener('click',()=>{
+ if(!dataset?.rawDebug)return;
+ const d=dataset.rawDebug,slots=d.rawSlots;
+ const rows=[];
+ for(let i=0;i<d.rawPitches.length/slots;i++){
+  const notes=[];for(let k=0;k<slots;k++){const f=d.rawPitches[i*slots+k];if(f>0)notes.push(+f.toFixed(1));}
+  const bass=d.rawBass?.[i]||0,confidence=d.rawBassProbability?.[i]||0;
+  if(notes.length||bass>0)rows.push([+(i*d.frameDt).toFixed(3),+bass.toFixed(1),+confidence.toFixed(2),notes]);
+ }
+ const payload={format:'Visual Synth raw pitch diagnosis v1',track:$('trackname').textContent,
+  bpm:dataset.bpm,beatConfidence:dataset.beatConfidence,
+  pitchDiagnostics:dataset.pitchDiagnostics,detectorSummary:{rawFramesWithCandidates:d.rawFramesWithCandidates,bassNotesCount:d.bassNotesCount,voiceNoteCounts:d.voiceNoteCounts},
+  rawFrames:rows,assignedNotes:dataset.notes,beats:dataset.beats,onsets:(dataset.events||[]).map(x=>x.t)};
+ const uri=URL.createObjectURL(new Blob([JSON.stringify(payload)],{type:'application/json'}));
+ const link=document.createElement('a');link.href=uri;link.download='VisualSynth-pitch-diagnostics.json';link.click();
+ setTimeout(()=>URL.revokeObjectURL(uri),10000);
+});
 
 let scrubbingWholeTrack=false;
 function scrubInput(e){

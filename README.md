@@ -1,8 +1,13 @@
-# Visual Synth v0.1.033
+# Visual Synth v0.1.034 – diagnostic pitch-view build
 
-- Compact 734px synthesis panel beside the 594px input mixer on wide displays.
-- Six output-track knobs/ON/EDIT are in a horizontal row at top of synthesis section, not a separate vertical section.
-- One 6px seam and existing knob/fader styling retained.
-- Pitch extraction tuned for a clearer bass and short upper synth notes: 4096-sample YIN frame, relaxed voiced gating, wider melody spectrum, shorter note threshold, short-gap joining; voice grouping still provisional.
-- Important: source separation by instrument is **not** provided by MultiPitchMelodia; melody A–C remain approximate pitch streams, not guaranteed distinct synth parts.
-- Files: index.html and analysis-worker.js. Upload both together.
+This updates v0.1.033 without changing the analysis algorithms, six-track synthesis, source controls or settled JP-style geometry.
+
+- RAW PITCH toggles the input monitor between arrangement and raw detector diagnostics (same current window and scrub behaviour).
+- RAW view shows raw simultaneous pitch candidates, raw YIN bass estimates, an approximate log-frequency spectrogram computed from the existing Meyda features, and assigned notes on a common pitch scale. The spectrogram is diagnostic, not an instrument source.
+- EXPORT saves time-stamped pitch candidates and resulting assigned notes as JSON, for comparison with the actual audio.
+- Raw pitch measurements and spectrogram use transferred typed arrays, so no second FFT or repeat pass is needed.
+- Both buttons appear in the input monitor header.
+
+**Important:** Essentia WASM analysis still needs actual-browser verification. This version does not claim reliable instrument separation or fix missing notes. It makes the failures observable.
+
+Deploy `index.html` and `analysis-worker.js` together on GitHub Pages.

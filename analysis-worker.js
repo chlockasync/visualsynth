@@ -199,9 +199,17 @@ async function extractMusicalVoices(e,s,n,dt,bassEnergy,upperEnergy){
   postMessage({type:'progress',value:92+Math.round(Math.min(1,(coreStart+chunkLength)/duration)*7),
     detail:'Following simultaneous melodies: '+Math.round(Math.min(duration,coreStart+chunkLength))+' / '+Math.round(duration)+' seconds…'});
  }
+ // Preserve each detector's ORIGINAL pitch candidates before any grouping/filtering.
+ // Fixed-width Float32 arrays keep transfer/memory use manageable even for long songs.
+ const rawSlots=6,rawPitches=new Float32Array(frameCount*rawSlots);
+ for(let i=0;i<frameCount;i++){
+  const row=allRows[i]||[];
+  for(let j=0;j<Math.min(rawSlots,row.length);j++)rawPitches[i*rawSlots+j]=row[j];
+ }
+ const rawBass=Float32Array.from(bassP),rawBassProbability=Float32Array.from(bassC);
  const voiceHz=assignMelodyVoices(allRows,frameDt).map(v=>bridgeShortPitchGaps(v,3,1.6));
  // Unlike band-energy curves, these signals are silent during unvoiced notes.
- const result={signals:{},notes:{},diagnostics:{method:'Essentia YIN + MultiPitchMelodia; provisional register and continuity grouping', lowTrackFrames:bassHz.reduce((a,x)=>a+(x>0),0),melodyFrames:voiceHz.map(v=>v.reduce((a,x)=>a+(x>0),0))}};
+ const result={signals:{},notes:{},debug:{frameDt,rawSlots,rawPitches,rawBass,rawBassProbability},diagnostics:{method:'Essentia YIN + MultiPitchMelodia; provisional register and continuity grouping', lowTrackFrames:bassHz.reduce((a,x)=>a+(x>0),0),melodyFrames:voiceHz.map(v=>v.reduce((a,x)=>a+(x>0),0))}};
  const bassTrack=notesToSignal(bassHz,n,dt,frameDt,40,380,bassEnergy);
  result.signals.bass=bassTrack.out;
  result.notes.bass=noteSegments(bassHz,frameDt);
@@ -280,6 +288,10 @@ async function analyse(samples,rate,libraries){
  // All acoustic features come from Meyda, not from the removed custom FFT code.
  m.bufferSize=2048;m.sampleRate=rate;m.windowingFunction='hanning';
  const size=2048,hop=1024,dt=hop/rate,n=Math.floor(Math.max(0,s.length-size)/hop)+1;
+ // Lightweight log-frequency spectrogram. Captured from Meyda's EXISTING spectrum;
+ // does not run a second FFT or change the pitch tracking.
+ const specBandCount=48,rawSpec=new Float32Array(n*specBandCount),specMax=new Float32Array(specBandCount);
+ const specMinHz=55,specMaxHz=2900;
  const raw={loudness:new Float32Array(n),bass:new Float32Array(n),mid:new Float32Array(n),high:new Float32Array(n),brightness:new Float32Array(n),texture:new Float32Array(n),harmonic:new Float32Array(n)};
  const frame=new Float32Array(size),prevChroma=new Float32Array(12);let prevFrame=null;
  const hzPerBin=rate/size;
@@ -292,6 +304,14 @@ async function analyse(samples,rate,libraries){
   raw.texture[i]=f.spectralFlatness||0;
   let l=0,mi=0,h=0;
   const spec=f.amplitudeSpectrum;
+  // The diagnostic spectrogram shows spectral energy, not detected instrument notes.
+  for(let band=0;band<specBandCount;band++){
+   const freq=specMinHz*Math.pow(specMaxHz/specMinHz,(band+.5)/specBandCount);
+   const index=Math.max(1,Math.min(spec.length-2,Math.round(freq/hzPerBin)));
+   const strength=Math.max(0,Number(spec[index])||0);
+   rawSpec[i*specBandCount+band]=strength;
+   if(strength>specMax[band])specMax[band]=strength;
+  }
   for(let b=1;b<spec.length;b++){const hz=b*hzPerBin,power=spec[b]*spec[b];if(hz<180)l+=power;else if(hz<2000)mi+=power;else h+=power}
   raw.bass[i]=Math.sqrt(l);raw.mid[i]=Math.sqrt(mi);raw.high[i]=Math.sqrt(h);
   const chroma=f.chroma||[];let total=0,diff=0;
@@ -300,6 +320,12 @@ async function analyse(samples,rate,libraries){
   // Meyda extracts from each frame; frame is copied before subsequent overwrite.
   prevFrame=frame.slice();
   if(i%400===0)postMessage({type:'progress',value:43+Math.round(i/n*48),detail:'Extracting musical features…'});
+ }
+ // Frequency-wise normalisation is for inspection only; never a synthesiser input.
+ const specPixels=new Uint8Array(rawSpec.length);
+ for(let i=0;i<n;i++)for(let band=0;band<specBandCount;band++){
+  const ratio=rawSpec[i*specBandCount+band]/Math.max(1e-7,specMax[band]);
+  specPixels[i*specBandCount+band]=Math.round(255*Math.pow(clamp(ratio),.52));
  }
  const loudness=normalize(raw.loudness,.98,.7),bass=normalize(raw.bass),mid=normalize(raw.mid),high=normalize(raw.high);
  const brightness=normalize(raw.brightness,.98,.75),texture=Float32Array.from(raw.texture,clamp),harmonic=normalize(average(raw.harmonic,2),.98,.65);
@@ -319,8 +345,15 @@ async function analyse(samples,rate,libraries){
  const beatSignal=Float32Array.from(pulse,(x,i)=>loudness[i]<.015?0:x*Math.min(1,loudness[i]*6));
  const signals={beat:beatSignal,...voices.signals};
  const arrangement=arrangementAnalysis(signals,loudness,n,dt);
+ const rawDebug={...voices.debug,specPixels,specDt:dt,specBands:specBandCount,specMinHz,specMaxHz,
+  bassNotesCount:voices.notes.bass.length,
+  voiceNoteCounts:['melodyA','melodyB','melodyC'].map(id=>voices.notes[id].length),
+  rawFramesWithCandidates:Array.from({length:voices.debug.rawPitches.length/voices.debug.rawSlots},(_,i)=>i)
+   .reduce((sum,i)=>sum+(voices.debug.rawPitches[i*voices.debug.rawSlots]>0?1:0),0)};
  postMessage({type:'done',dt,t0:0,signals,notes:voices.notes,arrangement,events,lowEvents:[],beats,bpm,beatConfidence,
    engine:'Essentia RhythmExtractor + YIN + MultiPitchMelodia; Meyda loudness for arrangement',
-   pitchDiagnostics:voices.diagnostics,count:n},[...Object.values(signals).map(x=>x.buffer),arrangement.curve.buffer]);
+   pitchDiagnostics:voices.diagnostics,rawDebug,count:n},[
+    ...Object.values(signals).map(x=>x.buffer),arrangement.curve.buffer,
+    rawDebug.rawPitches.buffer,rawDebug.rawBass.buffer,rawDebug.rawBassProbability.buffer,rawDebug.specPixels.buffer]);
 }
 onmessage=async ev=>{if(ev.data.type!=='analyse')return;try{await analyse(ev.data.samples,ev.data.sampleRate,ev.data.libraries)}catch(err){postMessage({type:'error',message:String(err?.message||err),stack:String(err?.stack||'')})}};
