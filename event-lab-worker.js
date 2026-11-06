@@ -131,7 +131,7 @@ function nmf(spec,rank=5,iters=55){
   let pMax=0;for(let b=0;b<B;b++)pMax=Math.max(pMax,W[b*K+k]);
   for(let b=0;b<B;b++)pattern[k*B+b]=W[b*K+k]/(pMax+EPS);
  }
- return {rank:K,pattern,activation};
+ return {rank:K,pattern,activation,rawW:W,rawH:H};
 }
 function scoreEvents(events,fingerprints,nmf,frames,bands){
  const K=nmf.rank;
@@ -147,11 +147,76 @@ function scoreEvents(events,fingerprints,nmf,frames,bands){
   e.component=bestScore>.028?best:-1;
  }
 }
+// Diagnostic-only NMF solo preview: soft-mask the original STFT using
+// each learned component's relative spectrotemporal contribution.
+// The overlap-add inverse FFT keeps the source phase. This is not instrument separation.
+let cached=null;
+function inverseFft(re,im){
+ const n=re.length;
+ for(let i=0;i<n;i++)im[i]=-im[i];
+ fft(re,im);
+ for(let i=0;i<n;i++){re[i]/=n;im[i]=-im[i]/n;}
+}
+function isolateComponent(k){
+ const c=cached;if(!c)throw Error('Analyse a passage before isolating a pattern.');
+ const {samples,sampleRate:sr,spec,components}=c;
+ const {frames:T,bands:B,hop}=spec,K=components.rank,W=components.rawW,H=components.rawH;
+ if(!Number.isInteger(k)||k<0||k>=K)throw Error('Unknown pattern.');
+ const size=2048,half=size>>1,low=55,high=3500,logSpan=Math.log(high/low);
+ const re=new Float64Array(size),im=new Float64Array(size),win=Float64Array.from({length:size},(_,j)=>.5-.5*Math.cos(2*Math.PI*j/(size-1)));
+ const out=new Float64Array(samples.length),norm=new Float64Array(samples.length);
+ const masks=new Float64Array(B);
+ for(let t=0;t<T;t++){
+  const base=t*hop;
+  for(let b=0;b<B;b++){
+   const idx=b*K+k,chosen=W[idx]*H[k*T+t];
+   let sum=1e-9;for(let j=0;j<K;j++)sum+=W[b*K+j]*H[j*T+t];
+   masks[b]=Math.max(0,Math.min(1,chosen/sum));
+  }
+  for(let j=0;j<size;j++){re[j]=(samples[base+j]||0)*win[j];im[j]=0;}
+  fft(re,im);
+  re[0]=0;im[0]=0;
+  for(let j=1;j<=half;j++){
+   const freq=j*sr/size;
+   let mask=0;
+   if(freq>=low&&freq<=high){
+    const frac=Math.log(freq/low)/logSpan*B-.5,b=Math.max(0,Math.min(B-1,Math.floor(frac))),next=Math.min(B-1,b+1);
+    mask=masks[b]*(1-(frac-b))+masks[next]*(frac-b);
+    mask=Math.max(0,Math.min(1,mask));
+   }
+   re[j]*=mask;im[j]*=mask;
+   if(j<half){re[size-j]*=mask;im[size-j]*=mask;}
+  }
+  inverseFft(re,im);
+  for(let j=0;j<size;j++){const pos=base+j;if(pos>=out.length)break;
+   out[pos]+=re[j]*win[j];norm[pos]+=win[j]*win[j];
+  }
+  if(t%240===0)progress(100*t/T,'Reconstructing Pattern '+(k+1)+' preview');
+ }
+ const pcm=new Float32Array(samples.length);let sum=0,peak=0;
+ for(let j=0;j<pcm.length;j++){
+  const value=norm[j]>.00001?out[j]/norm[j]:0;
+  pcm[j]=value;sum+=value*value;peak=Math.max(peak,Math.abs(value));
+ }
+ // Lift quiet patterns to an audible comparison level, without clipping.
+ const rms=Math.sqrt(sum/Math.max(1,pcm.length)),gain=Math.min(8,.18/Math.max(.00001,rms),.92/Math.max(.00001,peak));
+ for(let j=0;j<pcm.length;j++)pcm[j]*=gain;
+ return {samples:pcm,sampleRate:sr,gain,rms};
+}
 onmessage=ev=>{
- if(ev.data.type!=='analyse')return;
+ const request=ev.data;
+ if(request.type==='isolate'){
+  try{
+   const out=isolateComponent(request.pattern);
+   postMessage({type:'isolated',pattern:request.pattern,samples:out.samples,sampleRate:out.sampleRate,gain:out.gain},[out.samples.buffer]);
+  }catch(err){postMessage({type:'isolate-error',pattern:request.pattern,message:String(err?.message||err)});}
+  return;
+ }
+ if(request.type!=='analyse')return;
  try{
-  const {samples,sampleRate=11025,rank=5}=ev.data;
+  const {samples,sampleRate=11025,rank=5}=request;
   const input=new Float32Array(samples);
+  cached=null;
   if(input.length<sampleRate*2)throw Error('Select at least two seconds of audio.');
   progress(3,'Preparing audio');
   const spec=createSpectrogram(input,sampleRate);
@@ -162,11 +227,11 @@ onmessage=ev=>{
   scoreEvents(onset.events,onset.fingerprints,components,spec.frames,spec.bands);
   const signatures=new Float32Array(onset.fingerprints.length*spec.bands);
   onset.fingerprints.forEach((v,i)=>signatures.set(v,i*spec.bands));
+  cached={samples:input,sampleRate,spec,components};
   progress(99,'Finalising');
   const payload={type:'done',sampleRate,frames:spec.frames,bands:spec.bands,hop:spec.hop,
    times:spec.times,centers:spec.centers,events:onset.events,flux:onset.flux,baseline:onset.baseline,
    signatures,pattern:components.pattern,activation:components.activation,rank:components.rank,
-   // log-spectral display bounded to 8 bits
    spectrogram:Uint8Array.from(spec.V,x=>Math.round(255*clamp(x/1.3)))};
   postMessage(payload,[payload.times.buffer,payload.centers.buffer,payload.flux.buffer,payload.baseline.buffer,
    payload.signatures.buffer,payload.pattern.buffer,payload.activation.buffer,payload.spectrogram.buffer]);
