@@ -1,31 +1,21 @@
-# Visual Synth Sound Lab experiment v0.1.041
+# Visual Synth v0.1.042 — integrated Sound Lab + musical signals
 
-This update adds an **independent Musical Feature Lab experiment**, without changing the working Visual Synth application or its input/rendering architecture.
+This release uses the **v0.1.040 Sound Lab as the base** and adds the v0.1.041 musical analysis *within that same page*. There is no separate Feature Lab link or page.
 
-## Using the new experiment
+- Visual Synth UI, engine and controls are unchanged from 040, except that the visible version is now **v0.1.042**.
+- Sound Lab retains all 040 NMF pattern inspection, five independent ON/OFF pattern buttons, ORIGINAL / PATTERN MIX / ALL PATTERNS / NONE, playback and export.
+- The new **04 / MUSICAL SIGNALS & COMPONENT MIXER** section lives *below* the existing Sound Lab panels.
+- It presents v41-derived 16 kHz musical analysis: harmonic/percussive energy, low/mid/high attacks, 12 pitch classes, tonal movement, brightness, spectral change and slower activity/change.
+- Its five audio component buttons are independent ON/OFF switches. Hearing any combination requires **FEATURE MIX**, integrated into the same top transport. Choose ORIGINAL or PATTERN MIX to compare against the source or NMF; selections persist.
+- No automatic loudness matching. Harmonic/percussive and low/mid/high are two **overlapping** decompositions; playing all five can double-count sound and clip. Neither separation identifies instruments.
+- Both analyses run locally for the same 30-second window. Musical analysis starts automatically once NMF finishes. The feature worker can reconstruct each selected component for playback.
+- The existing results JSON includes musicalFeatures when ready; the diagnostics ZIP includes their data and component WAVs when ready.
+- Workers have versioned URLs to avoid confusing old GitHub Pages content with the new files.
 
-1. Upload every file in the ZIP to the same directory on your GitHub Pages site.
-2. Open the existing SOUND LAB page (`event-lab.html`). Click **FEATURE LAB: MUSIC SIGNALS** at the top.
-3. In `feature-lab.html`, choose your MP3 and click **ANALYSE 30 s**. A recording longer than 122 seconds defaults to 90–120 seconds.
-4. Play the passage and compare the **low/mid/high attacks**, **harmonic/percussive**, **12 pitch classes**, **tonal movement**, **brightness**, **spectral change**, and **slower activity/change** tracks.
-5. Use **ORIGINAL / HARMONIC / PERCUSSIVE / LOW / MID / HIGH** to hear the relevant underlying audio components. They are diagnostic source-audition options, **not identified instruments**.
-6. **EXPORT FEATURE DATA** creates JSON for quantitative inspection and next-round comparisons.
+## Deployment
 
-## Methods and limits
+Upload the six files at the ZIP root into the same GitHub Pages directory (replacing existing files). Open `index.html`, click SOUND LAB, then use the original mixer and the new bottom section. No `feature-lab.html` is needed. In a browser with a stale cache, a hard refresh may be necessary.
 
-- Standard 16 kHz mono STFT (1024 samples, 256-sample hop), median-filter harmonic-percussive separation with complementary soft masks, multiband positive spectral flux, octave-folded chroma, spectral centroid and slow feature-change estimates.
-- Analyses are computed in a local Web Worker, with no server or model training. No neural-network model is installed or invoked.
-- Analysed bands: low (<240 Hz), middle (240–1600 Hz), high (>1600 Hz).
-- Component WAV previews are made locally by overlap-add reconstruction and retain the **original relative audio level**, not solo boosts. They are 16 kHz mono; the ORIGINAL control plays the uploaded recording.
-- These measurements are **candidate signals**, not a musical-voice detector. The three onset bands can respond to the same event because a single sound has harmonics in several frequency ranges.
-- Chroma and novelty track changes in total musical content, **not** three isolated melodies or objectively labelled builds/breaks.
+## Package
 
-## Files
-
-- `index.html` — **byte-identical** to v0.1.040; intentionally not updated.
-- `analysis-worker.js` — **byte-identical** to v0.1.040.
-- `event-lab.html` — existing Sound Lab; only a navigation link to Feature Lab added.
-- `event-lab-worker.js` — **byte-identical** to v0.1.040.
-- `feature-lab.html` and `feature-lab-worker.js` — the new independent experiment.
-
-Validated in Chromium on JP20261102c.mp3 at 90–120 seconds: MP3 decoding, feature extraction, timeline, source switching, playback position, JSON export and layout at 1100/1440/1920 px. Harmonic + percussive PCM reconstruction verified against 16 kHz analysis audio.
+`index.html`, `analysis-worker.js`, `event-lab.html`, `event-lab-worker.js`, `feature-lab-worker.js`, `README.md`.

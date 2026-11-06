@@ -2,7 +2,7 @@
 <html lang="en-NZ">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Sound Event Lab v0.1.040</title>
+<title>Visual Synth | Sound Event Lab v0.1.042</title>
 <style>
 :root{--bg:#384254;--line:#151916;--gold:#e2ac56;--txt:#e5eaf4;--muted:#b0bdd0;--surface:#121927}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:13px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;padding:0 18px 22px}
@@ -11,7 +11,7 @@ header{height:74px;display:flex;gap:18px;align-items:center;justify-content:spac
 .panel{position:relative;background:var(--bg);border:6px solid var(--line);border-radius:15px;min-width:0;overflow:hidden}.panel-title{position:absolute;z-index:2;top:-1px;left:50%;transform:translateX(-50%);background:var(--line);color:var(--gold);font-weight:800;font-size:12px;letter-spacing:.04em;padding:1px 24px 5px;white-space:nowrap;clip-path:polygon(0 0,100% 0,94% 100%,6% 100%)}
 #monitor{padding:33px 14px 14px}.monitor-bar{display:flex;align-items:center;gap:12px;justify-content:space-between;margin:0 0 9px}.monitor-bar .caption{color:#c8d1e1}.monitor-bar .caption b{color:#f3f5fa}#plotWrap{position:relative;background:#0c1220;border:1px solid #263044;border-radius:8px;overflow:hidden}#plot{display:block;width:100%;height:520px;cursor:crosshair;touch-action:pan-y}#playhead{display:none;position:absolute;left:1px;top:21px;bottom:1px;width:1px;background:#e9c879;pointer-events:none;z-index:2;will-change:transform}#playhead::before{content:"";position:absolute;top:-5px;left:-4px;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid #e9c879}#plotTip{position:absolute;pointer-events:none;background:#1b2638e8;padding:5px 7px;border:1px solid #4b5a6a;font-size:11px;border-radius:3px;display:none;z-index:3}.legend{display:flex;gap:16px;flex-wrap:wrap;color:#bcc9db;font-size:11px;padding:9px 2px 0}.dot{display:inline-block;width:8px;height:8px;margin-right:4px;vertical-align:middle}
 #lower{display:grid;grid-template-columns:minmax(260px,360px) minmax(450px,1fr);gap:0;margin-top:12px;align-items:start}#controlPanel{border-radius:14px 0 0 14px;border-right-width:3px}#detailPanel{border-radius:0 14px 14px 0;border-left-width:3px}#controlPanel,#detailPanel{padding:36px 15px 15px}.sub{color:var(--gold);font-size:11px;font-weight:750;letter-spacing:.07em;margin:3px 0 12px}.rule{height:1px;background:#1e2a39;margin:16px 0}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:9px 0}.row label{color:#d4dbe8}input[type=number],select{background:#263144;border:1px solid #111923;border-radius:4px;color:var(--txt);padding:6px}input[type=number]{width:75px}input[type=range]{accent-color:var(--gold)}input[type=file]{max-width:100%;font-size:11px}small,.muted{color:var(--muted)}#analysisProgress{margin-top:10px;min-height:19px;color:#e8c284;font-size:12px}.badge{padding:2px 7px;border:1px solid #253144;background:#28344a;border-radius:4px;font-size:11px;color:#d4e0eb}.three{display:grid;grid-template-columns:1fr 1fr;gap:9px}#signature{width:100%;height:150px;background:#10182a;border:1px solid #253245;display:block}#selectedInfo{font:12px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap;color:#d8e2ef;min-height:76px}.instructions{max-width:800px;color:#bdc9dc;font-size:12px;margin-top:12px;line-height:1.55}#status{color:#deb46e;min-height:20px}#midiFile{font-size:11px}#results{margin-top:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}#results div{border:1px solid #222f42;padding:8px;min-height:44px;font-size:11px}#results b{display:block;color:#e9bf75;font-size:15px}
-/* Sound Lab 0.1.040: geometry-first controls and useful per-component inspection. */
+/* Sound Lab 0.1.042: geometry-first controls and useful per-component inspection. */
 #monitor{padding-top:33px}
 .monitor-bar{margin-bottom:7px}
 .monitor-transport{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:40px;margin:0 0 10px}
@@ -52,13 +52,41 @@ header{height:74px;display:flex;gap:18px;align-items:center;justify-content:spac
 @media(max-width:1250px){#patternSummary{grid-template-columns:repeat(3,minmax(125px,1fr))}.monitor-transport .transport-tip{margin-left:0}}
 @media(max-width:650px){#patternSummary{grid-template-columns:repeat(2,minmax(110px,1fr))}.monitor-transport .rate-buttons button{min-width:47px}}
 @media(max-width:900px){#lower{grid-template-columns:1fr}#controlPanel{border-radius:14px 14px 0 0;border-right-width:6px;border-bottom-width:3px}#detailPanel{border-radius:0 0 14px 14px;border-left-width:6px;border-top-width:3px}header h1{font-size:23px}header small{display:none}}
+
+
+/* Musical feature integration uses the existing Sound Lab colour and border geometry. */
+#featuresPanel{margin-top:12px;padding:38px 15px 16px}
+.feature-intro{font-size:12px;line-height:1.55;color:#c6d4e4;margin:1px 0 16px}
+.feature-intro b,.feature-caution b{color:#f0d1a0}
+.feature-section-heading{color:var(--gold);font-size:11px;font-weight:800;letter-spacing:.09em;margin:14px 0 10px}
+#featureAudioButtons{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:8px}
+.feature-channel{border:1px solid #283b4d;background:#2e3a4f;border-radius:5px;padding:8px;min-height:88px;display:flex;flex-direction:column;justify-content:space-between;gap:7px}
+.feature-channel strong{font-size:12px;color:#f0f4f8}
+.feature-channel small{font-size:11px;color:#c4d0e0;line-height:1.3}
+.feature-channel button{font-weight:800;min-height:30px;font-size:11px;border-color:#546779}
+.feature-channel button.active{background:#183b3d;border-color:#65c5c0;color:#a9f0ee}
+.feature-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:10px 0 8px}
+.feature-actions button{font-weight:750}
+#featureListenStatus{font-size:11px;color:#e5c58a}
+.feature-caution{font-size:12px;line-height:1.5;color:#b8c6d8;margin:9px 0 14px}
+#featurePlotWrap{position:relative;border:1px solid #263044;background:#0c1220;border-radius:8px;overflow:hidden}
+#featurePlot{display:block;width:100%;height:733px;touch-action:pan-y;cursor:crosshair}
+#featurePlayhead{display:none;position:absolute;top:34px;bottom:0;left:0;width:1px;background:#eac575;pointer-events:none;z-index:2;will-change:transform}
+#featurePlayhead:before{content:"";position:absolute;top:-6px;left:-4px;border-top:7px solid #eac575;border-left:4px solid transparent;border-right:4px solid transparent}
+.feature-inspector{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;margin:12px 0 4px}
+.feature-inspector>div{flex:1;min-width:250px}.feature-inspector strong{font-size:13px;color:var(--gold)}
+.feature-inspector p{margin:5px 0;font-size:12px;line-height:1.45}.feature-inspector button{font-weight:750}
+#featureProgress{color:#e9c47d;font-size:12px;min-height:18px;margin:11px 0}
+#playFeatures.active{background:#2a3e3a;border-color:#88d0c4;color:#b3f1e5}
+@media(max-width:900px){#featureAudioButtons{grid-template-columns:repeat(3,minmax(115px,1fr))}}
+@media(max-width:570px){#featureAudioButtons{grid-template-columns:repeat(2,minmax(120px,1fr))}#featuresPanel{padding-left:9px;padding-right:9px}#featurePlot{height:733px}}
 </style>
 </head>
 <body>
-<header><div class="title"><h1>VISUAL SYNTH</h1><small>SOUND EVENT LAB</small><span class="version">v0.1.040</span></div><nav style="display:flex;align-items:center;gap:20px"><a href="./feature-lab.html" style="font-weight:800;color:#e2ac56">FEATURE LAB: MUSIC SIGNALS</a><a href="./index.html">Return to Visual Synth</a></nav></header>
+<header><div class="title"><h1>VISUAL SYNTH</h1><small>SOUND EVENT LAB</small><span class="version">v0.1.042</span></div><a href="./index.html">Return to Visual Synth</a></header>
 <section class="panel" id="monitor"><div class="panel-title">01 / SOUND EVENT COMPARISON</div>
  <div class="monitor-bar"><div class="caption"><b id="fileName">No recording selected</b> &nbsp; <span id="segmentLabel">30-second test window</span></div><div class="caption" id="timeLabel">0:00 / 0:30</div></div>
- <div class="monitor-transport" aria-label="Sound Lab playback controls"><div class="transport-group"><button id="play" disabled>▶ PLAY</button><button id="stop" disabled>■ STOP</button></div><div class="transport-group"><button id="fullMix" type="button" class="active">ORIGINAL</button><button id="playPatterns" type="button" disabled>PATTERN MIX</button><button id="allPatterns" type="button" disabled>ALL PATTERNS</button><button id="clearPatterns" type="button" disabled>NONE</button><span id="listeningMode">ORIGINAL RECORDING</span></div><span class="speed-label">PLAYBACK SPEED</span><div class="transport-group rate-buttons" id="rateButtons"><button type="button" data-rate="0.5">0.5×</button><button type="button" data-rate="0.75">0.75×</button><button type="button" class="active" data-rate="1">1×</button><button type="button" data-rate="1.25">1.25×</button></div><span class="transport-tip">Toggle any combination of patterns below. ALL PATTERNS reconstructs their sum at original relative levels.</span></div>
+ <div class="monitor-transport" aria-label="Sound Lab playback controls"><div class="transport-group"><button id="play" disabled>▶ PLAY</button><button id="stop" disabled>■ STOP</button></div><div class="transport-group"><button id="fullMix" type="button" class="active">ORIGINAL</button><button id="playPatterns" type="button" disabled>PATTERN MIX</button><button id="playFeatures" type="button" disabled>FEATURE MIX</button><button id="allPatterns" type="button" disabled>ALL PATTERNS</button><button id="clearPatterns" type="button" disabled>NONE</button><span id="listeningMode">ORIGINAL RECORDING</span></div><span class="speed-label">PLAYBACK SPEED</span><div class="transport-group rate-buttons" id="rateButtons"><button type="button" data-rate="0.5">0.5×</button><button type="button" data-rate="0.75">0.75×</button><button type="button" class="active" data-rate="1">1×</button><button type="button" data-rate="1.25">1.25×</button></div><span class="transport-tip">Toggle individual sound components below. Pattern and feature mixes are separate listening modes, with independent ON/OFF controls.</span></div>
  <div id="plotWrap"><canvas id="plot" aria-label="Musical event and recurring sound component timeline"></canvas><div id="playhead" aria-hidden="true"></div><div id="plotTip"></div></div>
  <div class="legend"><span><i class="dot" style="background:#edbb66"></i>Onset candidates</span><span><i class="dot" style="background:#79d1d3"></i>Selected sound matches</span><span><i class="dot" style="background:#a6b7d3"></i>NMF component activity</span><span><i class="dot" style="background:#d5a3e0"></i>Imported Basic Pitch MIDI notes</span></div>
 </section>
@@ -94,6 +122,20 @@ header{height:74px;display:flex;gap:18px;align-items:center;justify-content:spac
  <div id="status"></div>
 </section>
 </div>
+<section class="panel" id="featuresPanel" aria-label="Musical features and audio components">
+ <div class="panel-title">04 / MUSICAL SIGNALS &amp; COMPONENT MIXER</div>
+ <div class="feature-intro"><b>LISTEN TO THE NEW PROCESSING</b> &nbsp; The original Sound Lab and its five-pattern mixer remain above. These additional components use a separate 16 kHz harmonic/percussive and frequency-band analysis. Select any combination to hear it in <b>FEATURE MIX</b>; switch to <b>ORIGINAL</b> or <b>PATTERN MIX</b> at the top without losing your selections.</div>
+ <div class="feature-section-heading">INDEPENDENT AUDIO COMPONENTS · ON / OFF</div>
+ <div id="featureAudioButtons" aria-label="Mix harmonic, percussive, low, mid and high audio components"></div>
+ <div class="feature-actions"><button id="featureAll" disabled>ALL COMPONENTS</button><button id="featureNone" disabled>NONE</button><span id="featureListenStatus" class="muted">Analyse a passage to enable component audio.</span></div>
+ <p class="feature-caution">Harmonic + percussive are one way of splitting the recording; low + mid + high are another. They <b>overlap</b>. Combining all five can duplicate sound and clip. Levels are not automatically boosted or balanced; these are not instrument stems.</p>
+ <div class="feature-section-heading">MUSICAL SIGNAL TIMELINE</div>
+ <div id="featurePlotWrap"><canvas id="featurePlot" aria-label="Musical feature analysis lanes; click a lane to select, timeline to seek"></canvas><div id="featurePlayhead" aria-hidden="true"></div></div>
+ <div class="feature-inspector"><div><strong id="featureSelectedName">LOW ATTACKS</strong><p id="featureSelectedDescription">New sound energy below approximately 240 Hz.</p><p id="featureSelectedCaveat" class="muted"></p></div><button id="addSelectedFeature" disabled>ADD RELATED AUDIO TO MIX</button></div>
+ <div id="featureProgress" role="status">Analyse a 30-second passage in the existing Sound Lab to produce these signals.</div>
+ <p class="feature-caution">Signals show low/mid/high attacks, sustained and transient energy, pitch-class distribution, tonal movement, brightness, spectral change, and slower changes. They are <b>measurements, not individually audible tracks</b>. Select a signal to audition its related audio component. Everything stays in this Sound Lab.</p>
+</section>
+
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
@@ -101,6 +143,7 @@ const palette=['#9fb4da','#d5a0c3','#a2d0bb','#a6a0e7','#e3bc84','#86bcd6','#d3b
 const lab={audio:null,blob:null,buffer:null,results:null,start:0,segment:30,selected:-1,selectedPattern:-1,matches:[],midi:[],duration:0,worker:null,
  soloMode:-1,soloUrls:new Map(),soloBlobs:new Map(),soloPcm:new Map(),soloInfo:new Map(),exportWaiters:new Map(),exporting:false,sourceSwitchToken:0,
  enabledPatterns:new Set(),patternRequests:new Map(),mixUrl:null,mixVersion:0};
+const feature={worker:null,results:null,enabled:new Set(),pcm:new Map(),waiting:new Map(),generation:0,mixVersion:0,window:null,selected:'lowOn'};
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 const fmt=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
 const fmtPrecise=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}.${String(Math.floor((t%1)*100)).padStart(2,'0')}`;
@@ -118,13 +161,15 @@ function clearSoloCache(){
 function refreshPatternButtons(){
  const selected=lab.enabledPatterns.size,rank=lab.results?.rank||0;
  $('fullMix').classList.toggle('active',lab.soloMode<0);
- $('playPatterns').classList.toggle('active',lab.soloMode>=0);
+ $('playPatterns').classList.toggle('active',lab.soloMode===0);
  $('playPatterns').disabled=!selected;
- $('allPatterns').classList.toggle('active',lab.soloMode>=0&&selected===rank&&rank>0);
+ $('allPatterns').classList.toggle('active',lab.soloMode===0&&selected===rank&&rank>0);
  $('allPatterns').disabled=!rank;
  $('clearPatterns').disabled=!rank||selected===0;
  if(lab.soloMode<0)$('listeningMode').textContent='ORIGINAL RECORDING';
- else $('listeningMode').textContent=`PATTERN MIX · ${selected}/${rank} ON · MONO 11 kHz`;
+ else if(lab.soloMode===0)$('listeningMode').textContent=`PATTERN MIX · ${selected}/${rank} ON · MONO 11 kHz`;
+ else $('listeningMode').textContent=`FEATURE MIX · ${feature.enabled.size}/5 ON · MONO 16 kHz`;
+ refreshFeatureButtons();
  const box=$('patternSummary');
  for(let k=0;k<rank;k++){
   const button=box.querySelector(`[data-pattern-toggle="${k}"]`);
@@ -175,10 +220,11 @@ async function updatePatternMix(){
  const version=++lab.mixVersion;
  refreshPatternButtons();
  if(!lab.enabledPatterns.size){
-  await switchListeningMode(-1);
+  if(lab.soloMode===0)await switchListeningMode(-1);
   status('Original recording. Switch on individual patterns or choose ALL PATTERNS.');
   return;
  }
+ feature.mixVersion++; // Cancel any pending feature mix when explicitly selecting NMF patterns.
  const wanted=Array.from(lab.enabledPatterns).sort((a,b)=>a-b);
  const missing=wanted.filter(k=>!lab.soloPcm.has(k));
  if(missing.length){
@@ -219,6 +265,7 @@ function togglePatternAudio(k){
  refreshPatternButtons();updatePatternMix();
 }
 function updatePlayhead(){
+ updateFeaturePlayhead();
  const h=lab.hit,a=$('audio'),line=$('playhead');
  if(!lab.buffer||!h){line.style.display='none';return;}
  const tt=songTime()-lab.start;
@@ -226,7 +273,7 @@ function updatePlayhead(){
  line.style.display='block';
  line.style.transform=`translate3d(${(h.x0+clamp(tt/h.windowLength)*(h.x1-h.x0)).toFixed(2)}px,0,0)`;
 }
-function updateClock(){const a=$('audio');$('timeLabel').textContent=fmtPrecise(songTime())+' / '+fmt(lab.duration||30);}
+function updateClock(){updateFeaturePlayhead();const a=$('audio');$('timeLabel').textContent=fmtPrecise(songTime())+' / '+fmt(lab.duration||30);}
 function tickPlayhead(){playheadFrame=0;const a=$('audio');
  if(!a.paused&&songTime()>=lab.start+lab.segment-.015){a.pause();a.currentTime=clipTime(Math.min(lab.duration,lab.start+lab.segment));}
  updatePlayhead();updateClock();
@@ -237,7 +284,7 @@ function pausePlayhead(){if(playheadFrame)cancelAnimationFrame(playheadFrame);pl
 function status(s){$('status').textContent=s;}
 function resizeCanvas(c){const d=Math.min(2,window.devicePixelRatio||1),r=c.getBoundingClientRect();const w=Math.max(1,Math.floor(r.width*d)),h=Math.max(1,Math.floor(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const ctx=c.getContext('2d');ctx.setTransform(d,0,0,d,0,0);return {ctx,w:r.width,h:r.height};}
 async function loadFile(){const file=$('musicFile').files?.[0];if(!file)return;status('Decoding music…');$('analyze').disabled=true;try{
- lab.worker?.terminate();lab.worker=null;clearSoloCache();lab.soloMode=-1;lab.sourceSwitchToken++;
+ lab.worker?.terminate();lab.worker=null;clearSoloCache();resetFeatures();lab.soloMode=-1;lab.sourceSwitchToken++;
  if(lab.blob)URL.revokeObjectURL(lab.blob);lab.blob=URL.createObjectURL(file);$('audio').src=lab.blob;
  const audioContext=new (window.AudioContext||window.webkitAudioContext)();
  try{lab.buffer=await audioContext.decodeAudioData(await file.arrayBuffer())}finally{await audioContext.close()}
@@ -247,20 +294,20 @@ async function loadFile(){const file=$('musicFile').files?.[0];if(!file)return;s
  $('analyze').disabled=false;$('play').disabled=false;$('stop').disabled=false;$('export').disabled=true;$('exportAll').disabled=true;
  $('analysisProgress').textContent='Loaded '+fmt(lab.duration)+' • analyse a 30-second passage';status('Decoded locally. Choose a section and click ANALYSE.');draw();updateClock();
  }catch(err){status('Audio decoding failed: '+(err?.message||err));console.error(err)}}
-async function excerptToSamples(start,duration){
- const sr=11025,source=lab.buffer;
+async function excerptToSamples(start,duration,sr=11025){
+ const source=lab.buffer;
  const length=Math.round(sr*duration),off=new OfflineAudioContext(1,length,sr);const node=off.createBufferSource();node.buffer=source;
  node.connect(off.destination);node.start(0,start,duration);const rendered=await off.startRendering();return rendered.getChannelData(0).slice();
 }
 function analyse(){if(!lab.buffer)return;
  if(lab.soloMode>=0){$('audio').pause();lab.soloMode=-1;$('audio').src=lab.blob;$('audio').load();}
- clearSoloCache();refreshPatternButtons();lab.worker?.terminate();lab.worker=null;lab.results=null;lab.selected=-1;lab.selectedPattern=-1;lab.matches=[];
+ clearSoloCache();resetFeatures();refreshPatternButtons();lab.worker?.terminate();lab.worker=null;lab.results=null;lab.selected=-1;lab.selectedPattern=-1;lab.matches=[];
  lab.start=clamp(Number($('start').value)||0,0,Math.max(0,lab.duration-2));lab.segment=Math.min(30,lab.duration-lab.start);
  if(lab.segment<2){status('Select a passage at least two seconds long.');return}
  $('analyze').disabled=true;$('export').disabled=true;$('exportAll').disabled=true;$('playExample').disabled=true;$('playPattern').disabled=true;$('mode').textContent='ANALYSING';
  $('segmentLabel').textContent=fmt(lab.start)+'–'+fmt(lab.start+lab.segment);seekInLab(0);draw();
  (async()=>{
- const samples=await excerptToSamples(lab.start,lab.segment);lab.worker=new Worker('./event-lab-worker.js?v=0.1.040');
+ const samples=await excerptToSamples(lab.start,lab.segment);lab.worker=new Worker('./event-lab-worker.js?v=0.1.042');
  lab.worker.onmessage=ev=>{const m=ev.data;
  if(m.type==='isolated'){
   const blob=wavBlob(m.samples,m.sampleRate);
@@ -284,7 +331,7 @@ function analyse(){if(!lab.buffer)return;
   const candidate=m.events.map((ev,i)=>({ev,i})).filter(o=>o.ev.t>0.45&&o.ev.t<m.times.at(-1)-.2).sort((a,b)=>b.ev.strength-a.ev.strength)[0];
   if(candidate){selectEvent(candidate.i);seekInLab(candidate.ev.t);}
   else{$('selectedInfo').textContent='No candidate sound attacks detected in this passage.';draw();}
-  status('Sound patterns ready. Select a pattern to compare it with what you hear.');}
+  status('Sound patterns ready. Musical signal analysis is starting below.');startFeatureAnalysis();}
  };
  lab.worker.onerror=err=>{for(const reject of lab.exportWaiters.values())reject(Error(err.message));lab.exportWaiters.clear();status('Worker error: '+err.message);$('mode').textContent='ERROR';$('analyze').disabled=false;lab.worker?.terminate()};
  lab.worker.postMessage({type:'analyse',samples:samples.buffer,sampleRate:11025,rank:+$('rank').value},[samples.buffer]);
@@ -426,7 +473,7 @@ function parseMidi(buffer){const v=new DataView(buffer);let i=0;
   if(e.on){if(!active.has(key))active.set(key,[]);active.get(key).push(e)}else if(active.has(key)&&active.get(key).length){const start=active.get(key).shift();const t0=toSeconds(start.tick),t1=toSeconds(e.tick);if(t1>t0)notes.push({t0,t1,pitch:e.pitch,velocity:start.velocity});}}
  return notes;
 }
-function exportData(){const m=lab.results;if(!m)return;const payload={format:'Visual Synth event experiment v1',track:$('fileName').textContent,windowStartSeconds:lab.start,windowLengthSeconds:lab.segment,methods:['spectral flux onset candidates','Euclidean NMF recurring spectral patterns','onset-signature cosine similarity'],limitations:'NMF components are not instrument stems; user-guided similarity is not pitch-invariant instrument identification.',rank:m.rank,events:m.events,patterns:Array.from({length:m.rank},(_,k)=>Array.from(m.pattern.subarray(k*m.bands,(k+1)*m.bands))),activityTimeStep:m.hop/m.sampleRate,activityByFrame:Array.from({length:m.frames},(_,t)=>Array.from(m.activation.subarray(t*m.rank,(t+1)*m.rank))),selectedEvent:lab.selected,matchedEvents:lab.matches,basicPitchMidiNotes:lab.midi};
+function exportData(){const m=lab.results;if(!m)return;const payload={format:'Visual Synth event experiment v1',track:$('fileName').textContent,windowStartSeconds:lab.start,windowLengthSeconds:lab.segment,methods:['spectral flux onset candidates','Euclidean NMF recurring spectral patterns','onset-signature cosine similarity'],limitations:'NMF components are not instrument stems; user-guided similarity is not pitch-invariant instrument identification.',rank:m.rank,events:m.events,patterns:Array.from({length:m.rank},(_,k)=>Array.from(m.pattern.subarray(k*m.bands,(k+1)*m.bands))),activityTimeStep:m.hop/m.sampleRate,activityByFrame:Array.from({length:m.frames},(_,t)=>Array.from(m.activation.subarray(t*m.rank,(t+1)*m.rank))),selectedEvent:lab.selected,matchedEvents:lab.matches,basicPitchMidiNotes:lab.midi,musicalFeatures:featurePayload()};
  const blob=URL.createObjectURL(new Blob([JSON.stringify(payload)],{type:'application/json'}));const a=document.createElement('a');a.href=blob;a.download='VisualSynth-event-lab-results.json';a.click();setTimeout(()=>URL.revokeObjectURL(blob),8000);
 }
 
@@ -495,7 +542,7 @@ async function exportAllPatterns(){
   }
   $('analysisProgress').textContent='Exporting: creating analysis data…';
   const metadata={
-   format:'Visual Synth Sound Lab complete pattern diagnostics v1',appVersion:'0.1.040',
+   format:'Visual Synth Sound Lab complete pattern diagnostics v1',appVersion:'0.1.042',
    track:$('fileName').textContent,sourceDurationSeconds:lab.duration,windowStartSeconds:lab.start,windowLengthSeconds:lab.segment,
    sampleRate:m.sampleRate,hopSamples:m.hop,frames:m.frames,bands:m.bands,rank:m.rank,
    analysis:{spectrogramFFTSize:2048,frequencyBands:'96 logarithmic bands from 55 Hz to 3500 Hz',nmf:'Euclidean NMF, 55 multiplicative update iterations',isolation:'Soft spectral masks applied to original mono STFT with overlap/add and per-pattern gain',disclaimer:'Patterns are NMF spectral components, NOT clean instrument stems. Patterns can overlap and miss notes.'},
@@ -510,8 +557,15 @@ async function exportAllPatterns(){
   };
   files.push({name:'analysis.json',body:JSON.stringify(metadata,null,2)});
   files.push({name:'spectrogram-96bands-u8.bin',body:m.spectrogram});
+  if(feature.results){
+   files.push({name:'musical-feature-data.json',body:JSON.stringify(featurePayload())});
+   for(const source of FEATURE_SOURCES){
+    $('analysisProgress').textContent='Exporting feature component '+source+'…';
+    const pcm=await getFeaturePcm(source);files.push({name:'feature-'+source+'.wav',body:wavBlob(pcm,16000)});
+   }
+  }
   files.push({name:'README.txt',body:[
-   'VISUAL SYNTH | SOUND LAB EXPORT v0.1.040','',`Track: ${metadata.track}`,
+   'VISUAL SYNTH | SOUND LAB EXPORT v0.1.042','',`Track: ${metadata.track}`,
    `Excerpt start: ${lab.start.toFixed(3)} seconds; duration: ${lab.segment.toFixed(3)} seconds`,'',
    'reference-original-excerpt.wav = unmodified decoded recording excerpt, full sampling rate and up to stereo, 16-bit PCM.',
    'reference-analysis-mono-11025hz.wav = exact kind of mono resampling fed to the NMF, 16-bit PCM.',
@@ -521,6 +575,9 @@ async function exportAllPatterns(){
    'IMPORTANT: NMF patterns are not identified instruments. They can overlap or omit notes.',
    'Isolated patterns have individual playback gain; use patternAudio.normalizationGain from analysis.json.',
    'Do not interpret WAV loudness across patterns as their true relative contribution.',
+   'musical-feature-data.json = 16 kHz feature signals, attack markers and pitch-class map (when available).',
+   'feature-harmonic.wav / feature-percussive.wav / feature-low.wav etc = unboosted component WAVs (when available).',
+   'Harmonic/percussive and frequency bands are DIFFERENT overlapping decompositions; do not sum all five as a lossless reconstruction.',
    'All extraction and ZIP creation happened in this browser; no audio was uploaded.',
    '' ].join('\n')});
   $('analysisProgress').textContent='Exporting: building ZIP…';const archive=await createZip(files);
@@ -533,15 +590,179 @@ async function exportAllPatterns(){
  }catch(err){console.error('Diagnostic export failed',err);status('Export failed: '+(err?.message||err));$('analysisProgress').textContent='Export failed. Existing analysis is preserved.';}
  finally{lab.exporting=false;$('exportAll').disabled=!lab.results;$('analyze').disabled=!lab.buffer;$('start').disabled=false;$('musicFile').disabled=false;$('rank').disabled=false;}
 }
+
+// Integrated Musical Signal analysis (v0.1.041 methods), kept inside the original
+// v0.1.040 Sound Lab rather than routed through another page.
+const FEATURE_SOURCES=['harmonic','percussive','low','mid','high'];
+const featureDefs=[
+ {id:'wave',label:'Waveform',color:'#8299b9',source:'original',desc:'Original audio amplitude for orientation and timing.',note:'Amplitude does not identify musical events.'},
+ {id:'lowOn',label:'Low attacks',color:'#e2b878',source:'low',desc:'New frequency energy below approximately 240 Hz. This can follow bass notes or low accents.',note:'Low attacks may include low percussion and overlapping harmonics.'},
+ {id:'midOn',label:'Mid attacks',color:'#b8d5a2',source:'mid',desc:'New energy between approximately 240 and 1600 Hz.',note:'A single instrument can generate both mid and high attacks.'},
+ {id:'highOn',label:'High attacks',color:'#d7a8d4',source:'high',desc:'New sound energy above approximately 1600 Hz, including bright notes and transients.',note:'High attacks are not a high-melody detector.'},
+ {id:'harmonic',label:'Harmonic',color:'#9bd0d4',source:'harmonic',desc:'Relatively sustained pitched structures from median-filter harmonic/percussive separation.',note:'Fast pitched notes can also contribute to the percussive part.'},
+ {id:'percussive',label:'Percussive',color:'#e7a98f',source:'percussive',desc:'Short transients enhanced by harmonic/percussive separation.',note:'The transient part includes note attacks, not only percussion instruments.'},
+ {id:'chroma',label:'12 pitch classes',color:'#a3b3e7',source:'harmonic',desc:'The changing distribution of pitch classes C through B, folded over octaves.',note:'Chroma is not a melody transcript or separated voice.'},
+ {id:'tonalChange',label:'Tonal movement',color:'#c6b2e9',source:'harmonic',desc:'Rate of change in the distribution of pitch classes.',note:'Repeated identical notes can show little tonal movement.'},
+ {id:'brightness',label:'Brightness',color:'#e2c184',source:'original',desc:'Spectral centroid, affected by filter sweeps, high harmonics and noise.',note:'Brightness measures frequency balance, not just filter cutoff.'},
+ {id:'texture',label:'Spectral change',color:'#8fc5d2',source:'original',desc:'Positive spectral flux: how much the frequency content changes.',note:'Vibrato and overlapping instruments can affect this measure.'},
+ {id:'arrangement',label:'Overall activity',color:'#efc784',source:'original',desc:'Slower activity estimate combining rhythmic and sustained energy.',note:'This is not a validated song-section classifier.'},
+ {id:'change',label:'Passage change',color:'#d8ab95',source:'original',desc:'Slow variation in activity, timbre and tonal movement; candidate transitions.',note:'Compare with the actual music before treating a peak as a section change.'}
+];
+const featureHeights={wave:54,lowOn:54,midOn:54,highOn:54,harmonic:54,percussive:54,chroma:83,tonalChange:54,brightness:54,texture:54,arrangement:54,change:54};
+function resetFeatures(){
+ feature.generation++;feature.mixVersion++;
+ for(const entry of feature.waiting.values())entry.reject(Error('Feature analysis reset.'));
+ feature.waiting.clear();feature.pcm.clear();feature.enabled.clear();
+ feature.worker?.terminate();feature.worker=null;feature.results=null;feature.window=null;
+ $('featureProgress').textContent='Analyse a passage to extract the musical signals.';
+ $('featureAll').disabled=true;$('featureNone').disabled=true;
+ refreshFeatureButtons();drawFeaturePlot();
+}
+function refreshFeatureButtons(){
+ const ready=!!feature.results;
+ for(const b of $('featureAudioButtons').querySelectorAll('button[data-feature]')){
+  const id=b.dataset.feature,on=feature.enabled.has(id);
+  b.disabled=!ready;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));
+  b.textContent=on?'● ON · REMOVE':'○ OFF · ADD';
+ }
+ $('featureAll').disabled=!ready;$('featureNone').disabled=!ready||!feature.enabled.size;
+ $('playFeatures').disabled=!ready||!feature.enabled.size;
+ $('playFeatures').classList.toggle('active',lab.soloMode===1);
+ $('addSelectedFeature').disabled=!ready||featureDefs.find(d=>d.id===feature.selected)?.source==='original';
+ $('featureListenStatus').textContent=ready?`${feature.enabled.size}/5 ON · ${lab.soloMode===1?'FEATURE MIX PLAYING':'Switches preserved until you choose FEATURE MIX'}`:'Analyse a passage to enable component audio.';
+}
+function featurePayload(){const m=feature.results;if(!m)return null;return{
+ format:'Visual Synth integrated musical feature analysis v1',appVersion:'0.1.042',
+ sampleRate:m.sampleRate,hopSamples:m.hop,windowSize:m.windowSize,windowStartSeconds:lab.start,windowLengthSeconds:lab.segment,
+ methods:'STFT, median-filter soft-mask harmonic/percussive separation, band spectral flux, chroma, spectral centroid, slow novelty',
+ note:'Signal lanes are normalised per excerpt. Harmonic/percussive and low/mid/high components overlap and are not distinct instruments.',
+ times:Array.from(m.times),lanes:Object.fromEntries(Object.entries(m.lanes).map(([k,v])=>[k,Array.from(v)])),attacks:m.attacks,
+ chromaShape:[m.frames,12],chromaU8:Array.from(m.chroma)};
+}
+async function startFeatureAnalysis(){
+ if(!lab.buffer)return;
+ const generation=feature.generation;
+ $('featureProgress').textContent='Preparing 16 kHz audio for musical signals…';
+ try{
+  const samples=await excerptToSamples(lab.start,lab.segment,16000);
+  if(feature.generation!==generation)return;
+  const worker=new Worker('./feature-lab-worker.js?v=0.1.042');feature.worker=worker;
+  worker.onmessage=({data:m})=>{
+   if(feature.generation!==generation)return;
+   if(m.type==='progress'){$('featureProgress').textContent=m.stage+' · '+Math.round(m.percent)+'%';return}
+   if(m.type==='error'){$('featureProgress').textContent='Feature analysis error: '+m.message;for(const entry of feature.waiting.values())entry.reject(Error(m.message));feature.waiting.clear();return}
+   if(m.type==='audio'){
+    feature.pcm.set(m.mode,m.samples);
+    const resolve=feature.waiting.get(m.mode);if(resolve){feature.waiting.delete(m.mode);resolve.resolve(m.samples)}
+    return;
+   }
+   if(m.type==='done'){
+    feature.results=m;
+    refreshFeatureButtons();drawFeaturePlot();
+    $('featureProgress').textContent=`Feature analysis complete · ${m.frames} frames · ${m.sampleRate/1000} kHz · ${m.attacks.low.length} low / ${m.attacks.mid.length} mid / ${m.attacks.high.length} high attacks`;
+   }
+  };
+  worker.onerror=err=>{$('featureProgress').textContent='Feature worker failed: '+err.message;for(const entry of feature.waiting.values())entry.reject(Error(err.message));feature.waiting.clear()};
+  worker.postMessage({type:'analyse',samples:samples.buffer,sampleRate:16000},[samples.buffer]);
+ }catch(err){if(feature.generation===generation)$('featureProgress').textContent='Could not analyse musical features: '+(err?.message||err)}
+}
+function getFeaturePcm(mode){
+ if(feature.pcm.has(mode))return Promise.resolve(feature.pcm.get(mode));
+ if(feature.waiting.has(mode))return feature.waiting.get(mode).promise;
+ if(!feature.worker||!feature.results)return Promise.reject(Error('Musical feature analysis is not ready.'));
+ let resolve,reject;
+ const promise=new Promise((res,rej)=>{resolve=res;reject=rej});
+ // Keep one entry per request, resolving all simultaneous readers with one worker message.
+ const entry={promise,resolve,reject};feature.waiting.set(mode,entry);
+ feature.worker.postMessage({type:'audition',mode});return promise;
+}
+// Missing requests must reject the same promise that their callers await.
+function rejectFeatureWaiters(err){for(const entry of feature.waiting.values())entry.reject(err);feature.waiting.clear()}
+async function updateFeatureMix(){
+ const ver=++feature.mixVersion;
+ lab.mixVersion++; // Cancel older NMF reconstructions while feature audio is chosen.
+ if(!feature.enabled.size){
+  if(lab.soloMode===1)await switchListeningMode(-1);
+  refreshFeatureButtons();return;
+ }
+ const wanted=FEATURE_SOURCES.filter(k=>feature.enabled.has(k));
+ $('featureListenStatus').textContent=`Preparing ${wanted.join(' + ')}…`;
+ try{
+  const parts=await Promise.all(wanted.map(getFeaturePcm));if(ver!==feature.mixVersion)return;
+  const len=parts[0].length;const out=new Float32Array(len);
+  for(const arr of parts){if(arr.length!==len)throw Error('Component lengths differ. Analyse again.');for(let i=0;i<len;i++)out[i]+=arr[i]}
+  let peak=0;for(let i=0;i<len;i++)peak=Math.max(peak,Math.abs(out[i]));
+  const url=URL.createObjectURL(wavBlob(out,16000));if(ver!==feature.mixVersion){URL.revokeObjectURL(url);return}
+  await switchListeningMode(1,url,lab.mixVersion);
+  if(ver!==feature.mixVersion)return;
+  refreshFeatureButtons();
+  $('featureListenStatus').textContent=`${wanted.join(' + ').toUpperCase()} · original relative levels${peak>1?' · peaks clipped':''}`;
+  status(`Feature mix: ${wanted.join(' + ')} (16 kHz mono).${peak>1?' Sum exceeds full scale: clipping may occur.':''}`);
+ }catch(err){if(ver!==feature.mixVersion)return;feature.enabled.clear();refreshFeatureButtons();if(lab.soloMode===1)await switchListeningMode(-1);status('Feature mix failed: '+(err?.message||err))}
+}
+function toggleFeature(mode){if(!feature.results)return;if(feature.enabled.has(mode))feature.enabled.delete(mode);else feature.enabled.add(mode);refreshFeatureButtons();updateFeatureMix()}
+function selectFeature(id){const d=featureDefs.find(x=>x.id===id);if(!d)return;feature.selected=id;
+ $('featureSelectedName').textContent=d.label.toUpperCase();$('featureSelectedName').style.color=d.color;
+ $('featureSelectedDescription').textContent=d.desc;$('featureSelectedCaveat').textContent=d.note;
+ $('addSelectedFeature').textContent=d.source==='original'?'ORIGINAL RECORDING':`ADD ${d.source.toUpperCase()} AUDIO TO MIX`;
+ refreshFeatureButtons();drawFeaturePlot();}
+function drawFeaturePlot(){const el=$('featurePlot'),d=Math.min(2,window.devicePixelRatio||1),r=el.getBoundingClientRect(),w=r.width,h=r.height;
+ if(!w||!h)return;
+ const bw=Math.max(1,Math.round(w*d)),bh=Math.max(1,Math.round(h*d));if(el.width!==bw||el.height!==bh){el.width=bw;el.height=bh}
+ const cx=el.getContext('2d');cx.setTransform(d,0,0,d,0,0);cx.fillStyle='#0c1220';cx.fillRect(0,0,w,h);
+ const left=Math.min(125,Math.max(80,w*.24)),right=w-12,top=36,span=right-left;if(span<=10)return;
+ const len=lab.segment||30;feature.window={left,right,top,span,lanes:[]};
+ const xAt=t=>left+clamp(t/len)*span;
+ cx.fillStyle='#a5b5c9';cx.font='11px system-ui';cx.textAlign='center';
+ for(let t=0;t<=len+.01;t+=5){const x=xAt(t);cx.textAlign=t===0?'left':t>=len-.01?'right':'center';cx.fillText(fmt(lab.start+t),x,19);cx.fillStyle='#263347';cx.fillRect(Math.round(x),29,1,h-30);cx.fillStyle='#a5b5c9'}
+ let y=top,stripe=0;
+ for(const cfg of featureDefs){const height=featureHeights[cfg.id],y0=y,y1=y+height;feature.window.lanes.push({id:cfg.id,y0,y1});
+  cx.fillStyle=feature.selected===cfg.id?'#1f2c40':stripe++%2?'#121b2c':'#172233';cx.fillRect(0,y0,w,height-1);
+  cx.textAlign='left';cx.fillStyle=feature.selected===cfg.id?'#f2cb84':'#b9c5d6';cx.font=(feature.selected===cfg.id?'bold ':'')+'11px system-ui';cx.fillText(cfg.label.toUpperCase(),12,y0+height/2+4);
+  cx.strokeStyle='#243247';cx.lineWidth=1;cx.beginPath();cx.moveTo(left,y1-.5);cx.lineTo(right,y1-.5);cx.stroke();
+  if(cfg.id==='wave'&&lab.buffer){
+   const buf=lab.buffer,channel=buf.getChannelData(0),sr=buf.sampleRate,begin=Math.floor(lab.start*sr),count=Math.floor(len*sr),mid=y0+height/2;
+   cx.fillStyle=cfg.color;const cols=Math.min(900,Math.max(1,Math.floor(span)));
+   for(let j=0;j<cols;j++){let lo=1,hi=-1;const from=begin+Math.floor(j*count/cols),to=Math.min(channel.length,begin+Math.floor((j+1)*count/cols));const step=Math.max(1,Math.floor((to-from)/80));for(let k=from;k<to;k+=step){const v=channel[k];lo=Math.min(lo,v);hi=Math.max(hi,v)}const x=left+j*span/cols;cx.fillRect(x,mid-hi*(height*.35),Math.max(1,span/cols),Math.max(.8,(hi-lo)*(height*.35)))}
+  }else if(cfg.id==='chroma'&&feature.results){
+   const {chroma,frames}=feature.results,cellHeight=(height-7)/12;
+   for(let c=0;c<12;c++){for(let t=0;t<frames;t++){const v=chroma[t*12+c]/255;if(v<.09)continue;cx.fillStyle=`rgba(158,179,239,${(.1+v*.82).toFixed(2)})`;cx.fillRect(left+t*span/frames,y0+4+c*cellHeight,Math.max(1.1,span/frames+.4),Math.max(1,cellHeight-1))}}
+  }else if(feature.results){
+   const series=feature.results.lanes[cfg.id];if(series){cx.lineWidth=1.4;cx.strokeStyle=cfg.color;cx.beginPath();for(let t=0;t<series.length;t++){const x=left+t*span/(series.length-1),py=y1-4-clamp(series[t])*(height-10);if(!t)cx.moveTo(x,py);else cx.lineTo(x,py)}cx.stroke();
+    if(['lowOn','midOn','highOn'].includes(cfg.id)){const key=cfg.id==='lowOn'?'low':cfg.id==='midOn'?'mid':'high';cx.fillStyle=cfg.color;for(const e of feature.results.attacks[key])cx.fillRect(xAt(e.t)-1,y0+3,2,Math.max(2,e.strength*(height-6)))}
+   }
+  }
+  y=y1;
+ }
+ updateFeaturePlayhead();
+}
+function updateFeaturePlayhead(){const line=$('featurePlayhead'),w=feature.window;if(!lab.buffer||!w){line.style.display='none';return}const offset=songTime()-lab.start;
+ if(!Number.isFinite(offset)||offset<0||offset>lab.segment){line.style.display='none';return}line.style.display='block';line.style.transform=`translate3d(${(w.left+offset/lab.segment*w.span).toFixed(2)}px,0,0)`;}
+function initFeatures(){
+ const labels={harmonic:['HARMONIC','Sustained pitched audio'],percussive:['PERCUSSIVE','Transients and note attacks'],low:['LOW','Frequency content below 240 Hz'],mid:['MID','Frequency content from 240–1600 Hz'],high:['HIGH','Frequency content above 1600 Hz']};
+ for(const mode of FEATURE_SOURCES){const [name,hint]=labels[mode],card=document.createElement('div');card.className='feature-channel';
+  const title=document.createElement('strong');title.textContent=name;const small=document.createElement('small');small.textContent=hint;
+  const btn=document.createElement('button');btn.dataset.feature=mode;btn.type='button';btn.disabled=true;btn.textContent='○ OFF · ADD';btn.setAttribute('aria-pressed','false');btn.addEventListener('click',()=>toggleFeature(mode));
+  card.append(title,small,btn);$('featureAudioButtons').append(card)}
+ $('playFeatures').addEventListener('click',()=>{if(feature.enabled.size)updateFeatureMix()});
+ $('featureAll').addEventListener('click',()=>{feature.enabled=new Set(FEATURE_SOURCES);refreshFeatureButtons();updateFeatureMix()});
+ $('featureNone').addEventListener('click',()=>{feature.enabled.clear();refreshFeatureButtons();updateFeatureMix()});
+ $('addSelectedFeature').addEventListener('click',()=>{const d=featureDefs.find(x=>x.id===feature.selected);if(!d)return;if(d.source==='original'){lab.mixVersion++;feature.mixVersion++;switchListeningMode(-1)}else if(!feature.enabled.has(d.source)){feature.enabled.add(d.source);refreshFeatureButtons();updateFeatureMix()}else updateFeatureMix()});
+ $('featurePlot').addEventListener('click',e=>{const r=$('featurePlot').getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,w=feature.window;if(!w)return;
+  const lane=w.lanes.find(l=>y>=l.y0&&y<l.y1);if(lane)selectFeature(lane.id);
+  if(lab.buffer&&x>=w.left&&x<=w.right)seekInLab(clamp((x-w.left)/w.span)*lab.segment)});
+ selectFeature('lowOn');refreshFeatureButtons();drawFeaturePlot();
+}
+
 $('musicFile').addEventListener('change',loadFile);$('analyze').addEventListener('click',analyse);
 $('threshold').addEventListener('input',()=>{$('thresholdValue').textContent=(+$('threshold').value/100).toFixed(2);scoreMatches();if(lab.selected>=0)selectEvent(lab.selected)});
 $('pitchTolerance').addEventListener('change',()=>{scoreMatches();if(lab.selected>=0)selectEvent(lab.selected)});
 $('midiFile').addEventListener('change',async()=>{try{const file=$('midiFile').files?.[0];if(!file)return;lab.midi=parseMidi(await file.arrayBuffer());$('midiCount').textContent=lab.midi.length;status('Imported '+lab.midi.length+' MIDI note events for comparison.');draw()}catch(err){status('MIDI import failed: '+(err?.message||err))}});
 $('midiOffset').addEventListener('input',draw);$('plot').addEventListener('click',canvasClick);$('export').addEventListener('click',exportData);$('exportAll').addEventListener('click',exportAllPatterns);
-$('start').addEventListener('change',()=>{if(lab.soloMode>=0){$('audio').pause();$('audio').src=lab.blob;$('audio').load();}clearSoloCache();refreshPatternButtons();lab.worker?.terminate();lab.worker=null;lab.start=clamp(Number($('start').value)||0,0,Math.max(0,lab.duration-2));lab.results=null;lab.selected=-1;lab.selectedPattern=-1;lab.matches=[];$('patternSummary').replaceChildren();$('playExample').disabled=true;$('playPattern').disabled=true;$('selectedSoundLabel').textContent='NO EVENT YET';$('selectedInfo').textContent='Analyse the new passage to see sound details.';$('export').disabled=true;$('exportAll').disabled=true;$('mode').textContent='IDLE';$('analysisProgress').textContent='Window changed. Analyse this passage to update the results.';draw()});
+$('start').addEventListener('change',()=>{if(lab.soloMode>=0){$('audio').pause();$('audio').src=lab.blob;$('audio').load();}clearSoloCache();resetFeatures();refreshPatternButtons();lab.worker?.terminate();lab.worker=null;lab.start=clamp(Number($('start').value)||0,0,Math.max(0,lab.duration-2));lab.results=null;lab.selected=-1;lab.selectedPattern=-1;lab.matches=[];$('patternSummary').replaceChildren();$('playExample').disabled=true;$('playPattern').disabled=true;$('selectedSoundLabel').textContent='NO EVENT YET';$('selectedInfo').textContent='Analyse the new passage to see sound details.';$('export').disabled=true;$('exportAll').disabled=true;$('mode').textContent='IDLE';$('analysisProgress').textContent='Window changed. Analyse this passage to update the results.';draw()});
 $('play').addEventListener('click',async()=>{const a=$('audio');if(a.paused){if(songTime()<lab.start||songTime()>=lab.start+lab.segment)seekInLab(0);try{await a.play()}catch(err){status(err.message)}}else a.pause()});
 $('stop').addEventListener('click',()=>{$('audio').pause();seekInLab(0)});
-$('fullMix').addEventListener('click',()=>{lab.mixVersion++;switchListeningMode(-1);status('Original recording. Pattern selections are preserved for comparison.');});
+$('fullMix').addEventListener('click',()=>{lab.mixVersion++;feature.mixVersion++;switchListeningMode(-1);status('Original recording. Pattern selections are preserved for comparison.');});
 $('playPatterns').addEventListener('click',()=>{if(lab.enabledPatterns.size)updatePatternMix()});
 $('allPatterns').addEventListener('click',()=>{if(!lab.results)return;lab.enabledPatterns=new Set(Array.from({length:lab.results.rank},(_,k)=>k));updatePatternMix()});
 $('clearPatterns').addEventListener('click',()=>{lab.enabledPatterns.clear();updatePatternMix()});
@@ -556,7 +777,7 @@ $('rateButtons').addEventListener('click',e=>{const button=e.target.closest('but
  status('Playback speed '+speed+'×. Audio pitch may shift at reduced playback speeds, depending on browser settings.');});
 $('playExample').addEventListener('click',()=>{const e=lab.results?.events[lab.selected];if(e)playAt(e.t)});
 $('playPattern').addEventListener('click',()=>{if(lab.selectedPattern>=0)playAt(patternMetrics(lab.selectedPattern).peakTime)});
-window.addEventListener('resize',()=>{draw();drawSignature()});draw();drawSignature();
+window.addEventListener('resize',()=>{draw();drawSignature();drawFeaturePlot()});initFeatures();draw();drawSignature();
 })();
 </script>
 </body></html>
