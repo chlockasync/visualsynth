@@ -2,7 +2,7 @@
 <html lang="en-NZ">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Sound Event Lab v0.1.039</title>
+<title>Visual Synth | Sound Event Lab v0.1.040</title>
 <style>
 :root{--bg:#384254;--line:#151916;--gold:#e2ac56;--txt:#e5eaf4;--muted:#b0bdd0;--surface:#121927}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:13px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;padding:0 18px 22px}
@@ -11,7 +11,7 @@ header{height:74px;display:flex;gap:18px;align-items:center;justify-content:spac
 .panel{position:relative;background:var(--bg);border:6px solid var(--line);border-radius:15px;min-width:0;overflow:hidden}.panel-title{position:absolute;z-index:2;top:-1px;left:50%;transform:translateX(-50%);background:var(--line);color:var(--gold);font-weight:800;font-size:12px;letter-spacing:.04em;padding:1px 24px 5px;white-space:nowrap;clip-path:polygon(0 0,100% 0,94% 100%,6% 100%)}
 #monitor{padding:33px 14px 14px}.monitor-bar{display:flex;align-items:center;gap:12px;justify-content:space-between;margin:0 0 9px}.monitor-bar .caption{color:#c8d1e1}.monitor-bar .caption b{color:#f3f5fa}#plotWrap{position:relative;background:#0c1220;border:1px solid #263044;border-radius:8px;overflow:hidden}#plot{display:block;width:100%;height:520px;cursor:crosshair;touch-action:pan-y}#playhead{display:none;position:absolute;left:1px;top:21px;bottom:1px;width:1px;background:#e9c879;pointer-events:none;z-index:2;will-change:transform}#playhead::before{content:"";position:absolute;top:-5px;left:-4px;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid #e9c879}#plotTip{position:absolute;pointer-events:none;background:#1b2638e8;padding:5px 7px;border:1px solid #4b5a6a;font-size:11px;border-radius:3px;display:none;z-index:3}.legend{display:flex;gap:16px;flex-wrap:wrap;color:#bcc9db;font-size:11px;padding:9px 2px 0}.dot{display:inline-block;width:8px;height:8px;margin-right:4px;vertical-align:middle}
 #lower{display:grid;grid-template-columns:minmax(260px,360px) minmax(450px,1fr);gap:0;margin-top:12px;align-items:start}#controlPanel{border-radius:14px 0 0 14px;border-right-width:3px}#detailPanel{border-radius:0 14px 14px 0;border-left-width:3px}#controlPanel,#detailPanel{padding:36px 15px 15px}.sub{color:var(--gold);font-size:11px;font-weight:750;letter-spacing:.07em;margin:3px 0 12px}.rule{height:1px;background:#1e2a39;margin:16px 0}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:9px 0}.row label{color:#d4dbe8}input[type=number],select{background:#263144;border:1px solid #111923;border-radius:4px;color:var(--txt);padding:6px}input[type=number]{width:75px}input[type=range]{accent-color:var(--gold)}input[type=file]{max-width:100%;font-size:11px}small,.muted{color:var(--muted)}#analysisProgress{margin-top:10px;min-height:19px;color:#e8c284;font-size:12px}.badge{padding:2px 7px;border:1px solid #253144;background:#28344a;border-radius:4px;font-size:11px;color:#d4e0eb}.three{display:grid;grid-template-columns:1fr 1fr;gap:9px}#signature{width:100%;height:150px;background:#10182a;border:1px solid #253245;display:block}#selectedInfo{font:12px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap;color:#d8e2ef;min-height:76px}.instructions{max-width:800px;color:#bdc9dc;font-size:12px;margin-top:12px;line-height:1.55}#status{color:#deb46e;min-height:20px}#midiFile{font-size:11px}#results{margin-top:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}#results div{border:1px solid #222f42;padding:8px;min-height:44px;font-size:11px}#results b{display:block;color:#e9bf75;font-size:15px}
-/* Sound Lab 0.1.039: geometry-first controls and useful per-component inspection. */
+/* Sound Lab 0.1.040: geometry-first controls and useful per-component inspection. */
 #monitor{padding-top:33px}
 .monitor-bar{margin-bottom:7px}
 .monitor-transport{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:40px;margin:0 0 10px}
@@ -43,16 +43,22 @@ header{height:74px;display:flex;gap:18px;align-items:center;justify-content:spac
 #soundActions button{font-size:12px;font-weight:750;min-height:31px}
 #selectedSoundHint{color:#c5d2dd;font-size:11px}
 #signature{height:132px}
+
+/* Independent pattern listening switches, built from the existing control geometry. */
+.pattern-card .pattern-solo.active{background:#183b3d;color:#a9f0ee;border-color:#65c5c0}
+#allPatterns.active{background:#2a3e3a;border-color:#88d0c4;color:#b3f1e5}
+#listeningMode{max-width:300px;min-width:132px}
+#patternDescription{line-height:1.5}
 @media(max-width:1250px){#patternSummary{grid-template-columns:repeat(3,minmax(125px,1fr))}.monitor-transport .transport-tip{margin-left:0}}
 @media(max-width:650px){#patternSummary{grid-template-columns:repeat(2,minmax(110px,1fr))}.monitor-transport .rate-buttons button{min-width:47px}}
 @media(max-width:900px){#lower{grid-template-columns:1fr}#controlPanel{border-radius:14px 14px 0 0;border-right-width:6px;border-bottom-width:3px}#detailPanel{border-radius:0 0 14px 14px;border-left-width:6px;border-top-width:3px}header h1{font-size:23px}header small{display:none}}
 </style>
 </head>
 <body>
-<header><div class="title"><h1>VISUAL SYNTH</h1><small>SOUND EVENT LAB</small><span class="version">v0.1.039</span></div><a href="./index.html">Return to Visual Synth</a></header>
+<header><div class="title"><h1>VISUAL SYNTH</h1><small>SOUND EVENT LAB</small><span class="version">v0.1.040</span></div><a href="./index.html">Return to Visual Synth</a></header>
 <section class="panel" id="monitor"><div class="panel-title">01 / SOUND EVENT COMPARISON</div>
  <div class="monitor-bar"><div class="caption"><b id="fileName">No recording selected</b> &nbsp; <span id="segmentLabel">30-second test window</span></div><div class="caption" id="timeLabel">0:00 / 0:30</div></div>
- <div class="monitor-transport" aria-label="Sound Lab playback controls"><div class="transport-group"><button id="play" disabled>▶ PLAY</button><button id="stop" disabled>■ STOP</button></div><div class="transport-group"><button id="fullMix" type="button" class="active">FULL MIX</button><span id="listeningMode">FULL MIX</span></div><span class="speed-label">PLAYBACK SPEED</span><div class="transport-group rate-buttons" id="rateButtons"><button type="button" data-rate="0.5">0.5×</button><button type="button" data-rate="0.75">0.75×</button><button type="button" class="active" data-rate="1">1×</button><button type="button" data-rate="1.25">1.25×</button></div><span class="transport-tip">Select an ISOLATE button to listen to one approximate sound pattern. FULL MIX restores the recording.</span></div>
+ <div class="monitor-transport" aria-label="Sound Lab playback controls"><div class="transport-group"><button id="play" disabled>▶ PLAY</button><button id="stop" disabled>■ STOP</button></div><div class="transport-group"><button id="fullMix" type="button" class="active">ORIGINAL</button><button id="playPatterns" type="button" disabled>PATTERN MIX</button><button id="allPatterns" type="button" disabled>ALL PATTERNS</button><button id="clearPatterns" type="button" disabled>NONE</button><span id="listeningMode">ORIGINAL RECORDING</span></div><span class="speed-label">PLAYBACK SPEED</span><div class="transport-group rate-buttons" id="rateButtons"><button type="button" data-rate="0.5">0.5×</button><button type="button" data-rate="0.75">0.75×</button><button type="button" class="active" data-rate="1">1×</button><button type="button" data-rate="1.25">1.25×</button></div><span class="transport-tip">Toggle any combination of patterns below. ALL PATTERNS reconstructs their sum at original relative levels.</span></div>
  <div id="plotWrap"><canvas id="plot" aria-label="Musical event and recurring sound component timeline"></canvas><div id="playhead" aria-hidden="true"></div><div id="plotTip"></div></div>
  <div class="legend"><span><i class="dot" style="background:#edbb66"></i>Onset candidates</span><span><i class="dot" style="background:#79d1d3"></i>Selected sound matches</span><span><i class="dot" style="background:#a6b7d3"></i>NMF component activity</span><span><i class="dot" style="background:#d5a3e0"></i>Imported Basic Pitch MIDI notes</span></div>
 </section>
@@ -79,11 +85,11 @@ header{height:74px;display:flex;gap:18px;align-items:center;justify-content:spac
  <div id="patternSummary" aria-label="Select a recurring sound pattern"></div>
  <div class="rule"></div><div class="sound-detail-head"><div class="sub">SELECTED SOUND ATTACK</div><span class="badge" id="selectedSoundLabel">NO EVENT YET</span></div>
  <canvas id="signature" aria-label="Spectrum signature for the selected onset"></canvas>
- <div id="soundActions"><button id="playExample" disabled>▶ PLAY SELECTED EVENT</button><button id="playPattern" disabled>▶ PLAY PATTERN PEAK</button><span id="selectedSoundHint">These buttons seek to events. ISOLATE AUDIO on a pattern card switches what you hear.</span></div>
+ <div id="soundActions"><button id="playExample" disabled>▶ PLAY SELECTED EVENT</button><button id="playPattern" disabled>▶ PLAY PATTERN PEAK</button><span id="selectedSoundHint">These buttons seek to events. Each pattern has its own ON/OFF audio switch.</span></div>
  <div id="selectedInfo">Analyse the recording to select a representative sound attack automatically, or click an onset in the graph.</div>
  <div id="results"><div><b id="eventCount">0</b>Event candidates</div><div><b id="matchCount">0</b>Similar events</div><div><b id="midiCount">0</b>Imported MIDI notes</div></div>
  <div class="rule"></div><div class="sub">HOW TO READ THE EXPERIMENT</div>
- <p class="instructions">Each NMF lane shows when one recurring frequency pattern becomes active. These are <b>spectral components, not verified instrument stems</b>. The ISOLATE buttons reconstruct approximate mono audio for each component. One instrument may create several components, and two instruments can share a component. Click a gold onset to select a sound; the cyan match lane shows other events with similar attack spectra. Click any event again to jump playback to that moment.</p>
+ <p class="instructions">Each NMF lane shows when one recurring frequency pattern becomes active. These are <b>spectral components, not verified instrument stems</b>. The pattern buttons add or remove each component independently from the reconstructed mono audio. One instrument may create several components, and two instruments can share a component. Click a gold onset to select a sound; the cyan match lane shows other events with similar attack spectra. Click any event again to jump playback to that moment.</p>
  <p class="instructions">If the candidate attacks align with bass notes but NMF cannot distinguish bass and melody, we'll know to focus on timbre grouping or guided separation. If the attacks are missing too, the event detector needs improvement before we use its output to drive visuals.</p>
  <div id="status"></div>
 </section>
@@ -93,14 +99,42 @@ header{height:74px;display:flex;gap:18px;align-items:center;justify-content:spac
 const $=id=>document.getElementById(id);
 const palette=['#9fb4da','#d5a0c3','#a2d0bb','#a6a0e7','#e3bc84','#86bcd6','#d3bfa5'];
 const lab={audio:null,blob:null,buffer:null,results:null,start:0,segment:30,selected:-1,selectedPattern:-1,matches:[],midi:[],duration:0,worker:null,
- soloMode:-1,soloUrls:new Map(),soloBlobs:new Map(),soloInfo:new Map(),exportWaiters:new Map(),exporting:false,pendingSolo:-1,sourceSwitchToken:0};
+ soloMode:-1,soloUrls:new Map(),soloBlobs:new Map(),soloPcm:new Map(),soloInfo:new Map(),exportWaiters:new Map(),exporting:false,sourceSwitchToken:0,
+ enabledPatterns:new Set(),patternRequests:new Map(),mixUrl:null,mixVersion:0};
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 const fmt=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
 const fmtPrecise=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}.${String(Math.floor((t%1)*100)).padStart(2,'0')}`;
 let playheadFrame=0;
 const songTime=()=>lab.soloMode<0?$('audio').currentTime:lab.start+$('audio').currentTime;
 const clipTime=t=>lab.soloMode<0?t:Math.max(0,t-lab.start);
-function clearSoloCache(){for(const reject of lab.exportWaiters.values())reject(Error('Analysis was reset while exporting.'));lab.exportWaiters.clear();for(const url of lab.soloUrls.values())URL.revokeObjectURL(url);lab.soloUrls.clear();lab.soloBlobs.clear();lab.soloInfo.clear();lab.pendingSolo=-1;}
+function clearSoloCache(){
+ for(const reject of lab.exportWaiters.values())reject(Error('Analysis was reset during audio reconstruction.'));
+ lab.exportWaiters.clear();lab.patternRequests.clear();lab.enabledPatterns.clear();lab.mixVersion++;
+ for(const url of lab.soloUrls.values())URL.revokeObjectURL(url);
+ lab.soloUrls.clear();lab.soloBlobs.clear();lab.soloPcm.clear();lab.soloInfo.clear();
+ if(lab.mixUrl){URL.revokeObjectURL(lab.mixUrl);lab.mixUrl=null;}
+ lab.soloMode=-1;
+}
+function refreshPatternButtons(){
+ const selected=lab.enabledPatterns.size,rank=lab.results?.rank||0;
+ $('fullMix').classList.toggle('active',lab.soloMode<0);
+ $('playPatterns').classList.toggle('active',lab.soloMode>=0);
+ $('playPatterns').disabled=!selected;
+ $('allPatterns').classList.toggle('active',lab.soloMode>=0&&selected===rank&&rank>0);
+ $('allPatterns').disabled=!rank;
+ $('clearPatterns').disabled=!rank||selected===0;
+ if(lab.soloMode<0)$('listeningMode').textContent='ORIGINAL RECORDING';
+ else $('listeningMode').textContent=`PATTERN MIX · ${selected}/${rank} ON · MONO 11 kHz`;
+ const box=$('patternSummary');
+ for(let k=0;k<rank;k++){
+  const button=box.querySelector(`[data-pattern-toggle="${k}"]`);
+  if(!button)continue;
+  const on=lab.enabledPatterns.has(k);
+  button.textContent=on?'● ON · REMOVE':'○ OFF · ADD';
+  button.classList.toggle('active',on);
+  button.setAttribute('aria-pressed',String(on));
+ }
+}
 function wavBlob(samples,sampleRate){
  const buf=new ArrayBuffer(44+samples.length*2),view=new DataView(buf),write=(p,t)=>{for(let i=0;i<t.length;i++)view.setUint8(p+i,t.charCodeAt(i))};
  write(0,'RIFF');view.setUint32(4,36+samples.length*2,true);write(8,'WAVEfmt ');
@@ -111,32 +145,79 @@ function wavBlob(samples,sampleRate){
  return new Blob([buf],{type:'audio/wav'});
 }
 function wavUrl(samples,sampleRate){return URL.createObjectURL(wavBlob(samples,sampleRate));}
-async function switchListeningMode(pattern){
- if(pattern>=0&&!lab.soloUrls.has(pattern)){lab.pendingSolo=pattern;
-  $('listeningMode').textContent='PREPARING PATTERN '+(pattern+1)+'…';
-  if(!lab.worker){status('Analyse the passage before using ISOLATE.');return;}
-  lab.worker.postMessage({type:'isolate',pattern});return;
- }
- const a=$('audio'),pos=Number.isFinite(songTime())?songTime():lab.start,wasPlaying=!a.paused,rate=a.playbackRate;
- a.pause();lab.soloMode=pattern;lab.pendingSolo=-1;
- a.src=pattern<0?lab.blob:lab.soloUrls.get(pattern);
+// Both listening modes use the same <audio> clock. When changing the audio source,
+// retain the absolute song position, playback speed and paused/playing state.
+async function switchListeningMode(mode,url=null,version=lab.mixVersion){
+ if(mode>=0&&(!url||version!==lab.mixVersion))return;
+ const a=$('audio'),pos=Number.isFinite(songTime())?songTime():lab.start;
+ const wasPlaying=!a.paused,rate=a.playbackRate;
+ a.pause();
+ const oldMixUrl=lab.mixUrl;
+ lab.soloMode=mode;
+ lab.mixUrl=mode>=0?url:null;
+ a.src=mode<0?lab.blob:url;
  a.load();const token=++lab.sourceSwitchToken;
- $('fullMix').classList.toggle('active',pattern<0);
- $('listeningMode').textContent=pattern<0?'FULL MIX':'SOLO PATTERN '+(pattern+1)+' · MONO / LIMITED BAND';
- renderPatternSummary();
+ refreshPatternButtons();
  const change=async()=>{
   if(token!==lab.sourceSwitchToken)return;
   a.playbackRate=rate;
-  const absolute=Math.max(lab.start,Math.min(lab.start+lab.segment-.02,pos));
+  const absolute=clamp(pos,lab.start,Math.min(lab.duration,lab.start+lab.segment-.02));
   a.currentTime=clipTime(absolute);
   updatePlayhead();updateClock();
-  if(wasPlaying)try{await a.play()}catch{status('Press PLAY to hear the isolated sound.')};
+  if(wasPlaying)try{await a.play()}catch{status('Press PLAY to resume playback.');}
+  if(oldMixUrl&&oldMixUrl!==lab.mixUrl)URL.revokeObjectURL(oldMixUrl);
  };
  if(a.readyState>=1)await change();else a.addEventListener('loadedmetadata',change,{once:true});
 }
-function listenSolo(pattern){if(!lab.results)return;lab.pendingSolo=pattern;
- switchListeningMode(pattern);}
-
+// Mix unboosted NMF reconstructions; the worker normalises each solo preview
+// independently, so using solo WAV levels directly would give a misleading sum.
+async function updatePatternMix(){
+ const version=++lab.mixVersion;
+ refreshPatternButtons();
+ if(!lab.enabledPatterns.size){
+  await switchListeningMode(-1);
+  status('Original recording. Switch on individual patterns or choose ALL PATTERNS.');
+  return;
+ }
+ const wanted=Array.from(lab.enabledPatterns).sort((a,b)=>a-b);
+ const missing=wanted.filter(k=>!lab.soloPcm.has(k));
+ if(missing.length){
+  $('listeningMode').textContent=`PREPARING ${missing.length} PATTERN${missing.length===1?'':'S'}…`;
+  $('analysisProgress').textContent='Reconstructing selected audio patterns locally…';
+ }
+ try{
+  await Promise.all(missing.map(k=>getPatternWav(k)));
+  if(version!==lab.mixVersion)return;
+  const first=lab.soloPcm.get(wanted[0]);
+  if(!first)throw Error('No reconstructed audio is available.');
+  const len=first.length,sr=lab.soloInfo.get(wanted[0]).sampleRate;
+  const out=new Float32Array(len);
+  for(const k of wanted){
+   const arr=lab.soloPcm.get(k),gain=lab.soloInfo.get(k)?.normalizationGain||1;
+   if(!arr||arr.length!==len)throw Error('Pattern lengths differ. Please run analysis again.');
+   for(let i=0;i<len;i++)out[i]+=arr[i]/gain;
+  }
+  let peaks=0;for(let i=0;i<len;i++)peaks=Math.max(peaks,Math.abs(out[i]));
+  // No automatic volume normalisation: all five should combine at their original
+  // contribution levels. WAV conversion clips only samples beyond PCM full scale.
+  const url=URL.createObjectURL(wavBlob(out,sr));
+  if(version!==lab.mixVersion){URL.revokeObjectURL(url);return;}
+  await switchListeningMode(0,url,version);
+  $('analysisProgress').textContent=`${wanted.length} pattern${wanted.length===1?'':'s'} mixed at their original relative levels`;
+  status(`Playing ${wanted.length}/${lab.results.rank} isolated pattern contributions together. Peak ${peaks.toFixed(2)}; 11 kHz mono, 55–3500 Hz analysis band.`);
+ }catch(err){
+  if(version!==lab.mixVersion)return;
+  status('Pattern mix failed: '+(err?.message||err));
+  lab.enabledPatterns.clear();refreshPatternButtons();
+  await switchListeningMode(-1);
+ }
+}
+function togglePatternAudio(k){
+ if(!lab.results)return;
+ if(lab.enabledPatterns.has(k))lab.enabledPatterns.delete(k);
+ else lab.enabledPatterns.add(k);
+ refreshPatternButtons();updatePatternMix();
+}
 function updatePlayhead(){
  const h=lab.hit,a=$('audio'),line=$('playhead');
  if(!lab.buffer||!h){line.style.display='none';return;}
@@ -160,7 +241,7 @@ async function loadFile(){const file=$('musicFile').files?.[0];if(!file)return;s
  if(lab.blob)URL.revokeObjectURL(lab.blob);lab.blob=URL.createObjectURL(file);$('audio').src=lab.blob;
  const audioContext=new (window.AudioContext||window.webkitAudioContext)();
  try{lab.buffer=await audioContext.decodeAudioData(await file.arrayBuffer())}finally{await audioContext.close()}
- lab.duration=lab.buffer.duration;lab.start=0;lab.results=null;$('fullMix').classList.add('active');$('listeningMode').textContent='FULL MIX';lab.selected=-1;lab.selectedPattern=-1;lab.midi=[];lab.matches=[];
+ lab.duration=lab.buffer.duration;lab.start=0;lab.results=null;refreshPatternButtons();lab.selected=-1;lab.selectedPattern=-1;lab.midi=[];lab.matches=[];
     $('patternSummary').replaceChildren();$('patternDescription').textContent='Analyse a passage to inspect recurring spectral patterns.';$('selectedSoundLabel').textContent='NO EVENT YET';$('selectedInfo').textContent='Analyse the recording to see sound details.';$('playExample').disabled=true;$('playPattern').disabled=true;
  $('fileName').textContent=file.name;$('start').max=Math.max(0,Math.floor(lab.duration-2));$('start').value=0;
  $('analyze').disabled=false;$('play').disabled=false;$('stop').disabled=false;$('export').disabled=true;$('exportAll').disabled=true;
@@ -172,34 +253,34 @@ async function excerptToSamples(start,duration){
  node.connect(off.destination);node.start(0,start,duration);const rendered=await off.startRendering();return rendered.getChannelData(0).slice();
 }
 function analyse(){if(!lab.buffer)return;
- if(lab.soloMode>=0){lab.soloMode=-1;$('audio').pause();$('audio').src=lab.blob;$('audio').load();$('fullMix').classList.add('active');$('listeningMode').textContent='FULL MIX';}
- clearSoloCache();lab.worker?.terminate();lab.worker=null;lab.results=null;lab.selected=-1;lab.selectedPattern=-1;lab.matches=[];
+ if(lab.soloMode>=0){$('audio').pause();lab.soloMode=-1;$('audio').src=lab.blob;$('audio').load();}
+ clearSoloCache();refreshPatternButtons();lab.worker?.terminate();lab.worker=null;lab.results=null;lab.selected=-1;lab.selectedPattern=-1;lab.matches=[];
  lab.start=clamp(Number($('start').value)||0,0,Math.max(0,lab.duration-2));lab.segment=Math.min(30,lab.duration-lab.start);
  if(lab.segment<2){status('Select a passage at least two seconds long.');return}
  $('analyze').disabled=true;$('export').disabled=true;$('exportAll').disabled=true;$('playExample').disabled=true;$('playPattern').disabled=true;$('mode').textContent='ANALYSING';
  $('segmentLabel').textContent=fmt(lab.start)+'–'+fmt(lab.start+lab.segment);seekInLab(0);draw();
  (async()=>{
- const samples=await excerptToSamples(lab.start,lab.segment);lab.worker=new Worker('./event-lab-worker.js?v=0.1.039');
+ const samples=await excerptToSamples(lab.start,lab.segment);lab.worker=new Worker('./event-lab-worker.js?v=0.1.040');
  lab.worker.onmessage=ev=>{const m=ev.data;
  if(m.type==='isolated'){
   const blob=wavBlob(m.samples,m.sampleRate);
   if(lab.soloUrls.has(m.pattern))URL.revokeObjectURL(lab.soloUrls.get(m.pattern));
   const url=URL.createObjectURL(blob);lab.soloUrls.set(m.pattern,url);
+  lab.soloPcm.set(m.pattern,m.samples);
   lab.soloBlobs.set(m.pattern,blob);lab.soloInfo.set(m.pattern,{sampleRate:m.sampleRate,normalizationGain:m.gain});
   const resolve=lab.exportWaiters.get(m.pattern);if(resolve){lab.exportWaiters.delete(m.pattern);resolve(blob);}
-  if(lab.pendingSolo===m.pattern){switchListeningMode(m.pattern);$('analysisProgress').textContent='Pattern '+(m.pattern+1)+' preview ready • 11 kHz mono diagnostic audio';status('Listening to Pattern '+(m.pattern+1)+' in isolation. Some sounds may leak into other patterns.');}
   return;
  }
  if(m.type==='isolate-error'){
   const reject=lab.exportWaiters.get(m.pattern);if(reject){lab.exportWaiters.delete(m.pattern);reject(Error(m.message));}
-  else {$('listeningMode').textContent='SOLO FAILED';status('Cannot isolate pattern: '+m.message);}return;
+  else {status('Cannot reconstruct pattern: '+m.message);}return;
  }
  if(m.type==='progress'){$('analysisProgress').textContent=m.message+' '+Math.round(m.percent)+'%'}
  if(m.type==='error'){for(const reject of lab.exportWaiters.values())reject(Error(m.message));lab.exportWaiters.clear();status('Analysis failed: '+m.message);$('mode').textContent='ERROR';$('analyze').disabled=false;lab.worker?.terminate();lab.worker=null;}
  if(m.type==='done'){
   lab.results=m;$('mode').textContent='COMPLETE';$('analyze').disabled=false;$('export').disabled=false;$('exportAll').disabled=false;
   $('eventCount').textContent=m.events.length;$('analysisProgress').textContent=`${m.events.length} candidate attacks; ${m.rank} recurring patterns; local processing complete.`;
-  renderPatternSummary();
+  renderPatternSummary();refreshPatternButtons();
   const candidate=m.events.map((ev,i)=>({ev,i})).filter(o=>o.ev.t>0.45&&o.ev.t<m.times.at(-1)-.2).sort((a,b)=>b.ev.strength-a.ev.strength)[0];
   if(candidate){selectEvent(candidate.i);seekInLab(candidate.ev.t);}
   else{$('selectedInfo').textContent='No candidate sound attacks detected in this passage.';draw();}
@@ -244,7 +325,7 @@ async function playAt(t){seekInLab(Math.max(0,t-.30));try{await $('audio').play(
 function selectPattern(k){const m=lab.results;if(!m||k<0||k>=m.rank)return;lab.selectedPattern=k;
  const metric=patternMetrics(k),ev=nearestEventForPattern(k,metric.peakTime);if(ev>=0)selectEvent(ev);
  seekInLab(metric.peakTime);$('playPattern').disabled=false;renderPatternSummary();draw();
- status('Pattern '+(k+1)+' selected. Use ISOLATE AUDIO on its card to hear its estimated contribution, or FULL MIX to compare.');
+ status('Pattern '+(k+1)+' selected for inspection. Its audio ON/OFF switch is independent of the other patterns.');
 }
 function renderPatternSummary(){const m=lab.results,box=$('patternSummary');box.replaceChildren();if(!m)return;
  for(let k=0;k<m.rank;k++){
@@ -256,11 +337,13 @@ function renderPatternSummary(){const m=lab.results,box=$('patternSummary');box.
   const details=document.createElement('small');details.textContent='Strong near '+fmtPrecise(lab.start+info.peakTime)+' · '+info.freqs.join(' / ')+' Hz';choose.append(details);
   choose.addEventListener('click',()=>selectPattern(k));card.append(choose);
   const solo=document.createElement('button');solo.type='button';solo.className='pattern-solo'+(lab.soloMode===k?' active':'');
-  solo.textContent=lab.soloMode===k?'● SOLO ON':'▶ ISOLATE AUDIO';
-  solo.addEventListener('click',()=>{lab.selectedPattern=k;renderPatternSummary();draw();listenSolo(k)});
+  solo.dataset.patternToggle=String(k);solo.setAttribute('aria-pressed',String(lab.enabledPatterns.has(k)));
+  solo.textContent=lab.enabledPatterns.has(k)?'● ON · REMOVE':'○ OFF · ADD';
+  solo.classList.toggle('active',lab.enabledPatterns.has(k));
+  solo.addEventListener('click',()=>togglePatternAudio(k));
   card.append(solo);box.append(card);
  }
- $('patternDescription').textContent='ISOLATE AUDIO plays an approximate reconstruction of each pattern. Use FULL MIX above to compare. Components are not clean instrument stems.';
+ $('patternDescription').textContent='Switch each pattern ON or OFF independently. ALL PATTERNS combines their reconstructed audio without the individual solo boosts. ORIGINAL plays the unmodified track. These are spectral components, not clean instrument stems.';
 }
 function drawSignature(){const {ctx,w,h}=resizeCanvas($('signature'));ctx.fillStyle='#10182a';ctx.fillRect(0,0,w,h);const m=lab.results;if(!m||lab.selected<0)return;
  const s=m.signatures.subarray(lab.selected*m.bands,(lab.selected+1)*m.bands),left=12,top=10,bottom=h-18;
@@ -375,14 +458,13 @@ async function createZip(files){
 }
 function getPatternWav(k){
  if(lab.soloBlobs.has(k))return Promise.resolve(lab.soloBlobs.get(k));
- if(!lab.worker)return Promise.reject(Error('Analyse a passage before exporting.'));
- return new Promise((resolve,reject)=>{
-  // A pending isolated-audio UI request may already be queued. The worker is
-  // serial, so a second isolate request is harmless; first answer resolves.
+ if(lab.patternRequests.has(k))return lab.patternRequests.get(k);
+ if(!lab.worker)return Promise.reject(Error('Analyse a passage before reconstructing sounds.'));
+ const promise=new Promise((resolve,reject)=>{
   lab.exportWaiters.set(k,result=>result instanceof Error?reject(result):resolve(result));
   lab.worker.postMessage({type:'isolate',pattern:k});
-  // The error handler invokes the same callback with Error via wrapper below.
- });
+ }).finally(()=>lab.patternRequests.delete(k));
+ lab.patternRequests.set(k,promise);return promise;
 }
 function referenceExcerptWav(){
  const buffer=lab.buffer,rate=buffer.sampleRate,channels=Math.min(2,buffer.numberOfChannels);
@@ -413,7 +495,7 @@ async function exportAllPatterns(){
   }
   $('analysisProgress').textContent='Exporting: creating analysis data…';
   const metadata={
-   format:'Visual Synth Sound Lab complete pattern diagnostics v1',appVersion:'0.1.039',
+   format:'Visual Synth Sound Lab complete pattern diagnostics v1',appVersion:'0.1.040',
    track:$('fileName').textContent,sourceDurationSeconds:lab.duration,windowStartSeconds:lab.start,windowLengthSeconds:lab.segment,
    sampleRate:m.sampleRate,hopSamples:m.hop,frames:m.frames,bands:m.bands,rank:m.rank,
    analysis:{spectrogramFFTSize:2048,frequencyBands:'96 logarithmic bands from 55 Hz to 3500 Hz',nmf:'Euclidean NMF, 55 multiplicative update iterations',isolation:'Soft spectral masks applied to original mono STFT with overlap/add and per-pattern gain',disclaimer:'Patterns are NMF spectral components, NOT clean instrument stems. Patterns can overlap and miss notes.'},
@@ -429,7 +511,7 @@ async function exportAllPatterns(){
   files.push({name:'analysis.json',body:JSON.stringify(metadata,null,2)});
   files.push({name:'spectrogram-96bands-u8.bin',body:m.spectrogram});
   files.push({name:'README.txt',body:[
-   'VISUAL SYNTH | SOUND LAB EXPORT v0.1.039','',`Track: ${metadata.track}`,
+   'VISUAL SYNTH | SOUND LAB EXPORT v0.1.040','',`Track: ${metadata.track}`,
    `Excerpt start: ${lab.start.toFixed(3)} seconds; duration: ${lab.segment.toFixed(3)} seconds`,'',
    'reference-original-excerpt.wav = unmodified decoded recording excerpt, full sampling rate and up to stereo, 16-bit PCM.',
    'reference-analysis-mono-11025hz.wav = exact kind of mono resampling fed to the NMF, 16-bit PCM.',
@@ -456,10 +538,13 @@ $('threshold').addEventListener('input',()=>{$('thresholdValue').textContent=(+$
 $('pitchTolerance').addEventListener('change',()=>{scoreMatches();if(lab.selected>=0)selectEvent(lab.selected)});
 $('midiFile').addEventListener('change',async()=>{try{const file=$('midiFile').files?.[0];if(!file)return;lab.midi=parseMidi(await file.arrayBuffer());$('midiCount').textContent=lab.midi.length;status('Imported '+lab.midi.length+' MIDI note events for comparison.');draw()}catch(err){status('MIDI import failed: '+(err?.message||err))}});
 $('midiOffset').addEventListener('input',draw);$('plot').addEventListener('click',canvasClick);$('export').addEventListener('click',exportData);$('exportAll').addEventListener('click',exportAllPatterns);
-$('start').addEventListener('change',()=>{if(lab.soloMode>=0){$('fullMix').click();}clearSoloCache();lab.worker?.terminate();lab.worker=null;lab.start=clamp(Number($('start').value)||0,0,Math.max(0,lab.duration-2));lab.results=null;lab.selected=-1;lab.selectedPattern=-1;lab.matches=[];$('patternSummary').replaceChildren();$('playExample').disabled=true;$('playPattern').disabled=true;$('selectedSoundLabel').textContent='NO EVENT YET';$('selectedInfo').textContent='Analyse the new passage to see sound details.';$('export').disabled=true;$('exportAll').disabled=true;$('mode').textContent='IDLE';$('analysisProgress').textContent='Window changed. Analyse this passage to update the results.';draw()});
+$('start').addEventListener('change',()=>{if(lab.soloMode>=0){$('audio').pause();$('audio').src=lab.blob;$('audio').load();}clearSoloCache();refreshPatternButtons();lab.worker?.terminate();lab.worker=null;lab.start=clamp(Number($('start').value)||0,0,Math.max(0,lab.duration-2));lab.results=null;lab.selected=-1;lab.selectedPattern=-1;lab.matches=[];$('patternSummary').replaceChildren();$('playExample').disabled=true;$('playPattern').disabled=true;$('selectedSoundLabel').textContent='NO EVENT YET';$('selectedInfo').textContent='Analyse the new passage to see sound details.';$('export').disabled=true;$('exportAll').disabled=true;$('mode').textContent='IDLE';$('analysisProgress').textContent='Window changed. Analyse this passage to update the results.';draw()});
 $('play').addEventListener('click',async()=>{const a=$('audio');if(a.paused){if(songTime()<lab.start||songTime()>=lab.start+lab.segment)seekInLab(0);try{await a.play()}catch(err){status(err.message)}}else a.pause()});
 $('stop').addEventListener('click',()=>{$('audio').pause();seekInLab(0)});
-$('fullMix').addEventListener('click',()=>switchListeningMode(-1));
+$('fullMix').addEventListener('click',()=>{lab.mixVersion++;switchListeningMode(-1);status('Original recording. Pattern selections are preserved for comparison.');});
+$('playPatterns').addEventListener('click',()=>{if(lab.enabledPatterns.size)updatePatternMix()});
+$('allPatterns').addEventListener('click',()=>{if(!lab.results)return;lab.enabledPatterns=new Set(Array.from({length:lab.results.rank},(_,k)=>k));updatePatternMix()});
+$('clearPatterns').addEventListener('click',()=>{lab.enabledPatterns.clear();updatePatternMix()});
 $('audio').addEventListener('play',()=>{$('play').textContent='❚❚ PAUSE';beginPlayhead();});
 $('audio').addEventListener('pause',()=>{$('play').textContent='▶ PLAY';pausePlayhead();});
 $('audio').addEventListener('ended',()=>{$('play').textContent='▶ PLAY';pausePlayhead();});

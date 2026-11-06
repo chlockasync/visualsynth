@@ -1,18 +1,16 @@
-# Visual Synth v0.1.039: Export all isolated patterns for analysis
+# Visual Synth v0.1.040: Independently mix isolated sound patterns
 
-This focused Sound Lab update adds **EXPORT AUDIO + ANALYSIS ZIP**. It keeps the existing five NMF patterns, the working synthesiser, analysis worker, rendering controls and established panel styling unchanged.
+Sound Lab now allows any combination of NMF pattern audio to play together. The five pattern buttons are independent ON/OFF controls rather than mutually exclusive solo selections. The original main synthesiser is unchanged.
 
-## How to export
+## Comparing patterns
 
-1. Open **SOUND LAB** from Visual Synth. Load your track and choose a 30-second excerpt.
-2. Click **ANALYSE 30 s** and let it finish.
-3. Click **EXPORT AUDIO + ANALYSIS ZIP** in the Experiment section.
-4. Upload the downloaded ZIP to ChatGPT to examine the exact isolated WAVs and accompanying matrices.
+1. Load a track in Sound Lab, set the starting time, and select **ANALYSE 30 s**.
+2. Enable any combination of pattern cards using **OFF · ADD** / **ON · REMOVE**.
+3. Press **ALL PATTERNS** to hear all five (or the chosen number) mixed together; **ORIGINAL** to hear the original recording; **PATTERN MIX** to return to the same selected combination. **NONE** clears the reconstruction.
+4. Pattern selections are retained when you switch to ORIGINAL, so you can switch back easily. Playback position and speed are preserved during a source switch.
 
-The generated ZIP includes the full-quality reference excerpt (WAV), a mono version at the analysis sample rate, **all** isolated pattern WAVs, analysis.json (NMF spectra, frame activity, onset times, event spectral fingerprints, gain metadata), an optional spectrogram matrix and README.txt.
+## Important audio fidelity information
 
-The separate **EXPORT RESULTS JSON** button still works as before. The isolated WAV files are lower-bandwidth mono diagnostic reconstructions and individually gain-adjusted; they are **not** true instrument stems.
+The reconstructed mix uses the same 11,025 Hz mono audio extracted by the NMF, with soft masks covering its limited 55–3,500 Hz analysis region. Each pattern's individual listening gain is **reversed** before summing, to preserve original relative contributions. There is **no automatic loudness matching**, and a restored sum will not have the original recording's full bandwidth or stereo image. As with the prior Sound Lab, these are frequency components, not clean instrument stems.
 
-All processing and export occur on your device. No audio is sent to a server. ZIP creation uses built-in browser APIs, not an external dependency.
-
-Upload the same 5 files to GitHub Pages: `index.html`, `analysis-worker.js`, `event-lab.html`, `event-lab-worker.js`, `README.md`.
+All processing remains local. The package contains `index.html`, `analysis-worker.js`, `event-lab.html`, `event-lab-worker.js`, and `README.md` for GitHub Pages.
