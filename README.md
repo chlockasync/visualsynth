@@ -1,25 +1,18 @@
-# Visual Synth v0.1.038: Listen to isolated sound patterns
+# Visual Synth v0.1.039: Export all isolated patterns for analysis
 
-This release builds on v0.1.037. The main synthesiser, five input channels, existing sound-pattern analysis, panel borders and control geometry are unchanged.
+This focused Sound Lab update adds **EXPORT AUDIO + ANALYSIS ZIP**. It keeps the existing five NMF patterns, the working synthesiser, analysis worker, rendering controls and established panel styling unchanged.
 
-## Sound Event Lab
+## How to export
 
-1. Load your MP3 and analyse a passage (up to 30 seconds).
-2. Under **RECURRING SOUND PATTERNS**, click **ISOLATE AUDIO** on Pattern 1, 2, 3, 4 or 5.
-3. Click **PLAY** to hear only that approximate pattern, or switch to another pattern while playing.
-4. Click **FULL MIX** above the timeline to hear the original recording at the same point.
-5. The analysis curves stay visible and the playhead remains aligned. Speed controls still work.
+1. Open **SOUND LAB** from Visual Synth. Load your track and choose a 30-second excerpt.
+2. Click **ANALYSE 30 s** and let it finish.
+3. Click **EXPORT AUDIO + ANALYSIS ZIP** in the Experiment section.
+4. Upload the downloaded ZIP to ChatGPT to examine the exact isolated WAVs and accompanying matrices.
 
-## What isolation means here
+The generated ZIP includes the full-quality reference excerpt (WAV), a mono version at the analysis sample rate, **all** isolated pattern WAVs, analysis.json (NMF spectra, frame activity, onset times, event spectral fingerprints, gain metadata), an optional spectrogram matrix and README.txt.
 
-The analyser learns five non-negative spectral components. For each component, Sound Lab reconstructs a **mono diagnostic preview** by applying the component's time-varying spectral mask to the original excerpt's FFT and using inverse FFT overlap-add synthesis. These previews cover approximately 55 Hz to 3.5 kHz at 11,025 Hz sampling and may sound muffled. Quiet components are amplified for listening comparisons.
+The separate **EXPORT RESULTS JSON** button still works as before. The isolated WAV files are lower-bandwidth mono diagnostic reconstructions and individually gain-adjusted; they are **not** true instrument stems.
 
-**These are not clean instrument stems.** A single sound can appear in multiple components; a component can contain multiple sounds; leakage and musical artefacts are expected. This feature is for identifying which musical elements correlate with the activity curves, not for music production or final audio export. FULL MIX always uses the original full-resolution recording.
+All processing and export occur on your device. No audio is sent to a server. ZIP creation uses built-in browser APIs, not an external dependency.
 
-## Technical checks
-
-- Worker NMF and reconstruction tested using a 30-second excerpt of the supplied JP20261102c.mp3.
-- Reconstructed waveforms for all five components were non-silent and different from one another.
-- Chromium in-memory test: MP3 loading, analyse, isolate Pattern 1 and Pattern 2, play, return to full recording, and playhead/time alignment.
-
-Upload these five files to your GitHub Pages root: `index.html`, `analysis-worker.js`, `event-lab.html`, `event-lab-worker.js`, and `README.md`.
+Upload the same 5 files to GitHub Pages: `index.html`, `analysis-worker.js`, `event-lab.html`, `event-lab-worker.js`, `README.md`.

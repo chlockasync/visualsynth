@@ -2,7 +2,7 @@
 <html lang="en-NZ">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Sound Event Lab v0.1.038</title>
+<title>Visual Synth | Sound Event Lab v0.1.039</title>
 <style>
 :root{--bg:#384254;--line:#151916;--gold:#e2ac56;--txt:#e5eaf4;--muted:#b0bdd0;--surface:#121927}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:13px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;padding:0 18px 22px}
@@ -11,7 +11,7 @@ header{height:74px;display:flex;gap:18px;align-items:center;justify-content:spac
 .panel{position:relative;background:var(--bg);border:6px solid var(--line);border-radius:15px;min-width:0;overflow:hidden}.panel-title{position:absolute;z-index:2;top:-1px;left:50%;transform:translateX(-50%);background:var(--line);color:var(--gold);font-weight:800;font-size:12px;letter-spacing:.04em;padding:1px 24px 5px;white-space:nowrap;clip-path:polygon(0 0,100% 0,94% 100%,6% 100%)}
 #monitor{padding:33px 14px 14px}.monitor-bar{display:flex;align-items:center;gap:12px;justify-content:space-between;margin:0 0 9px}.monitor-bar .caption{color:#c8d1e1}.monitor-bar .caption b{color:#f3f5fa}#plotWrap{position:relative;background:#0c1220;border:1px solid #263044;border-radius:8px;overflow:hidden}#plot{display:block;width:100%;height:520px;cursor:crosshair;touch-action:pan-y}#playhead{display:none;position:absolute;left:1px;top:21px;bottom:1px;width:1px;background:#e9c879;pointer-events:none;z-index:2;will-change:transform}#playhead::before{content:"";position:absolute;top:-5px;left:-4px;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid #e9c879}#plotTip{position:absolute;pointer-events:none;background:#1b2638e8;padding:5px 7px;border:1px solid #4b5a6a;font-size:11px;border-radius:3px;display:none;z-index:3}.legend{display:flex;gap:16px;flex-wrap:wrap;color:#bcc9db;font-size:11px;padding:9px 2px 0}.dot{display:inline-block;width:8px;height:8px;margin-right:4px;vertical-align:middle}
 #lower{display:grid;grid-template-columns:minmax(260px,360px) minmax(450px,1fr);gap:0;margin-top:12px;align-items:start}#controlPanel{border-radius:14px 0 0 14px;border-right-width:3px}#detailPanel{border-radius:0 14px 14px 0;border-left-width:3px}#controlPanel,#detailPanel{padding:36px 15px 15px}.sub{color:var(--gold);font-size:11px;font-weight:750;letter-spacing:.07em;margin:3px 0 12px}.rule{height:1px;background:#1e2a39;margin:16px 0}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:9px 0}.row label{color:#d4dbe8}input[type=number],select{background:#263144;border:1px solid #111923;border-radius:4px;color:var(--txt);padding:6px}input[type=number]{width:75px}input[type=range]{accent-color:var(--gold)}input[type=file]{max-width:100%;font-size:11px}small,.muted{color:var(--muted)}#analysisProgress{margin-top:10px;min-height:19px;color:#e8c284;font-size:12px}.badge{padding:2px 7px;border:1px solid #253144;background:#28344a;border-radius:4px;font-size:11px;color:#d4e0eb}.three{display:grid;grid-template-columns:1fr 1fr;gap:9px}#signature{width:100%;height:150px;background:#10182a;border:1px solid #253245;display:block}#selectedInfo{font:12px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap;color:#d8e2ef;min-height:76px}.instructions{max-width:800px;color:#bdc9dc;font-size:12px;margin-top:12px;line-height:1.55}#status{color:#deb46e;min-height:20px}#midiFile{font-size:11px}#results{margin-top:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}#results div{border:1px solid #222f42;padding:8px;min-height:44px;font-size:11px}#results b{display:block;color:#e9bf75;font-size:15px}
-/* Sound Lab 0.1.038: geometry-first controls and useful per-component inspection. */
+/* Sound Lab 0.1.039: geometry-first controls and useful per-component inspection. */
 #monitor{padding-top:33px}
 .monitor-bar{margin-bottom:7px}
 .monitor-transport{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:40px;margin:0 0 10px}
@@ -49,7 +49,7 @@ header{height:74px;display:flex;gap:18px;align-items:center;justify-content:spac
 </style>
 </head>
 <body>
-<header><div class="title"><h1>VISUAL SYNTH</h1><small>SOUND EVENT LAB</small><span class="version">v0.1.038</span></div><a href="./index.html">Return to Visual Synth</a></header>
+<header><div class="title"><h1>VISUAL SYNTH</h1><small>SOUND EVENT LAB</small><span class="version">v0.1.039</span></div><a href="./index.html">Return to Visual Synth</a></header>
 <section class="panel" id="monitor"><div class="panel-title">01 / SOUND EVENT COMPARISON</div>
  <div class="monitor-bar"><div class="caption"><b id="fileName">No recording selected</b> &nbsp; <span id="segmentLabel">30-second test window</span></div><div class="caption" id="timeLabel">0:00 / 0:30</div></div>
  <div class="monitor-transport" aria-label="Sound Lab playback controls"><div class="transport-group"><button id="play" disabled>▶ PLAY</button><button id="stop" disabled>■ STOP</button></div><div class="transport-group"><button id="fullMix" type="button" class="active">FULL MIX</button><span id="listeningMode">FULL MIX</span></div><span class="speed-label">PLAYBACK SPEED</span><div class="transport-group rate-buttons" id="rateButtons"><button type="button" data-rate="0.5">0.5×</button><button type="button" data-rate="0.75">0.75×</button><button type="button" class="active" data-rate="1">1×</button><button type="button" data-rate="1.25">1.25×</button></div><span class="transport-tip">Select an ISOLATE button to listen to one approximate sound pattern. FULL MIX restores the recording.</span></div>
@@ -71,7 +71,7 @@ header{height:74px;display:flex;gap:18px;align-items:center;justify-content:spac
  <p class="muted" style="font-size:12px">Optional: transcribe the same recording using <a target="_blank" rel="noopener" href="https://basicpitch.io/">Basic Pitch</a>, export its MIDI, then import here to compare note timing. That external step is separate from this local analyser.</p>
  <div class="row"><input id="midiFile" type="file" accept=".mid,.midi,audio/midi"></div>
  <div class="row"><label for="midiOffset">MIDI time offset</label><input type="number" id="midiOffset" value="0" step="0.1"><small>seconds</small></div>
- <div class="row"><button id="export" disabled>EXPORT RESULTS JSON</button></div>
+ <div class="row"><button id="export" disabled>EXPORT RESULTS JSON</button><button id="exportAll" type="button" disabled>EXPORT AUDIO + ANALYSIS ZIP</button></div><small>Includes the original excerpt, every isolated pattern as WAV, and the analysis data to investigate what each pattern contains.</small>
 </section>
 <section class="panel" id="detailPanel"><div class="panel-title">03 / DETECTED SOUND</div>
  <div class="sub">RECURRING SOUND PATTERNS</div>
@@ -93,23 +93,24 @@ header{height:74px;display:flex;gap:18px;align-items:center;justify-content:spac
 const $=id=>document.getElementById(id);
 const palette=['#9fb4da','#d5a0c3','#a2d0bb','#a6a0e7','#e3bc84','#86bcd6','#d3bfa5'];
 const lab={audio:null,blob:null,buffer:null,results:null,start:0,segment:30,selected:-1,selectedPattern:-1,matches:[],midi:[],duration:0,worker:null,
- soloMode:-1,soloUrls:new Map(),pendingSolo:-1,sourceSwitchToken:0};
+ soloMode:-1,soloUrls:new Map(),soloBlobs:new Map(),soloInfo:new Map(),exportWaiters:new Map(),exporting:false,pendingSolo:-1,sourceSwitchToken:0};
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 const fmt=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
 const fmtPrecise=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}.${String(Math.floor((t%1)*100)).padStart(2,'0')}`;
 let playheadFrame=0;
 const songTime=()=>lab.soloMode<0?$('audio').currentTime:lab.start+$('audio').currentTime;
 const clipTime=t=>lab.soloMode<0?t:Math.max(0,t-lab.start);
-function clearSoloCache(){for(const url of lab.soloUrls.values())URL.revokeObjectURL(url);lab.soloUrls.clear();lab.pendingSolo=-1;}
-function wavUrl(samples,sampleRate){
+function clearSoloCache(){for(const reject of lab.exportWaiters.values())reject(Error('Analysis was reset while exporting.'));lab.exportWaiters.clear();for(const url of lab.soloUrls.values())URL.revokeObjectURL(url);lab.soloUrls.clear();lab.soloBlobs.clear();lab.soloInfo.clear();lab.pendingSolo=-1;}
+function wavBlob(samples,sampleRate){
  const buf=new ArrayBuffer(44+samples.length*2),view=new DataView(buf),write=(p,t)=>{for(let i=0;i<t.length;i++)view.setUint8(p+i,t.charCodeAt(i))};
  write(0,'RIFF');view.setUint32(4,36+samples.length*2,true);write(8,'WAVEfmt ');
  view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);
  view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);
  write(36,'data');view.setUint32(40,samples.length*2,true);
  for(let j=0;j<samples.length;j++){const v=Math.max(-1,Math.min(1,samples[j]));view.setInt16(44+j*2,Math.round(v*32767),true)}
- return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
+ return new Blob([buf],{type:'audio/wav'});
 }
+function wavUrl(samples,sampleRate){return URL.createObjectURL(wavBlob(samples,sampleRate));}
 async function switchListeningMode(pattern){
  if(pattern>=0&&!lab.soloUrls.has(pattern)){lab.pendingSolo=pattern;
   $('listeningMode').textContent='PREPARING PATTERN '+(pattern+1)+'…';
@@ -162,7 +163,7 @@ async function loadFile(){const file=$('musicFile').files?.[0];if(!file)return;s
  lab.duration=lab.buffer.duration;lab.start=0;lab.results=null;$('fullMix').classList.add('active');$('listeningMode').textContent='FULL MIX';lab.selected=-1;lab.selectedPattern=-1;lab.midi=[];lab.matches=[];
     $('patternSummary').replaceChildren();$('patternDescription').textContent='Analyse a passage to inspect recurring spectral patterns.';$('selectedSoundLabel').textContent='NO EVENT YET';$('selectedInfo').textContent='Analyse the recording to see sound details.';$('playExample').disabled=true;$('playPattern').disabled=true;
  $('fileName').textContent=file.name;$('start').max=Math.max(0,Math.floor(lab.duration-2));$('start').value=0;
- $('analyze').disabled=false;$('play').disabled=false;$('stop').disabled=false;$('export').disabled=true;
+ $('analyze').disabled=false;$('play').disabled=false;$('stop').disabled=false;$('export').disabled=true;$('exportAll').disabled=true;
  $('analysisProgress').textContent='Loaded '+fmt(lab.duration)+' • analyse a 30-second passage';status('Decoded locally. Choose a section and click ANALYSE.');draw();updateClock();
  }catch(err){status('Audio decoding failed: '+(err?.message||err));console.error(err)}}
 async function excerptToSamples(start,duration){
@@ -175,21 +176,28 @@ function analyse(){if(!lab.buffer)return;
  clearSoloCache();lab.worker?.terminate();lab.worker=null;lab.results=null;lab.selected=-1;lab.selectedPattern=-1;lab.matches=[];
  lab.start=clamp(Number($('start').value)||0,0,Math.max(0,lab.duration-2));lab.segment=Math.min(30,lab.duration-lab.start);
  if(lab.segment<2){status('Select a passage at least two seconds long.');return}
- $('analyze').disabled=true;$('export').disabled=true;$('playExample').disabled=true;$('playPattern').disabled=true;$('mode').textContent='ANALYSING';
+ $('analyze').disabled=true;$('export').disabled=true;$('exportAll').disabled=true;$('playExample').disabled=true;$('playPattern').disabled=true;$('mode').textContent='ANALYSING';
  $('segmentLabel').textContent=fmt(lab.start)+'–'+fmt(lab.start+lab.segment);seekInLab(0);draw();
  (async()=>{
- const samples=await excerptToSamples(lab.start,lab.segment);lab.worker=new Worker('./event-lab-worker.js?v=0.1.038');
+ const samples=await excerptToSamples(lab.start,lab.segment);lab.worker=new Worker('./event-lab-worker.js?v=0.1.039');
  lab.worker.onmessage=ev=>{const m=ev.data;
  if(m.type==='isolated'){
-  const url=wavUrl(m.samples,m.sampleRate);lab.soloUrls.set(m.pattern,url);
+  const blob=wavBlob(m.samples,m.sampleRate);
+  if(lab.soloUrls.has(m.pattern))URL.revokeObjectURL(lab.soloUrls.get(m.pattern));
+  const url=URL.createObjectURL(blob);lab.soloUrls.set(m.pattern,url);
+  lab.soloBlobs.set(m.pattern,blob);lab.soloInfo.set(m.pattern,{sampleRate:m.sampleRate,normalizationGain:m.gain});
+  const resolve=lab.exportWaiters.get(m.pattern);if(resolve){lab.exportWaiters.delete(m.pattern);resolve(blob);}
   if(lab.pendingSolo===m.pattern){switchListeningMode(m.pattern);$('analysisProgress').textContent='Pattern '+(m.pattern+1)+' preview ready • 11 kHz mono diagnostic audio';status('Listening to Pattern '+(m.pattern+1)+' in isolation. Some sounds may leak into other patterns.');}
   return;
  }
- if(m.type==='isolate-error'){$('listeningMode').textContent='SOLO FAILED';status('Cannot isolate pattern: '+m.message);return;}
+ if(m.type==='isolate-error'){
+  const reject=lab.exportWaiters.get(m.pattern);if(reject){lab.exportWaiters.delete(m.pattern);reject(Error(m.message));}
+  else {$('listeningMode').textContent='SOLO FAILED';status('Cannot isolate pattern: '+m.message);}return;
+ }
  if(m.type==='progress'){$('analysisProgress').textContent=m.message+' '+Math.round(m.percent)+'%'}
- if(m.type==='error'){status('Analysis failed: '+m.message);$('mode').textContent='ERROR';$('analyze').disabled=false;lab.worker?.terminate();lab.worker=null;}
+ if(m.type==='error'){for(const reject of lab.exportWaiters.values())reject(Error(m.message));lab.exportWaiters.clear();status('Analysis failed: '+m.message);$('mode').textContent='ERROR';$('analyze').disabled=false;lab.worker?.terminate();lab.worker=null;}
  if(m.type==='done'){
-  lab.results=m;$('mode').textContent='COMPLETE';$('analyze').disabled=false;$('export').disabled=false;
+  lab.results=m;$('mode').textContent='COMPLETE';$('analyze').disabled=false;$('export').disabled=false;$('exportAll').disabled=false;
   $('eventCount').textContent=m.events.length;$('analysisProgress').textContent=`${m.events.length} candidate attacks; ${m.rank} recurring patterns; local processing complete.`;
   renderPatternSummary();
   const candidate=m.events.map((ev,i)=>({ev,i})).filter(o=>o.ev.t>0.45&&o.ev.t<m.times.at(-1)-.2).sort((a,b)=>b.ev.strength-a.ev.strength)[0];
@@ -197,7 +205,7 @@ function analyse(){if(!lab.buffer)return;
   else{$('selectedInfo').textContent='No candidate sound attacks detected in this passage.';draw();}
   status('Sound patterns ready. Select a pattern to compare it with what you hear.');}
  };
- lab.worker.onerror=err=>{status('Worker error: '+err.message);$('mode').textContent='ERROR';$('analyze').disabled=false;lab.worker?.terminate()};
+ lab.worker.onerror=err=>{for(const reject of lab.exportWaiters.values())reject(Error(err.message));lab.exportWaiters.clear();status('Worker error: '+err.message);$('mode').textContent='ERROR';$('analyze').disabled=false;lab.worker?.terminate()};
  lab.worker.postMessage({type:'analyse',samples:samples.buffer,sampleRate:11025,rank:+$('rank').value},[samples.buffer]);
  })().catch(err=>{status('Preparation failed: '+(err?.message||err));$('analyze').disabled=false;$('mode').textContent='ERROR'});
 }
@@ -338,12 +346,117 @@ function parseMidi(buffer){const v=new DataView(buffer);let i=0;
 function exportData(){const m=lab.results;if(!m)return;const payload={format:'Visual Synth event experiment v1',track:$('fileName').textContent,windowStartSeconds:lab.start,windowLengthSeconds:lab.segment,methods:['spectral flux onset candidates','Euclidean NMF recurring spectral patterns','onset-signature cosine similarity'],limitations:'NMF components are not instrument stems; user-guided similarity is not pitch-invariant instrument identification.',rank:m.rank,events:m.events,patterns:Array.from({length:m.rank},(_,k)=>Array.from(m.pattern.subarray(k*m.bands,(k+1)*m.bands))),activityTimeStep:m.hop/m.sampleRate,activityByFrame:Array.from({length:m.frames},(_,t)=>Array.from(m.activation.subarray(t*m.rank,(t+1)*m.rank))),selectedEvent:lab.selected,matchedEvents:lab.matches,basicPitchMidiNotes:lab.midi};
  const blob=URL.createObjectURL(new Blob([JSON.stringify(payload)],{type:'application/json'}));const a=document.createElement('a');a.href=blob;a.download='VisualSynth-event-lab-results.json';a.click();setTimeout(()=>URL.revokeObjectURL(blob),8000);
 }
+
+// Local, dependency-free diagnostic ZIP. STORE compression makes WAVs directly
+// readable by standard ZIP applications and avoids external scripts/CDNs.
+const zipText=new TextEncoder();
+const crcTable=Uint32Array.from({length:256},(_,n)=>{let c=n;for(let b=0;b<8;b++)c=c&1?0xEDB88320^(c>>>1):c>>>1;return c>>>0;});
+function crc32(bytes){let c=0xFFFFFFFF;for(const b of bytes)c=crcTable[(c^b)&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function zipHeader(nameBytes,crc,length,offset,central){
+ const buffer=new ArrayBuffer((central?46:30)+nameBytes.length),v=new DataView(buffer),a=new Uint8Array(buffer);
+ let date=new Date();const year=Math.max(1980,date.getFullYear());const dosDate=((year-1980)<<9)|((date.getMonth()+1)<<5)|date.getDate();const dosTime=(date.getHours()<<11)|(date.getMinutes()<<5)|(date.getSeconds()>>1);
+ if(central){v.setUint32(0,0x02014B50,true);v.setUint16(4,20,true);v.setUint16(6,20,true);v.setUint16(8,0x800,true);v.setUint16(10,0,true);v.setUint16(12,dosTime,true);v.setUint16(14,dosDate,true);v.setUint32(16,crc,true);v.setUint32(20,length,true);v.setUint32(24,length,true);v.setUint16(28,nameBytes.length,true);v.setUint32(42,offset,true);a.set(nameBytes,46);}
+ else{v.setUint32(0,0x04034B50,true);v.setUint16(4,20,true);v.setUint16(6,0x800,true);v.setUint16(8,0,true);v.setUint16(10,dosTime,true);v.setUint16(12,dosDate,true);v.setUint32(14,crc,true);v.setUint32(18,length,true);v.setUint32(22,length,true);v.setUint16(26,nameBytes.length,true);a.set(nameBytes,30);}
+ return a;
+}
+async function createZip(files){
+ const chunks=[],central=[],records=[];let position=0;
+ for(const file of files){
+  const bytes=file.body instanceof Blob?new Uint8Array(await file.body.arrayBuffer()):
+   typeof file.body==='string'?zipText.encode(file.body):
+   file.body instanceof Uint8Array?file.body:new Uint8Array(file.body);
+  const name=zipText.encode(file.name),crc=crc32(bytes),local=zipHeader(name,crc,bytes.byteLength,position,false);
+  chunks.push(local,bytes);records.push({name,crc,length:bytes.byteLength,offset:position});position+=local.byteLength+bytes.byteLength;
+ }
+ let centralLength=0;
+ for(const r of records){const header=zipHeader(r.name,r.crc,r.length,r.offset,true);central.push(header);centralLength+=header.byteLength;}
+ const e=new ArrayBuffer(22),v=new DataView(e);v.setUint32(0,0x06054B50,true);v.setUint16(8,records.length,true);v.setUint16(10,records.length,true);v.setUint32(12,centralLength,true);v.setUint32(16,position,true);
+ return new Blob([...chunks,...central,e],{type:'application/zip'});
+}
+function getPatternWav(k){
+ if(lab.soloBlobs.has(k))return Promise.resolve(lab.soloBlobs.get(k));
+ if(!lab.worker)return Promise.reject(Error('Analyse a passage before exporting.'));
+ return new Promise((resolve,reject)=>{
+  // A pending isolated-audio UI request may already be queued. The worker is
+  // serial, so a second isolate request is harmless; first answer resolves.
+  lab.exportWaiters.set(k,result=>result instanceof Error?reject(result):resolve(result));
+  lab.worker.postMessage({type:'isolate',pattern:k});
+  // The error handler invokes the same callback with Error via wrapper below.
+ });
+}
+function referenceExcerptWav(){
+ const buffer=lab.buffer,rate=buffer.sampleRate,channels=Math.min(2,buffer.numberOfChannels);
+ const begin=Math.max(0,Math.round(lab.start*rate));const length=Math.min(Math.round(lab.segment*rate),buffer.length-begin);
+ const samples=Array.from({length:channels},(_,ch)=>buffer.getChannelData(ch));
+ const raw=new ArrayBuffer(44+length*channels*2),v=new DataView(raw),write=(p,str)=>{for(let i=0;i<str.length;i++)v.setUint8(p+i,str.charCodeAt(i))};
+ write(0,'RIFF');v.setUint32(4,36+length*channels*2,true);write(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,channels,true);
+ v.setUint32(24,rate,true);v.setUint32(28,rate*channels*2,true);v.setUint16(32,channels*2,true);v.setUint16(34,16,true);write(36,'data');v.setUint32(40,length*channels*2,true);
+ let pos=44;for(let i=0;i<length;i++)for(let ch=0;ch<channels;ch++){
+  const val=Math.max(-1,Math.min(1,samples[ch][begin+i]));v.setInt16(pos,Math.round(val*32767),true);pos+=2;
+ }
+ return new Blob([raw],{type:'audio/wav'});
+}
+async function exportAllPatterns(){
+ if(lab.exporting||!lab.results||!lab.buffer)return;
+ lab.exporting=true;$('exportAll').disabled=true;$('analyze').disabled=true;$('start').disabled=true;$('musicFile').disabled=true;$('rank').disabled=true;
+ const m=lab.results;
+ try{
+  const files=[];
+  files.push({name:'reference-original-excerpt.wav',body:referenceExcerptWav()});
+  $('analysisProgress').textContent='Exporting: preparing reference audio…';
+  const refMono=await excerptToSamples(lab.start,lab.segment);
+  files.push({name:'reference-analysis-mono-11025hz.wav',body:wavBlob(refMono,11025)});
+  for(let k=0;k<m.rank;k++){
+   $('analysisProgress').textContent='Exporting: reconstructing pattern '+(k+1)+' of '+m.rank+'…';
+   const wave=await getPatternWav(k);
+   files.push({name:`pattern-${String(k+1).padStart(2,'0')}.wav`,body:wave});
+  }
+  $('analysisProgress').textContent='Exporting: creating analysis data…';
+  const metadata={
+   format:'Visual Synth Sound Lab complete pattern diagnostics v1',appVersion:'0.1.039',
+   track:$('fileName').textContent,sourceDurationSeconds:lab.duration,windowStartSeconds:lab.start,windowLengthSeconds:lab.segment,
+   sampleRate:m.sampleRate,hopSamples:m.hop,frames:m.frames,bands:m.bands,rank:m.rank,
+   analysis:{spectrogramFFTSize:2048,frequencyBands:'96 logarithmic bands from 55 Hz to 3500 Hz',nmf:'Euclidean NMF, 55 multiplicative update iterations',isolation:'Soft spectral masks applied to original mono STFT with overlap/add and per-pattern gain',disclaimer:'Patterns are NMF spectral components, NOT clean instrument stems. Patterns can overlap and miss notes.'},
+   frequencyCentersHz:Array.from(m.centers),timeSeconds:Array.from(m.times),
+   nmfPatternSpectra:Array.from({length:m.rank},(_,k)=>Array.from(m.pattern.subarray(k*m.bands,(k+1)*m.bands))),
+   nmfActivityByFrame:Array.from({length:m.frames},(_,t)=>Array.from(m.activation.subarray(t*m.rank,(t+1)*m.rank))),
+   onsetStrengthByFrame:Array.from(m.flux),onsetBaselineByFrame:Array.from(m.baseline),
+   events:m.events,eventSignatureBands:m.bands,eventSpectralSignatures:Array.from({length:m.events.length},(_,e)=>Array.from(m.signatures.subarray(e*m.bands,(e+1)*m.bands))),
+   patternAudio:Array.from({length:m.rank},(_,k)=>({filename:`pattern-${String(k+1).padStart(2,'0')}.wav`,...lab.soloInfo.get(k),normalisedForAudibility:true})),
+   spectrogram:{filename:'spectrogram-96bands-u8.bin',dtype:'uint8',layout:'row-major frames x 96 frequency bands',shape:[m.frames,m.bands],note:'Quantized normalised magnitudes as displayed in Sound Lab; not full-resolution STFT.'},
+   selectedPattern:lab.selectedPattern,selectedEvent:lab.selected,matchedEvents:lab.matches,importedBasicPitchMidiNotes:lab.midi
+  };
+  files.push({name:'analysis.json',body:JSON.stringify(metadata,null,2)});
+  files.push({name:'spectrogram-96bands-u8.bin',body:m.spectrogram});
+  files.push({name:'README.txt',body:[
+   'VISUAL SYNTH | SOUND LAB EXPORT v0.1.039','',`Track: ${metadata.track}`,
+   `Excerpt start: ${lab.start.toFixed(3)} seconds; duration: ${lab.segment.toFixed(3)} seconds`,'',
+   'reference-original-excerpt.wav = unmodified decoded recording excerpt, full sampling rate and up to stereo, 16-bit PCM.',
+   'reference-analysis-mono-11025hz.wav = exact kind of mono resampling fed to the NMF, 16-bit PCM.',
+   'pattern-01.wav etc = every NMF pattern isolated by soft masking. Diagnostic, mono 11025 Hz.',
+   'analysis.json = complete time-aligned NMF basis/activity, onsets, event spectra, and reconstruction gains.',
+   'spectrogram-96bands-u8.bin = row-major quantised spectrogram; dimensions in analysis.json.','',
+   'IMPORTANT: NMF patterns are not identified instruments. They can overlap or omit notes.',
+   'Isolated patterns have individual playback gain; use patternAudio.normalizationGain from analysis.json.',
+   'Do not interpret WAV loudness across patterns as their true relative contribution.',
+   'All extraction and ZIP creation happened in this browser; no audio was uploaded.',
+   '' ].join('\n')});
+  $('analysisProgress').textContent='Exporting: building ZIP…';const archive=await createZip(files);
+  const href=URL.createObjectURL(archive),a=document.createElement('a');a.href=href;
+  const safeName=(metadata.track||'track').replace(/\.[^.]+$/,'').replace(/[^a-z0-9_-]+/gi,'-').slice(0,50);
+  a.download=`VisualSynth-SoundLab-${safeName}-${Math.floor(lab.start)}s-${Math.floor(lab.start+lab.segment)}s.zip`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),60000);
+  $('analysisProgress').textContent='Export complete: original audio, '+m.rank+' isolated patterns and full analysis data.';
+  status('ZIP saved locally. Upload it here for direct comparison of the separated patterns.');
+ }catch(err){console.error('Diagnostic export failed',err);status('Export failed: '+(err?.message||err));$('analysisProgress').textContent='Export failed. Existing analysis is preserved.';}
+ finally{lab.exporting=false;$('exportAll').disabled=!lab.results;$('analyze').disabled=!lab.buffer;$('start').disabled=false;$('musicFile').disabled=false;$('rank').disabled=false;}
+}
 $('musicFile').addEventListener('change',loadFile);$('analyze').addEventListener('click',analyse);
 $('threshold').addEventListener('input',()=>{$('thresholdValue').textContent=(+$('threshold').value/100).toFixed(2);scoreMatches();if(lab.selected>=0)selectEvent(lab.selected)});
 $('pitchTolerance').addEventListener('change',()=>{scoreMatches();if(lab.selected>=0)selectEvent(lab.selected)});
 $('midiFile').addEventListener('change',async()=>{try{const file=$('midiFile').files?.[0];if(!file)return;lab.midi=parseMidi(await file.arrayBuffer());$('midiCount').textContent=lab.midi.length;status('Imported '+lab.midi.length+' MIDI note events for comparison.');draw()}catch(err){status('MIDI import failed: '+(err?.message||err))}});
-$('midiOffset').addEventListener('input',draw);$('plot').addEventListener('click',canvasClick);$('export').addEventListener('click',exportData);
-$('start').addEventListener('change',()=>{if(lab.soloMode>=0){$('fullMix').click();}clearSoloCache();lab.worker?.terminate();lab.worker=null;lab.start=clamp(Number($('start').value)||0,0,Math.max(0,lab.duration-2));lab.results=null;lab.selected=-1;lab.selectedPattern=-1;lab.matches=[];$('patternSummary').replaceChildren();$('playExample').disabled=true;$('playPattern').disabled=true;$('selectedSoundLabel').textContent='NO EVENT YET';$('selectedInfo').textContent='Analyse the new passage to see sound details.';$('export').disabled=true;$('mode').textContent='IDLE';$('analysisProgress').textContent='Window changed. Analyse this passage to update the results.';draw()});
+$('midiOffset').addEventListener('input',draw);$('plot').addEventListener('click',canvasClick);$('export').addEventListener('click',exportData);$('exportAll').addEventListener('click',exportAllPatterns);
+$('start').addEventListener('change',()=>{if(lab.soloMode>=0){$('fullMix').click();}clearSoloCache();lab.worker?.terminate();lab.worker=null;lab.start=clamp(Number($('start').value)||0,0,Math.max(0,lab.duration-2));lab.results=null;lab.selected=-1;lab.selectedPattern=-1;lab.matches=[];$('patternSummary').replaceChildren();$('playExample').disabled=true;$('playPattern').disabled=true;$('selectedSoundLabel').textContent='NO EVENT YET';$('selectedInfo').textContent='Analyse the new passage to see sound details.';$('export').disabled=true;$('exportAll').disabled=true;$('mode').textContent='IDLE';$('analysisProgress').textContent='Window changed. Analyse this passage to update the results.';draw()});
 $('play').addEventListener('click',async()=>{const a=$('audio');if(a.paused){if(songTime()<lab.start||songTime()>=lab.start+lab.segment)seekInLab(0);try{await a.play()}catch(err){status(err.message)}}else a.pause()});
 $('stop').addEventListener('click',()=>{$('audio').pause();seekInLab(0)});
 $('fullMix').addEventListener('click',()=>switchListeningMode(-1));
