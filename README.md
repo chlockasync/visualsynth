@@ -1,16 +1,31 @@
-# Visual Synth v0.1.040: Independently mix isolated sound patterns
+# Visual Synth Sound Lab experiment v0.1.041
 
-Sound Lab now allows any combination of NMF pattern audio to play together. The five pattern buttons are independent ON/OFF controls rather than mutually exclusive solo selections. The original main synthesiser is unchanged.
+This update adds an **independent Musical Feature Lab experiment**, without changing the working Visual Synth application or its input/rendering architecture.
 
-## Comparing patterns
+## Using the new experiment
 
-1. Load a track in Sound Lab, set the starting time, and select **ANALYSE 30 s**.
-2. Enable any combination of pattern cards using **OFF · ADD** / **ON · REMOVE**.
-3. Press **ALL PATTERNS** to hear all five (or the chosen number) mixed together; **ORIGINAL** to hear the original recording; **PATTERN MIX** to return to the same selected combination. **NONE** clears the reconstruction.
-4. Pattern selections are retained when you switch to ORIGINAL, so you can switch back easily. Playback position and speed are preserved during a source switch.
+1. Upload every file in the ZIP to the same directory on your GitHub Pages site.
+2. Open the existing SOUND LAB page (`event-lab.html`). Click **FEATURE LAB: MUSIC SIGNALS** at the top.
+3. In `feature-lab.html`, choose your MP3 and click **ANALYSE 30 s**. A recording longer than 122 seconds defaults to 90–120 seconds.
+4. Play the passage and compare the **low/mid/high attacks**, **harmonic/percussive**, **12 pitch classes**, **tonal movement**, **brightness**, **spectral change**, and **slower activity/change** tracks.
+5. Use **ORIGINAL / HARMONIC / PERCUSSIVE / LOW / MID / HIGH** to hear the relevant underlying audio components. They are diagnostic source-audition options, **not identified instruments**.
+6. **EXPORT FEATURE DATA** creates JSON for quantitative inspection and next-round comparisons.
 
-## Important audio fidelity information
+## Methods and limits
 
-The reconstructed mix uses the same 11,025 Hz mono audio extracted by the NMF, with soft masks covering its limited 55–3,500 Hz analysis region. Each pattern's individual listening gain is **reversed** before summing, to preserve original relative contributions. There is **no automatic loudness matching**, and a restored sum will not have the original recording's full bandwidth or stereo image. As with the prior Sound Lab, these are frequency components, not clean instrument stems.
+- Standard 16 kHz mono STFT (1024 samples, 256-sample hop), median-filter harmonic-percussive separation with complementary soft masks, multiband positive spectral flux, octave-folded chroma, spectral centroid and slow feature-change estimates.
+- Analyses are computed in a local Web Worker, with no server or model training. No neural-network model is installed or invoked.
+- Analysed bands: low (<240 Hz), middle (240–1600 Hz), high (>1600 Hz).
+- Component WAV previews are made locally by overlap-add reconstruction and retain the **original relative audio level**, not solo boosts. They are 16 kHz mono; the ORIGINAL control plays the uploaded recording.
+- These measurements are **candidate signals**, not a musical-voice detector. The three onset bands can respond to the same event because a single sound has harmonics in several frequency ranges.
+- Chroma and novelty track changes in total musical content, **not** three isolated melodies or objectively labelled builds/breaks.
 
-All processing remains local. The package contains `index.html`, `analysis-worker.js`, `event-lab.html`, `event-lab-worker.js`, and `README.md` for GitHub Pages.
+## Files
+
+- `index.html` — **byte-identical** to v0.1.040; intentionally not updated.
+- `analysis-worker.js` — **byte-identical** to v0.1.040.
+- `event-lab.html` — existing Sound Lab; only a navigation link to Feature Lab added.
+- `event-lab-worker.js` — **byte-identical** to v0.1.040.
+- `feature-lab.html` and `feature-lab-worker.js` — the new independent experiment.
+
+Validated in Chromium on JP20261102c.mp3 at 90–120 seconds: MP3 decoding, feature extraction, timeline, source switching, playback position, JSON export and layout at 1100/1440/1920 px. Harmonic + percussive PCM reconstruction verified against 16 kHz analysis audio.

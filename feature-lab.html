@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en-NZ">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visual Synth | Musical Feature Lab v0.1.041</title>
+<style>
+:root{--bg:#384254;--line:#151916;--gold:#e2ac56;--txt:#e8edf5;--muted:#b4bfd0;--surface:#0c1220}
+*{box-sizing:border-box}body{margin:0;padding:0 18px 24px;background:var(--bg);color:var(--txt);font:13px/1.4 system-ui,Segoe UI,sans-serif}
+button,input,select{font:inherit}button{border:1px solid #111823;border-radius:5px;color:#e4ecf5;background:#28344a;padding:7px 10px;cursor:pointer}button:hover:not(:disabled){background:#3d4b60}button.active{border-color:var(--gold);color:var(--gold);background:#222d32}button:disabled{opacity:.43;cursor:default}button:focus-visible,input:focus-visible{outline:2px solid #e2ac56;outline-offset:2px}
+a{color:#ebc37c;text-decoration:none}a:hover{text-decoration:underline}
+header{height:78px;display:flex;justify-content:space-between;align-items:center;gap:12px}header .brand{display:flex;align-items:baseline;gap:18px}h1{font-size:30px;letter-spacing:.115em;margin:0;white-space:nowrap;font-weight:660}header small{letter-spacing:.23em;font-size:10px;color:#c8d2de}.version{font-size:11px;color:var(--gold);font-weight:750}.header-links{display:flex;gap:20px;align-items:center}
+.panel{position:relative;min-width:0;border:6px solid var(--line);border-radius:15px;background:var(--bg);overflow:hidden}
+.panel-title{position:absolute;z-index:4;top:-1px;left:50%;transform:translateX(-50%);padding:1px 25px 5px;background:var(--line);font-weight:800;color:var(--gold);font-size:12px;letter-spacing:.035em;white-space:nowrap;clip-path:polygon(0 0,100% 0,94% 100%,6% 100%)}
+#monitor{padding:36px 13px 13px}.top-bar{display:flex;gap:14px;justify-content:space-between;align-items:center;margin-bottom:8px}.top-bar b{color:#f7f8fc}.top-bar #timeLabel{color:#e8c47d;font-size:13px;font-variant-numeric:tabular-nums;font-weight:750}
+.transport{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.transport .group{display:flex;gap:5px;align-items:center}.transport button{font-weight:700;min-height:32px}.transport .rate button{min-width:53px}.transport .label{font-size:11px;letter-spacing:.08em;color:var(--gold);font-weight:750}.transport .fill{flex:1}
+#plotWrap{position:relative;border-radius:8px;overflow:hidden;border:1px solid #253147;background:var(--surface)}#plot{display:block;width:100%;height:733px;cursor:crosshair;touch-action:pan-y}
+#playhead{position:absolute;display:none;top:33px;bottom:0;left:0;width:1px;background:#eac575;pointer-events:none;z-index:3;will-change:transform}#playhead:before{content:"";position:absolute;top:-6px;left:-4px;border-top:7px solid #eac575;border-left:4px solid transparent;border-right:4px solid transparent}
+#tip{display:none;position:absolute;z-index:4;pointer-events:none;background:#1b2638ee;border:1px solid #607081;border-radius:3px;padding:5px 7px;font-size:11px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:8px 3px 0;color:#b9c7d6;font-size:11px}.legend strong{color:#e8bd71}
+#below{display:grid;grid-template-columns:minmax(270px,340px) minmax(0,1fr);margin-top:12px;align-items:start;gap:0}
+#operations{border-radius:15px 0 0 15px;border-right-width:3px;padding:35px 14px 15px}#details{border-radius:0 15px 15px 0;border-left-width:3px;padding:35px 16px 15px}
+.sub{font-weight:750;color:var(--gold);font-size:11px;letter-spacing:.08em;margin:4px 0 10px}.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:9px 0}.row input[type=number]{width:74px;background:#243148;border:1px solid #111823;color:#eef3fa;padding:6px;border-radius:4px}.row input[type=file]{font-size:11px;max-width:100%}.row label{color:#e1e8ef}.muted{color:#b4bfd0}.rule{height:1px;background:#1c2c3d;margin:15px 0}.instructions{font-size:12px;color:#c6d0de;line-height:1.55;max-width:960px}.instructions b{color:#f2f4fa}
+#audition{display:grid;grid-template-columns:repeat(3,minmax(96px,1fr));gap:7px;margin:10px 0}#audition button{font-size:12px;min-height:36px;font-weight:800}
+#signalButtons{display:grid;grid-template-columns:repeat(4,minmax(115px,1fr));gap:7px}#signalButtons button{text-align:left;display:flex;gap:6px;align-items:center;font-size:12px;min-height:33px;white-space:normal}
+#signalButtons button .swatch{width:8px;height:8px;display:inline-block;flex:0 0 8px}
+#signalName{font-size:17px;font-weight:750;margin:0 0 8px}#signalDescription{min-height:48px}#signalCaveat{color:#c8d3e1;max-width:900px;font-size:12px;margin-top:11px}
+#analysisProgress{font-size:12px;color:#f0c87b;min-height:19px}#status{color:#d3dfec;font-size:12px;min-height:20px}#stats{display:flex;gap:13px;flex-wrap:wrap;font-size:12px;color:#c5d3df}#stats b{color:#e4bb72}
+@media(max-width:950px){#below{grid-template-columns:1fr}#operations{border-radius:15px 15px 0 0;border-right-width:6px;border-bottom-width:3px}#details{border-radius:0 0 15px 15px;border-left-width:6px;border-top-width:3px}header small{display:none}#signalButtons{grid-template-columns:repeat(3,minmax(100px,1fr))}}
+@media(max-width:650px){body{padding:0 9px 16px}header h1{font-size:21px}header .header-links{gap:9px}#plot{height:690px}#audition{grid-template-columns:repeat(2,minmax(90px,1fr))}#signalButtons{grid-template-columns:repeat(2,minmax(100px,1fr))}}
+</style></head>
+<body>
+<header><div class="brand"><h1>VISUAL SYNTH</h1><small>MUSICAL FEATURE LAB</small><span class="version">v0.1.041</span></div><nav class="header-links"><a href="./event-lab.html">Old Sound Lab</a><a href="./index.html">Visual Synth</a></nav></header>
+<section class="panel" id="monitor"><div class="panel-title">01 / MUSICAL FEATURE TIMELINE</div>
+<div class="top-bar"><div><b id="fileName">No recording loaded</b> &nbsp; <span class="muted" id="segmentLabel">30-second analysis window</span></div><span id="timeLabel">0:00.00 / 0:30</span></div>
+<div class="transport"><div class="group"><button id="play" disabled>▶ PLAY</button><button id="stop" disabled>■ STOP</button></div><span class="label">SPEED</span><div class="group rate" id="rates"><button data-rate="0.5">0.5×</button><button data-rate="0.75">0.75×</button><button class="active" data-rate="1">1×</button><button data-rate="1.25">1.25×</button></div><span class="fill"></span><span id="currentSource" class="muted">Listening to original recording</span></div>
+<div id="plotWrap"><canvas id="plot" aria-label="Audio-derived feature signals timeline"></canvas><div id="playhead"></div><div id="tip"></div></div>
+<div class="legend"><span><strong>Click a lane</strong> to inspect its musical meaning.</span><span><strong>Click elsewhere</strong> to seek in the audio.</span><span>Beats and notes are not being separated into instruments.</span></div>
+</section>
+<div id="below"><section class="panel" id="operations"><div class="panel-title">02 / EXPERIMENT</div>
+<div class="sub">AUDIO · LOCAL FILE</div><div class="row"><input id="musicFile" type="file" accept="audio/*,.mp3,.wav,.flac"></div>
+<div class="row"><label for="start">Start at</label><input id="start" type="number" min="0" value="90" step="1"><span class="muted">seconds</span><button id="analyse" disabled>ANALYSE 30 s</button></div>
+<div id="analysisProgress">Load an audio recording to begin.</div><div class="rule"></div>
+<div class="sub">LISTEN TO THE SOURCE MATERIAL</div><div class="instructions">Compare the original with harmonic, percussive and frequency-band components. These are <b>audible approximations</b>, not isolated instruments. Levels are not boosted for solos.</div>
+<div id="audition"><button data-source="original" class="active">ORIGINAL</button><button data-source="harmonic" disabled>HARMONIC</button><button data-source="percussive" disabled>PERCUSSIVE</button><button data-source="low" disabled>LOW</button><button data-source="mid" disabled>MID</button><button data-source="high" disabled>HIGH</button></div>
+<div id="status"></div><div class="rule"></div><div class="sub">EXPORT FOR COMPARISON</div>
+<button id="export" disabled>EXPORT FEATURE DATA</button><p class="instructions">Exports the measured values, detected attacks and timing, so we can inspect the results before putting anything into Visual Synth.</p>
+</section><section class="panel" id="details"><div class="panel-title">03 / FEATURE INSPECTION</div>
+<div class="sub">SELECT A MUSICAL SIGNAL</div><div id="signalButtons"></div><div class="rule"></div><h2 id="signalName">Select a signal</h2>
+<p id="signalDescription" class="instructions">Each lane describes a different audible behaviour. Click a signal to learn what it measures and which audio component to audition.</p>
+<div class="row"><button id="listenSelected" disabled>AUDITION RELATED AUDIO</button><span class="muted" id="listenHint"></span></div>
+<p id="signalCaveat"></p><div class="rule"></div><div class="sub">CURRENT PASSAGE</div><div id="stats">No analysis yet.</div>
+<div class="rule"></div><p class="instructions"><b>What we're testing:</b> whether each curve follows a meaningful element of the music, and whether different curves reveal genuinely different behaviours. We won't send any of these signals to the visual synthesiser until we've listened and evaluated them.</p>
+</section></div>
+<audio id="audio" preload="metadata" hidden></audio>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const defs=[
+ {id:'wave',label:'Waveform',color:'#8299b9',desc:'The actual audio amplitude. Useful for orientation and timing, but it does not distinguish rhythm, musical voices or texture.',source:'original',note:'A loud sound does not necessarily mean a musically significant event.'},
+ {id:'lowOn',label:'Low attacks',color:'#e2b878',desc:'New sound energy appearing below about 240 Hz. This may follow plucked bass notes or low rhythmic accents, even when pitch tracking fails.',source:'low',note:'Low-frequency attacks may also be harmonics or percussion. They are not proof of bass-instrument notes.'},
+ {id:'midOn',label:'Mid attacks',color:'#b8d5a2',desc:'Sudden midrange changes from about 240–1600 Hz. Try following each repeated note and phrase in the audible midrange.',source:'mid',note:'One synthesiser can have notes and harmonics in several bands simultaneously.'},
+ {id:'highOn',label:'High attacks',color:'#d7a8d4',desc:'Sudden changes above about 1600 Hz. Listen for bright plucks, high notes and sharp transients.',source:'high',note:'This signal detects spectral attacks, not high melody pitch or an instrument identity.'},
+ {id:'harmonic',label:'Harmonic',color:'#9bd0d4',desc:'Relatively sustained frequency structure extracted with median-filter harmonic/percussive separation (HPSS).',source:'harmonic',note:'Arpeggiated notes can contribute to both harmonic and percussive parts. This is not an instrument stem.'},
+ {id:'percussive',label:'Percussive',color:'#e7a98f',desc:'Short transients enhanced by HPSS. These may include drums and note attacks from a synthesiser.',source:'percussive',note:'This is transient activity, not a percussion-instrument detector.'},
+ {id:'chroma',label:'12 pitch classes',color:'#a3b3e7',desc:'Twelve pitch-class activity values through time (C to B), collapsing notes across octaves. Useful for hearing how the tonal content changes.',source:'harmonic',note:'Chroma describes overall harmony and tonal activity. It does not separate individual melodies.'},
+ {id:'tonalChange',label:'Tonal movement',color:'#c6b2e9',desc:'How quickly the distribution of musical pitch classes changes. It may rise during moving melodic or harmonic passages.',source:'harmonic',note:'A repeated melody with the same notes may appear as less movement than you expect.'},
+ {id:'brightness',label:'Brightness',color:'#e2c184',desc:'The balance of the frequency spectrum, measured by the spectral centroid. Filter sweeps can move this signal even if the pitch stays constant.',source:'original',note:'Brightness can increase with louder high harmonics or percussion, not necessarily a synth filter change.'},
+ {id:'texture',label:'Spectral change',color:'#8fc5d2',desc:'Positive spectral flux: how much the frequency content changes from moment to moment. Captures timbral changes and some note attacks.',source:'original',note:'Unlike attack events, spectral flux may also respond to vibrato, noise and overlapping sources.'},
+ {id:'arrangement',label:'Overall activity',color:'#efc784',desc:'A slower combination of rhythmic and sustained activity. Intended to indicate builds, reductions and moments of busier musical texture.',source:'original',note:'A broad activity estimate, not a validated arrangement or section classifier.'},
+ {id:'change',label:'Passage change',color:'#d8ab95',desc:'Slow changes in overall activity, brightness and tonal movement. Candidate transitions only; not a claim that a chorus or break occurred.',source:'original',note:'Evaluate it against actual transitions in the song before trusting it.'}
+];
+const state={file:null,buffer:null,url:null,duration:0,start:0,length:30,worker:null,results:null,env:null,selected:'lowOn',source:'original',sourceUrls:new Map(),sourceWait:new Map(),loading:new Set(),epoch:0,window:null,frame:0};
+const fmt=t=>`${Math.floor(Math.max(0,t)/60)}:${String(Math.floor(Math.max(0,t)%60)).padStart(2,'0')}`;
+const fmtDec=t=>`${fmt(t)}.${String(Math.floor(Math.max(0,t)%1*100)).padStart(2,'0')}`;
+const currentSongTime=()=>state.source==='original'?$('audio').currentTime:state.start+$('audio').currentTime;
+const relativeTime=t=>state.source==='original'?t:clamp(t-state.start,0,state.length);
+function say(s){$('status').textContent=s}
+function resetSources(){for(const url of state.sourceUrls.values())URL.revokeObjectURL(url);state.sourceUrls.clear();for(const rej of state.sourceWait.values())rej(Error('Experiment reset'));state.sourceWait.clear();state.loading.clear();state.source='original';state.epoch++;markSource()}
+function markSource(){for(const b of $('audition').querySelectorAll('button'))b.classList.toggle('active',b.dataset.source===state.source);$('currentSource').textContent='Listening to '+(state.source==='original'?'original recording':state.source.toUpperCase()+' component · 16 kHz mono')}
+function wav(samples,sr){const ab=new ArrayBuffer(44+samples.length*2),v=new DataView(ab),str=(p,s)=>{for(let i=0;i<s.length;i++)v.setUint8(p+i,s.charCodeAt(i))};str(0,'RIFF');v.setUint32(4,36+samples.length*2,true);str(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);str(36,'data');v.setUint32(40,samples.length*2,true);for(let i=0;i<samples.length;i++)v.setInt16(44+2*i,Math.round(clamp(samples[i],-1,1)*32767),true);return new Blob([ab],{type:'audio/wav'})}
+function renderWave(samples){const n=850,min=new Float32Array(n),max=new Float32Array(n);for(let i=0;i<n;i++){let lo=1,hi=-1;for(let j=Math.floor(i*samples.length/n);j<Math.floor((i+1)*samples.length/n);j++){lo=Math.min(lo,samples[j]);hi=Math.max(hi,samples[j])}min[i]=lo;max[i]=hi}state.env={min,max};}
+async function segmentAudio(){const sr=16000,n=Math.round(state.length*sr),off=new OfflineAudioContext(1,n,sr),node=off.createBufferSource();node.buffer=state.buffer;node.connect(off.destination);node.start(0,state.start,state.length);const b=await off.startRendering();return b.getChannelData(0).slice()}
+async function loadAudio(){const file=$('musicFile').files?.[0];if(!file)return;try{
+ $('analyse').disabled=true;$('analysisProgress').textContent='Decoding local audio…';$('audio').pause();state.worker?.terminate();state.worker=null;state.results=null;state.env=null;resetSources();
+ if(state.url)URL.revokeObjectURL(state.url);state.url=URL.createObjectURL(file);state.file=file;$('audio').src=state.url;
+ const ac=new (window.AudioContext||window.webkitAudioContext)();try{state.buffer=await ac.decodeAudioData(await file.arrayBuffer())}finally{await ac.close()}
+ state.duration=state.buffer.duration;state.start=state.duration>122?90:0;state.length=Math.min(30,state.duration-state.start);$('start').value=state.start;$('start').max=Math.floor(Math.max(0,state.duration-2));
+ $('fileName').textContent=file.name;$('analyse').disabled=false;$('play').disabled=false;$('stop').disabled=false;$('export').disabled=true;
+ $('segmentLabel').textContent=fmtDec(state.start)+'–'+fmtDec(state.start+state.length);$('analysisProgress').textContent='File ready. Analyse a 30-second passage.';say('Audio stays on this device. Visual Synth has not been modified.');seek(0);draw();
+ }catch(err){say('Cannot decode audio: '+(err.message||err));console.error(err)}}
+function resetAnalysis(){state.results=null;state.env=null;state.worker?.terminate();state.worker=null;resetSources();$('export').disabled=true;$('analyse').disabled=!state.buffer;$('stats').textContent='No analysis yet.';for(const b of $('audition').querySelectorAll('button'))b.disabled=b.dataset.source!=='original';draw()}
+async function analyse(){if(!state.buffer)return;resetAnalysis();state.start=clamp(+$('start').value||0,0,Math.max(0,state.duration-2));state.length=Math.min(30,state.duration-state.start);
+ $('segmentLabel').textContent=fmtDec(state.start)+'–'+fmtDec(state.start+state.length);$('analyse').disabled=true;$('analysisProgress').textContent='Preparing audio…';
+ $('audio').pause();$('audio').src=state.url;state.source='original';$('audio').load();markSource();seek(0);
+ try{
+ const samples=await segmentAudio();renderWave(samples);draw();
+ state.worker=new Worker('./feature-lab-worker.js?v=0.1.041');
+ state.worker.onmessage=({data:m})=>{
+  if(m.type==='progress'){$('analysisProgress').textContent=m.stage+' · '+Math.round(m.percent)+'%';return}
+  if(m.type==='error'){say('Feature analysis failed: '+m.message);$('analyse').disabled=false;return}
+  if(m.type==='audio'){
+   const url=URL.createObjectURL(wav(m.samples,m.sampleRate));state.sourceUrls.set(m.mode,url);
+   const resolve=state.sourceWait.get(m.mode);if(resolve){state.sourceWait.delete(m.mode);resolve(url)}return;
+  }
+  if(m.type==='done'){
+   state.results=m;$('analyse').disabled=false;$('export').disabled=false;
+   for(const b of $('audition').querySelectorAll('button'))b.disabled=false;
+   const counts=Object.fromEntries(Object.entries(m.attacks).map(([k,v])=>[k,v.length]));
+   $('analysisProgress').textContent=`Feature analysis complete · ${m.frames} frames · ${m.sampleRate/1000} kHz full-band analysis`;
+   $('stats').innerHTML=`<span><b>${counts.low}</b> low attacks</span><span><b>${counts.mid}</b> mid attacks</span><span><b>${counts.high}</b> high attacks</span><span><b>12</b> pitch classes</span>`;
+   say('Listen and compare. Click a curve or use the labelled audio audition buttons.');choose(state.selected);draw();
+  }
+ };
+ state.worker.onerror=err=>{say('Worker error: '+err.message);$('analyse').disabled=false};
+ state.worker.postMessage({type:'analyse',samples:samples.buffer,sampleRate:16000},[samples.buffer]);
+ }catch(err){say('Cannot prepare analysis: '+(err.message||err));$('analyse').disabled=false;console.error(err)}
+}
+function getSource(mode){if(mode==='original')return Promise.resolve(state.url);if(state.sourceUrls.has(mode))return Promise.resolve(state.sourceUrls.get(mode));if(state.sourceWait.has(mode))return new Promise((resolve,reject)=>{const prior=state.sourceWait.get(mode);state.sourceWait.set(mode,url=>{prior(url);resolve(url)})});
+ return new Promise((resolve,reject)=>{state.sourceWait.set(mode,resolve);state.worker.postMessage({type:'audition',mode})});}
+let switchToken=0;
+async function chooseSource(mode){if(!state.buffer||mode!=='original'&&!state.results)return;const token=++switchToken,epoch=state.epoch;
+ const audio=$('audio'),absolute=Number.isFinite(currentSongTime())?currentSongTime():state.start,playing=!audio.paused,rate=audio.playbackRate;
+ say(mode==='original'?'Original full-quality recording':'Reconstructing '+mode+' component (original relative level)…');
+ try{
+ const url=await getSource(mode);if(token!==switchToken||epoch!==state.epoch)return;
+ audio.pause();state.source=mode;audio.src=url;audio.load();markSource();
+ const update=async()=>{
+  if(token!==switchToken||epoch!==state.epoch)return;audio.playbackRate=rate;audio.currentTime=relativeTime(clamp(absolute,state.start,state.start+state.length-.04));updateTime();
+  if(playing)try{await audio.play()}catch{say('Press PLAY to continue playback')}
+ };
+ if(audio.readyState>=1)await update();else audio.addEventListener('loadedmetadata',update,{once:true});
+ say(mode==='original'?'Playing unmodified original recording.':'Listening to '+mode+' audio. This is not an isolated instrument.');
+ }catch(err){say('Cannot audition '+mode+': '+(err.message||err));}
+}
+function choose(id){state.selected=id;const d=defs.find(d=>d.id===id);if(!d)return;
+ $('signalName').textContent=d.label;$('signalName').style.color=d.color;$('signalDescription').textContent=d.desc;$('signalCaveat').textContent=d.note;
+ $('listenHint').textContent=d.source==='original'?'Listen to the full recording.':'Listen to '+d.source+'-weighted audio.';
+ $('listenSelected').disabled=!state.buffer||d.source!=='original'&&!state.results;
+ for(const b of $('signalButtons').querySelectorAll('button'))b.classList.toggle('active',b.dataset.id===id);
+ draw();}
+function chooseAudioForSelected(){const d=defs.find(x=>x.id===state.selected);if(d)chooseSource(d.source)}
+const sizes={wave:54,lowOn:54,midOn:54,highOn:54,harmonic:54,percussive:54,chroma:83,tonalChange:54,brightness:54,texture:54,arrangement:54,change:54};
+function resize(){const c=$('plot'),d=Math.min(2,devicePixelRatio||1),r=c.getBoundingClientRect(),w=Math.max(1,Math.round(r.width*d)),h=Math.max(1,Math.round(r.height*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h}const cx=c.getContext('2d');cx.setTransform(d,0,0,d,0,0);return{cx,w:r.width,h:r.height}}
+function draw(){const {cx,w,h}=resize();cx.fillStyle='#0c1220';cx.fillRect(0,0,w,h);const left=125,right=w-12,top=36,span=right-left;
+ if(span<10)return;
+ state.window={left,right,top,span,lanes:[]};const xAt=t=>left+clamp(t/state.length)*span;
+ // Readable labels are placed BELOW the top edge, not clipped by the panel.
+ cx.fillStyle='#a5b5c9';cx.font='11px system-ui';cx.textAlign='center';for(let t=0;t<=state.length;t+=5){const x=xAt(t);cx.textAlign=t===0?'left':t>=state.length-.01?'right':'center';cx.fillText(fmt(state.start+t),x,19);cx.fillStyle='#263347';cx.fillRect(Math.round(x),29,1,h-30);cx.fillStyle='#a5b5c9'}
+ let y=top;let stripe=0;
+ for(const d of defs){const height=sizes[d.id],y0=y,y1=y+height;state.window.lanes.push({id:d.id,y0,y1});
+  cx.fillStyle=state.selected===d.id?'#1f2c40':stripe++%2?'#121b2c':'#172233';cx.fillRect(0,y0,w,height-1);
+  cx.textAlign='left';cx.fillStyle=state.selected===d.id?'#f2cb84':'#b9c5d6';cx.font=(state.selected===d.id?'bold ':'')+'11px system-ui';cx.fillText(d.label.toUpperCase(),12,y0+height/2+4);
+  cx.strokeStyle='#243247';cx.lineWidth=1;cx.beginPath();cx.moveTo(left,y1-.5);cx.lineTo(right,y1-.5);cx.stroke();
+  if(d.id==='wave'&&state.env){cx.fillStyle=d.color;const {min,max}=state.env,mid=y0+height/2;
+   for(let j=0;j<min.length;j++){const x=left+j*span/min.length;cx.fillRect(x,mid-max[j]*(height*.34),Math.max(1,span/min.length),Math.max(.8,(max[j]-min[j])*(height*.34)))}
+  }else if(d.id==='chroma'&&state.results){const {chroma,frames}=state.results,cellHeight=(height-7)/12;
+   cx.font='8px system-ui';for(let c=0;c<12;c++){const names=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];cx.fillStyle='#90a3c2';cx.fillText(names[c],left+2,y0+5+c*cellHeight+6)}
+   for(let t=0;t<frames;t++){const x=left+t*span/frames,width=Math.max(1.1,span/frames+.4);
+    for(let c=0;c<12;c++){const val=chroma[t*12+c]/255;if(val<.09)continue;cx.fillStyle=`rgba(158,179,239,${(.10+val*.82).toFixed(2)})`;cx.fillRect(x,y0+5+c*cellHeight,width,Math.max(1,cellHeight-1));}}
+  }else if(state.results){const series=state.results.lanes[d.id];if(series){const maxN=series.length;cx.lineWidth=1.4;cx.strokeStyle=d.color;cx.beginPath();
+   for(let t=0;t<maxN;t++){const x=left+t*span/(maxN-1),ny=y1-4-clamp(series[t])*(height-10);if(t===0)cx.moveTo(x,ny);else cx.lineTo(x,ny)}cx.stroke();
+   if(['lowOn','midOn','highOn'].includes(d.id)){
+    const key=d.id==='lowOn'?'low':d.id==='midOn'?'mid':'high';for(const ev of state.results.attacks[key]){
+     const x=xAt(ev.t);cx.fillStyle=d.color;cx.fillRect(x-1,y0+3,2,Math.max(2,ev.strength*(height-6)));
+    }
+   }
+  }}y=y1;
+ }
+ state.window.lastY=y;updateTime();}
+function updateTime(){const t=currentSongTime(),line=$('playhead');$('timeLabel').textContent=fmtDec(t)+' / '+fmt(state.duration||30);
+ const w=state.window;const offset=t-state.start;
+ if(!w||!state.buffer||offset<0||offset>state.length){line.style.display='none';return}
+ line.style.display='block';line.style.transform=`translate3d(${(w.left+offset/state.length*w.span).toFixed(2)}px,0,0)`;}
+let raf=0;function tick(){raf=0;if(!$('audio').paused){if(currentSongTime()>=state.start+state.length-.02){$('audio').pause();seek(0)}updateTime();raf=requestAnimationFrame(tick)}else updateTime()}
+function begin(){if(!raf)raf=requestAnimationFrame(tick)}function halt(){if(raf)cancelAnimationFrame(raf);raf=0;updateTime()}
+function seek(offset){const a=$('audio');a.currentTime=relativeTime(clamp(state.start+offset,state.start,state.start+state.length-.03));updateTime()}
+function plotClick(ev){if(!state.buffer||!state.window)return;const rect=$('plot').getBoundingClientRect(),x=ev.clientX-rect.left,y=ev.clientY-rect.top,w=state.window;
+ const d=w.lanes.find(x=>y>=x.y0&&y<x.y1);if(d)choose(d.id);
+ if(x>=w.left&&x<=w.right)seek(clamp((x-w.left)/w.span)*state.length);
+}
+function exportFeatures(){const m=state.results;if(!m)return;
+ const json={format:'Visual Synth Musical Feature Lab v1',appVersion:'0.1.041',track:state.file?.name,windowStartSeconds:state.start,windowLengthSeconds:state.length,sampleRate:m.sampleRate,fftSize:m.windowSize,hopSize:m.hop,method:'STFT + median-filter HPSS (soft mask) + three-band positive spectral flux + octave-folded chroma + spectral centroid + slowly varying novelty',
+ limitations:'No instrument identification; curves have per-recording normalisation. Component WAV previews reconstructed at 16 kHz mono; not clean stems.',times:Array.from(m.times),lanes:Object.fromEntries(Object.entries(m.lanes).map(([k,v])=>[k,Array.from(v)])),attacks:m.attacks,chromaShape:[m.frames,12],chromaU8:Array.from(m.chroma)};
+ const blob=new Blob([JSON.stringify(json)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`VisualSynth-FeatureLab-${(state.file?.name||'recording').replace(/\.[^/.]+$/,'')}-${Math.round(state.start)}s.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);say('Exported time-aligned musical feature data.');}
+for(const d of defs){const b=document.createElement('button');b.dataset.id=d.id;b.innerHTML=`<span class="swatch" style="background:${d.color}"></span>${d.label}`;b.addEventListener('click',()=>choose(d.id));$('signalButtons').append(b)}
+$('musicFile').addEventListener('change',loadAudio);$('analyse').addEventListener('click',analyse);$('start').addEventListener('change',()=>{if(!state.buffer)return;state.start=clamp(+$('start').value||0,0,Math.max(0,state.duration-2));state.length=Math.min(30,state.duration-state.start);$('segmentLabel').textContent=fmtDec(state.start)+'–'+fmtDec(state.start+state.length);resetAnalysis();say('Window changed. Analyse again to update the feature curves.');$('analysisProgress').textContent='Window changed. Analysis required.';seek(0)});
+$('plot').addEventListener('click',plotClick);$('play').addEventListener('click',async()=>{const a=$('audio');if(a.paused){if(currentSongTime()<state.start||currentSongTime()>state.start+state.length-.03)seek(0);try{await a.play()}catch(e){say('Press PLAY again: '+e.message)}}else a.pause()});
+$('stop').addEventListener('click',()=>{$('audio').pause();seek(0)});$('audio').addEventListener('play',()=>{$('play').textContent='❚❚ PAUSE';begin()});$('audio').addEventListener('pause',()=>{$('play').textContent='▶ PLAY';halt()});$('audio').addEventListener('ended',halt);$('audio').addEventListener('seeking',updateTime);
+$('rates').addEventListener('click',e=>{const b=e.target.closest('button[data-rate]');if(!b)return;$('audio').playbackRate=+b.dataset.rate;for(const other of $('rates').querySelectorAll('button'))other.classList.toggle('active',other===b)});
+$('audition').addEventListener('click',e=>{const b=e.target.closest('button[data-source]');if(b&&!b.disabled)chooseSource(b.dataset.source)});$('listenSelected').addEventListener('click',chooseAudioForSelected);$('export').addEventListener('click',exportFeatures);
+window.addEventListener('resize',draw);choose('lowOn');draw();markSource();
+})();
+</script></body></html>
