@@ -42,7 +42,7 @@ function pitchCurve(series,confidence,n,dt,hopSeconds,minHz,maxHz,energy,minConf
   const frame=Math.min(series.length-1,Math.max(0,Math.round((i*dt)/hopSeconds)));
   const p=series[frame]||0,c=confidence?.[frame]??1;
   // Unvoiced frames must remain SILENT; don't hold a previous invented note.
-  if(p<minHz||p>maxHz||!Number.isFinite(p)||c<minConfidence||energy[i]<.025)continue;
+  if(p<minHz||p>maxHz||!Number.isFinite(p)||c<minConfidence||energy[i]<.008)continue;
   const scaled=.12+.88*clamp(Math.log2(p/minHz)/logRange);
   out[i]=scaled*Math.min(1,energy[i]*5);hz[i]=p;
  }
@@ -74,7 +74,7 @@ function readPitchRows(vec){
    try{
     if(row && typeof row.size==='function'){
      for(let j=0;j<row.size();j++){
-      const f=Number(row.get(j));if(f>=145&&f<=3500&&Number.isFinite(f))pitches.push(f);
+      const f=Number(row.get(j));if(f>=125&&f<=4000&&Number.isFinite(f))pitches.push(f);
      }
     }
    }finally{row?.delete?.()}
@@ -86,7 +86,7 @@ function readPitchRows(vec){
  return rows;
 }
 function assignMelodyVoices(rows,frameDt){
- const defaults=[285,630,1300],states=defaults.map(f=>({pitch:f,last:-100}));
+ const defaults=[330,750,1500],states=defaults.map(f=>({pitch:f,last:-100}));
  const output=Array.from({length:3},()=>new Float32Array(rows.length));
  for(let i=0;i<rows.length;i++){
   const frequencies=rows[i]||[],used=new Set();
@@ -105,7 +105,7 @@ function assignMelodyVoices(rows,frameDt){
    if(assigned.has(pick.k)||used.has(pick.q))continue;
    // Reject implausible note leaps inside a phrase but allow new phrases to start.
    if(pick.recent&&pick.cost>690)continue;
-   if(!pick.recent&&pick.cost>1900)continue;
+   if(!pick.recent&&pick.cost>2500)continue;
    output[pick.k][i]=frequencies[pick.q];
    states[pick.k].pitch=frequencies[pick.q];states[pick.k].last=i;
    assigned.add(pick.k);used.add(pick.q);
@@ -113,7 +113,16 @@ function assignMelodyVoices(rows,frameDt){
  }
  return output;
 }
-function noteSegments(pitchArray,dt,minDuration=.085){
+function bridgeShortPitchGaps(hz,maxGap=3,maxSemitones=1.6){
+ const out=Float32Array.from(hz);let i=0;
+ while(i<out.length){if(out[i]>0){i++;continue;}const start=i;while(i<out.length&&!out[i])i++;
+  if(start===0||i===out.length||i-start>maxGap)continue;
+  const a=out[start-1],b=out[i];if(!a||!b||Math.abs(12*Math.log2(a/b))>maxSemitones)continue;
+  for(let j=start;j<i;j++)out[j]=a*Math.pow(b/a,(j-start+1)/(i-start+1));
+ }
+ return out;
+}
+function noteSegments(pitchArray,dt,minDuration=.075){
  const notes=[];let start=-1,prev=0,sum=0,count=0;
  const push=end=>{if(start<0)return;const duration=(end-start)*dt;
   if(duration>=minDuration&&count){const hz=sum/count;notes.push({t0:start*dt,t1:end*dt,hz,midi:Math.round(69+12*Math.log2(hz/440))})}
@@ -134,7 +143,7 @@ function notesToSignal(pitches,n,dt,frameDt,min,max,energy){
  for(let i=0;i<n;i++){
   const j=Math.max(0,Math.min(pitches.length-1,Math.round(i*dt/frameDt)));
   const p=pitches[j]||0;
-  if(p<min||p>max||energy[i]<.024)continue;
+  if(p<min||p>max||energy[i]<.008)continue;
   hz[i]=p;out[i]=(.16+.84*clamp(Math.log2(p/min)/span))*Math.min(1,energy[i]*5);
  }
  return {out,hz};
@@ -152,20 +161,21 @@ async function extractMusicalVoices(e,s,n,dt,bassEnergy,upperEnergy){
  if(typeof e.MultiPitchMelodia!=='function')throw Error('Essentia MultiPitchMelodia is not available in this build.');
  const sr=22050,hop=512,frameDt=hop/sr;
  const reduced=halfRate(s);
- const bassSignal=filterBand(reduced,sr,38,290);
+ const bassSignal=filterBand(reduced,sr,40,340);
  postMessage({type:'progress',value:90,detail:'Following bass notes with Essentia YIN…'});
  let bassP,bassC;
  const bassVec=e.arrayToVector(bassSignal);
  try{
   let r;
-  try { r=e.PitchYinProbabilistic(bassVec,2048,hop,.01,'zero',false,sr); }
+  try { r=e.PitchYinProbabilistic(bassVec,4096,hop,.008,'zero',false,sr); }
   catch(err){throw Error('Bass YIN pitch tracker: '+(err?.message||err))}
   bassP=vecToArray(e,r.pitch);bassC=vecToArray(e,r.voicedProbabilities);
  }finally{bassVec.delete?.()}
  if(bassP.length<2)throw Error('Bass pitch tracker produced no frames.');
- const bassHz=new Float32Array(bassP.length);
- for(let i=0;i<bassP.length;i++)if(bassP[i]>=40&&bassP[i]<=380&&(bassC[i]??0)>=.47)bassHz[i]=bassP[i];
- const upperSignal=filterBand(reduced,sr,160,3600);
+ let bassHz=new Float32Array(bassP.length);
+ for(let i=0;i<bassP.length;i++)if(bassP[i]>=40&&bassP[i]<=380&&(bassC[i]??0)>=.25)bassHz[i]=bassP[i];
+ bassHz=bridgeShortPitchGaps(bassHz,3,1.5);
+ const upperSignal=filterBand(reduced,sr,125,4600);
  const frameCount=Math.ceil((s.length/44100)/frameDt)+2;
  const allRows=new Array(frameCount);
  const duration=s.length/44100, chunkLength=24;
@@ -176,7 +186,7 @@ async function extractMusicalVoices(e,s,n,dt,bassEnergy,upperEnergy){
   let rows;
   try{
    let r;
-   try { r=e.MultiPitchMelodia(v,10,3,2048,false,.8,hop,1,40,3500,95,165,20,.9,.9,27.5625,55,sr,100); }
+   try { r=e.MultiPitchMelodia(v,10,3,2048,false,.8,hop,1,20,4000,60,125,20,.75,.8,27.5625,55,sr,100); }
    catch(err){throw Error('Melody MultiPitchMelodia at '+coreStart.toFixed(1)+'s: '+(err?.message||err))}
    rows=readPitchRows(r.pitch);
   }finally{v.delete?.()}
@@ -189,15 +199,15 @@ async function extractMusicalVoices(e,s,n,dt,bassEnergy,upperEnergy){
   postMessage({type:'progress',value:92+Math.round(Math.min(1,(coreStart+chunkLength)/duration)*7),
     detail:'Following simultaneous melodies: '+Math.round(Math.min(duration,coreStart+chunkLength))+' / '+Math.round(duration)+' seconds…'});
  }
- const voiceHz=assignMelodyVoices(allRows,frameDt);
+ const voiceHz=assignMelodyVoices(allRows,frameDt).map(v=>bridgeShortPitchGaps(v,3,1.6));
  // Unlike band-energy curves, these signals are silent during unvoiced notes.
- const result={signals:{},notes:{},diagnostics:{method:'Essentia YIN + multi-pitch MELODIA; register/continuity-based assignment'}};
+ const result={signals:{},notes:{},diagnostics:{method:'Essentia YIN + MultiPitchMelodia; provisional register and continuity grouping', lowTrackFrames:bassHz.reduce((a,x)=>a+(x>0),0),melodyFrames:voiceHz.map(v=>v.reduce((a,x)=>a+(x>0),0))}};
  const bassTrack=notesToSignal(bassHz,n,dt,frameDt,40,380,bassEnergy);
  result.signals.bass=bassTrack.out;
  result.notes.bass=noteSegments(bassHz,frameDt);
  for(let k=0;k<3;k++){
   const id='melody'+String.fromCharCode(65+k);
-  const line=notesToSignal(voiceHz[k],n,dt,frameDt,155,3500,upperEnergy);
+  const line=notesToSignal(voiceHz[k],n,dt,frameDt,125,4000,upperEnergy);
   result.signals[id]=line.out;
   result.notes[id]=noteSegments(voiceHz[k],frameDt);
  }

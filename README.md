@@ -1,21 +1,8 @@
-VISUAL SYNTH v0.1.032
+# Visual Synth v0.1.033
 
-Upload index.html and analysis-worker.js to the same GitHub Pages folder and force refresh.
-
-ANALYSIS FIX
-- Essentia PitchYinProbabilistic argument 5 (outputUnvoiced) now receives the required string "zero" instead of the incorrect boolean false. The earlier type caused "Cannot pass non-string to std::string" before the bass/melody analysis could proceed.
-- Bass and multi-pitch analysis errors now identify the stage.
-
-LAYOUT
-- The five input channels now fit the panel exactly, with no unused horizontal space.
-- All six visual output tracks and the synthesis controls are visible beside the input controls on wide screens.
-- Input and synthesis panels share a single 6px border; each panel stops at its own content height. On narrower windows (<=1250px), the synthesis controls stack below.
-- The INPUT and SYNTHESIS navigation buttons scroll to the corresponding section, without hiding either one.
-- Existing monitor, fader, knob and synthesiser behaviour preserved.
-
-VERIFICATION
-- JS syntax checks passed.
-- Browser screenshots and functional layout checks passed at 1920, 1440 and 1100 widths.
-- Uploaded MP3 file decodes and reaches library-loading stage without page errors.
-- Worker integration mock verifies the YIN call receives the correct string, returns the five sources, notes and arrangement curve.
-- Real CDN-loaded Essentia WASM was not executable in this environment. The actual five-source analysis needs testing on the hosted app.
+- Compact 734px synthesis panel beside the 594px input mixer on wide displays.
+- Six output-track knobs/ON/EDIT are in a horizontal row at top of synthesis section, not a separate vertical section.
+- One 6px seam and existing knob/fader styling retained.
+- Pitch extraction tuned for a clearer bass and short upper synth notes: 4096-sample YIN frame, relaxed voiced gating, wider melody spectrum, shorter note threshold, short-gap joining; voice grouping still provisional.
+- Important: source separation by instrument is **not** provided by MultiPitchMelodia; melody A–C remain approximate pitch streams, not guaranteed distinct synth parts.
+- Files: index.html and analysis-worker.js. Upload both together.

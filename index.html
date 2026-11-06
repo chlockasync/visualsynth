@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Synthesis v0.1.032</title>
+<title>Visual Synth | Synthesis v0.1.033</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -404,31 +404,32 @@ body{background-image:none!important;}
 /* FUNCTIONAL SYNTHESIS WORKBENCH, using the existing flat JP-style geometry.
    One common 6px backing gives one seam, never two overlapping borders. */
 [hidden]{display:none!important}
-.synth-workbench{display:grid;grid-template-columns:166px minmax(0,1fr);gap:6px;margin-top:12px;border:6px solid #151916;border-radius:14px;background:#151916;min-width:0;align-items:stretch;overflow:visible}
+/* One outer panel; TRACK BANK belongs to the synthesis panel, not another bordered section. */
+.synth-workbench{display:flex;flex-direction:column;gap:0;flex:0 0 734px;width:734px;max-width:100%;margin:0;border:6px solid #151916;border-radius:0 14px 14px 0;background:#384254;min-width:0;align-self:start;overflow:hidden}
 .synth-track-bank,.synth-editor{position:relative;background:#384254;min-width:0}
-.synth-track-bank{border-radius:8px 0 0 8px;padding:27px 7px 12px}
-.synth-editor{border-radius:0 8px 8px 0;padding:27px 10px 10px}
+.synth-track-bank{border:0;border-radius:0;padding:26px 9px 8px;min-height:0;}
+.synth-editor{border:0;border-radius:0;padding:26px 9px 9px;border-top:6px solid #151916}
 .synth-notch,.synth-module-notch{position:absolute;top:-6px;left:50%;transform:translateX(-50%);display:block;margin:0;padding:2px 12px 3px;font:700 10px/15px 'Arial Narrow','Segoe UI',Arial,sans-serif;letter-spacing:.04em;white-space:nowrap;text-align:center;background:#151916;color:#e5b15d;clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,9px 100%);z-index:2}
 .synth-track-bank .synth-notch{font-size:9px;padding-inline:6px}
-.synth-track-column{display:flex;flex-direction:column;align-items:stretch;gap:0}
-.synth-track{display:flex;align-items:center;flex-direction:column;justify-content:center;height:111px;gap:2px;min-width:0}
+.synth-track-column{display:flex;flex-direction:row;align-items:stretch;justify-content:flex-start;gap:7px;flex-wrap:nowrap}
+.synth-track{display:flex;align-items:center;flex-direction:column;justify-content:center;height:114px;gap:2px;min-width:0;width:104px;flex:0 0 104px}
 .synth-track-title{border:0;background:none;color:#d9e3f0;font:800 12px/18px 'Segoe UI',Arial,sans-serif;letter-spacing:.05em;cursor:pointer;padding:0 6px}
 .synth-track.selected .synth-track-title{color:#e5b15d}
-.synth-track-dial{height:62px;width:85px;display:flex;align-items:center;justify-content:center;cursor:ns-resize;touch-action:none;position:relative}
+.synth-track-dial{height:55px;width:68px;display:flex;align-items:center;justify-content:center;cursor:ns-resize;touch-action:none;position:relative}
 .synth-track-dial::before,.synth-track-dial::after{position:absolute;bottom:7px;font:bold 13px Arial;color:#dde7f1}
 .synth-track-dial::before{content:'−';left:-4px}.synth-track-dial::after{content:'+';right:-4px}
 .synth-track-dial .channel-dial-face{pointer-events:none}
 .synth-track-dial .synth-knob-name,.synth-track-dial .synth-knob-value{display:none}
-.synth-track-dial .synth-knob{width:65px;height:60px;justify-content:center}
+.synth-track-dial .synth-knob{width:62px;height:52px;justify-content:center}
 .synth-track-actions{display:flex;align-items:center;gap:5px}
 .synth-action{border:1px solid #151916;background:#283448;color:#dce4f0;font:700 10px/20px 'Segoe UI',Arial,sans-serif;padding:1px 7px;cursor:pointer}
-.synth-action:hover{background:#334359}.synth-track-actions .synth-action{min-width:46px;font-size:9px}
+.synth-action:hover{background:#334359}.synth-track-actions .synth-action{min-width:42px;font-size:9px;padding-inline:4px}
 .synth-action[aria-pressed="true"],.synth-action.selected{color:#f0bd71;border-color:#af864f;background:#202a39}
 .synth-editor-status{height:33px;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 3px;margin-bottom:7px;font-size:12px}
 .synth-editor-status strong{letter-spacing:.06em;font-size:12px;color:#dbe4ee}
 .synth-editor-status>div{display:flex;gap:6px}
-.synth-module-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:#151916;padding:6px;border-radius:10px 10px 0 0}
-.synth-module{position:relative;min-width:0;background:#384254;padding:20px 11px 9px;min-height:229px;border-radius:4px;display:flex;flex-direction:column;gap:9px}
+.synth-module-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:#151916;padding:6px;border-radius:8px 8px 0 0}
+.synth-module{position:relative;min-width:0;background:#384254;padding:20px 7px 9px;min-height:210px;border-radius:4px;display:flex;flex-direction:column;gap:9px}
 .synth-module .synth-module-notch{font-size:10px;min-width:85px}
 .synth-module>p{font-size:10px;color:#b1bfce;margin:0;min-height:12px}
 .synth-module label,.synth-combine label{display:flex;flex-direction:column;gap:4px;min-width:0;font:700 10px 'Segoe UI',Arial,sans-serif;color:#dae2ee;letter-spacing:.04em}
@@ -452,67 +453,47 @@ body{background-image:none!important;}
 .synth-colour-choices button.selected{outline:1px solid #f0f0ec;outline-offset:2px}
 .synth-fader-mount{display:flex;flex-direction:column;gap:5px;align-items:center;width:58px;min-width:58px;font:bold 10px Arial;color:#dce5ef}
 .synth-fader-mount>.channel-fader-well{width:50px;height:128px;flex:none}
-.synth-combine{position:relative;display:flex;align-items:center;justify-content:space-between;gap:9px;background:#384254;border:6px solid #151916;border-top:0;border-radius:0 0 10px 10px;padding:27px 10px 12px;flex-wrap:wrap}
+.synth-combine{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#384254;border:6px solid #151916;border-top:0;border-radius:0 0 8px 8px;padding:24px 8px 10px;flex-wrap:wrap}
 .synth-combine label{flex:1 1 100px}.synth-combine .synth-module-notch{min-width:169px}
 .synth-arrow{font-size:22px;color:#e5b15d}
 .synth-combine-dial{width:72px;flex:0 0 72px}
 .synth-combine-dial .synth-knob{margin:auto}
 #combineEnable{height:29px;min-width:50px}
-@media(max-width:1250px){.synth-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.synth-workbench{grid-template-columns:154px minmax(0,1fr)}}
-@media(max-width:700px){.synth-module-grid{grid-template-columns:minmax(0,1fr)}.synth-workbench{grid-template-columns:120px minmax(0,1fr)}.synth-track-bank{padding-inline:2px}.synth-track{height:106px}.synth-editor{padding-inline:5px}.synth-editor-status{height:auto;align-items:flex-start;flex-wrap:wrap}.synth-track-dial{height:58px}}
+
+
 
 /* Source-routing feedback; no changes to established panel or hardware geometry. */
 .source-route-status{margin:3px 5px 0!important;min-height:12px;color:#edbf76;font-size:10px;line-height:1.35;}
 .source-route-status:empty{display:none;}
 
-/* v0.1.032: one six-pixel boundary between adjacent workbenches.
-   Each panel ends at its own content height; no empty backing below INPUT. */
-.creative-row{
- display:grid;
- grid-template-columns:calc(5 * 116px + 4 * 2px + 6px) minmax(0,1fr);
- gap:0;padding:0;margin-top:10px;
- background:transparent;border:0;
- min-width:0;align-items:start;
+/* v0.1.033: compact, side-by-side instruments. One six-pixel seam between them.
+   Output level knobs are arranged horizontally in the top of the SYNTHESIS panel.
+   Established fader/tick/knob geometry is intentionally left untouched. */
+.creative-row{display:flex;align-items:flex-start;justify-content:flex-start;gap:0;flex-wrap:wrap;padding:0;margin-top:10px;min-width:0}
+.creative-row>.mixer-frame{margin:0;width:594px;flex:0 0 594px;max-width:100%;min-width:0;border:6px solid #151916;border-right:0;border-radius:14px 0 0 14px;padding-top:24px;overflow:hidden}
+.creative-row>.mixer-frame .mixer-scroll{overflow:visible}
+.creative-row>.synth-workbench{flex:0 0 734px;width:734px;max-width:100%;margin:0}
+.synth-track-bank .synth-notch{left:50%;top:-6px}
+.synth-track-actions{gap:3px}
+.synth-module-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1395px){
+ .creative-row{gap:6px}
+ .creative-row>.mixer-frame{border-right:6px solid #151916;border-radius:14px}
+ .creative-row>.mixer-frame .mixer-scroll{overflow-x:auto}
+ .creative-row>.synth-workbench{border-radius:14px}
 }
-.creative-row>.mixer-frame{
- margin:0;width:100%;max-width:100%;min-width:0;
- border:6px solid #151916;border-right:0;
- border-radius:14px 0 0 14px;
- padding-top:24px;overflow:hidden;
+@media(max-width:760px){
+ .creative-row>.synth-workbench{flex:1 1 100%;width:100%}
+ .synth-track-bank{overflow-x:auto}
+ .synth-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-.creative-row>.mixer-frame .mixer-scroll{overflow:visible;}
-.creative-row>.synth-workbench{
- margin:0;border:6px solid #151916;
- border-radius:0 14px 14px 0;
- grid-template-columns:120px minmax(0,1fr);gap:6px;
- background:#151916;min-width:0;
-}
-.creative-row .synth-track-bank{border-radius:0;}
-.creative-row .synth-editor{border-radius:0 8px 8px 0;}
-.creative-row .synth-module-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
-@media(max-width:1700px){
- .creative-row .synth-module-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-}
-@media(max-width:1250px){
- .creative-row{grid-template-columns:minmax(0,1fr);gap:6px;}
- .creative-row>.mixer-frame{
-  width:calc(5 * 116px + 4 * 2px + 12px);max-width:100%;
-  border-right:6px solid #151916;border-radius:14px;
- }
- .creative-row>.mixer-frame .mixer-scroll{overflow-x:auto;}
- .creative-row>.synth-workbench{border-radius:14px;grid-template-columns:120px minmax(0,1fr);}
- .creative-row .synth-module-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-}
-@media(max-width:620px){
- .creative-row>.synth-workbench{grid-template-columns:90px minmax(0,1fr);}
- .creative-row .synth-module-grid{grid-template-columns:minmax(0,1fr);}
-}
+@media(max-width:520px){.synth-module-grid{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.032</span></div>
+    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.033</span></div>
     <div class="header-actions" role="group" aria-label="Track and recording">
       
       <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -878,7 +859,7 @@ function drawInput(){
 }
 function drawOutput(ms){renderVisualOutput(ms)}
 
-/* VISUAL SYNTHESIS v0.1.032. Six reusable visual tracks. Music signal histories,
+/* VISUAL SYNTHESIS v0.1.033. Six reusable visual tracks. Music signal histories,
    not independent oscillators, supply the evolving pattern values. */
 const visualSpec={
  mix:{min:0,max:1,def:.45,fmt:v=>Math.round(v*100)+'%'},
@@ -1205,7 +1186,7 @@ async function fileChange(e){const file=e.target.files?.[0];if(!file)return;let 
   waveform=prepared.waveform;badge('ANALYSING');msg('Finding beat, bass, and independent melodic candidates…','busy');drawInput();
   msg('Loading library files for analysis…','busy');
   const libraries=await getAnalysisLibraries();if(token!==fileToken)return;
-  worker=new Worker('./analysis-worker.js?v=0.1.031');
+  worker=new Worker('./analysis-worker.js?v=0.1.033');
   worker.onmessage=ev=>{if(token!==fileToken)return;const o=ev.data;
    if(o.type==='progress'){msg((o.detail||'Analysing music…')+' '+o.value+'%','busy')}
    if(o.type==='error'){badge('ERROR');msg('Analysis failed: '+o.message,'error');stopWorker()}
