@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Synthesis v0.1.029</title>
+<title>Visual Synth | Synthesis v0.1.030</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -460,12 +460,16 @@ body{background-image:none!important;}
 #combineEnable{height:29px;min-width:50px}
 @media(max-width:1250px){.synth-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.synth-workbench{grid-template-columns:154px minmax(0,1fr)}}
 @media(max-width:700px){.synth-module-grid{grid-template-columns:minmax(0,1fr)}.synth-workbench{grid-template-columns:120px minmax(0,1fr)}.synth-track-bank{padding-inline:2px}.synth-track{height:106px}.synth-editor{padding-inline:5px}.synth-editor-status{height:auto;align-items:flex-start;flex-wrap:wrap}.synth-track-dial{height:58px}}
+
+/* Source-routing feedback; no changes to established panel or hardware geometry. */
+.source-route-status{margin:3px 5px 0!important;min-height:12px;color:#edbf76;font-size:10px;line-height:1.35;}
+.source-route-status:empty{display:none;}
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.029</span></div>
+    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.030</span></div>
     <div class="header-actions" role="group" aria-label="Track and recording">
       
       <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -512,7 +516,7 @@ body{background-image:none!important;}
       <div class="synth-editor-status"><strong id="selectedTrackLabel">TRACK 01 · BEAT</strong><div><button class="synth-action" id="resetVisualTrack" type="button">RESET TRACK</button><button class="synth-action" id="copyVisualTrack" type="button">COPY TO NEXT</button></div></div>
       <div class="synth-module-grid">
         <div class="synth-module"><h3 class="synth-module-notch">SOURCE / ROUTING</h3><p>Musical signals supply the visual material</p>
-          <div class="synth-source-row"><div class="synth-stack"><label>PRIMARY INPUT<select id="visPrimary"></select></label><label>SECOND INPUT<select id="visSecondary"></select></label><label>SOURCE MODE<select id="visSourceMode"><option value="mix">MIX</option><option value="multiply">MULTIPLY</option><option value="difference">DIFFERENCE</option></select></label></div><div id="sourceBlendDial"></div><div class="synth-fader-mount" data-param="drive" data-label="DRIVE"></div></div>
+          <div class="synth-source-row"><div class="synth-stack"><label>PRIMARY INPUT<select id="visPrimary"></select></label><label>SECOND INPUT<select id="visSecondary"></select></label><label>SOURCE MODE<select id="visSourceMode"><option value="mix">MIX</option><option value="multiply">MULTIPLY</option><option value="difference">DIFFERENCE</option></select></label></div><div id="sourceBlendDial"></div><div class="synth-fader-mount" data-param="drive" data-label="DRIVE"></div></div><p id="sourceRouteStatus" class="source-route-status" aria-live="polite"></p>
         </div>
         <div class="synth-module"><h3 class="synth-module-notch">EXPRESSION</h3><p>How the signal is expressed spatially</p>
           <div class="synth-choices" data-param="style"><button data-v="radial">RADIAL</button><button data-v="linear">LINEAR</button><button data-v="spiral">SPIRAL</button><button data-v="field">FIELD</button></div>
@@ -661,13 +665,13 @@ function createSources(){
   rack.appendChild(strip);
   const power=strip.querySelector('.channel-power'),mute=strip.querySelector('.channel-mute'),fader=strip.querySelector('.channel-fader');
   updateChannelButtons(src,strip);
-  power.onclick=()=>{configs[src.id].on=!configs[src.id].on;updateChannelButtons(src,strip);updateLive();drawInput()};
-  mute.onclick=()=>{configs[src.id].mute=!configs[src.id].mute;updateChannelButtons(src,strip);updateLive()};
-  fader.addEventListener('input',()=>{configs[src.id].level=+fader.value/100;updateLive()});
+  power.onclick=()=>{configs[src.id].on=!configs[src.id].on;updateChannelButtons(src,strip);updateLive();drawInput();refreshSourceRouting()};
+  mute.onclick=()=>{configs[src.id].mute=!configs[src.id].mute;updateChannelButtons(src,strip);updateLive();if($('sourceRouteStatus'))$('sourceRouteStatus').textContent=routeStatus(visualTracks[selectedVisualTrack])};
+  fader.addEventListener('input',()=>{configs[src.id].level=+fader.value/100;updateLive();if($('sourceRouteStatus'))$('sourceRouteStatus').textContent=routeStatus(visualTracks[selectedVisualTrack])});
   connectFader(strip.querySelector('.channel-fader-well'),fader);
   for(const [key,label] of [['gate','GATE'],['attack','ATT'],['release','REL'],['filter','LPF']])strip.querySelector('.channel-dials').append(makeDial(src,key,label));
   strip.querySelector('.channel-special').append(makeDial(src,src.specialKind,src.special));
-  strip.querySelector('.channel-reset').onclick=()=>resetChannel(src,strip);
+  strip.querySelector('.channel-reset').onclick=()=>{resetChannel(src,strip);refreshSourceRouting()};
  }
 }
 function rebuildAllChannels(){srcList.forEach(s=>rebuildChannel(s.id))}
@@ -806,7 +810,7 @@ function drawInput(){
 }
 function drawOutput(ms){renderVisualOutput(ms);}
 
-/* VISUAL SYNTHESIS v0.1.029. Six reusable visual tracks. Music signal histories,
+/* VISUAL SYNTHESIS v0.1.030. Six reusable visual tracks. Music signal histories,
    not independent oscillators, supply the evolving pattern values. */
 const visualSpec={
  mix:{min:0,max:1,def:.45,fmt:v=>Math.round(v*100)+'%'},
@@ -844,7 +848,7 @@ function knobControl(label,owner,param,spec,classes='synth-knob'){
  const d=document.createElement('div');d.className=classes;d.setAttribute('role','slider');d.tabIndex=0;d.setAttribute('aria-label',label);
  d.innerHTML=`<span class="synth-knob-name">${label}</span>${dialMarkup()}<span class="synth-knob-value"></span>`;
  function refresh(){const v=owner[param];const f=clamp((v-spec.min)/(spec.max-spec.min));paintVisualKnob(d,f);d.lastElementChild.textContent=spec.fmt(v);d.setAttribute('aria-valuenow',v.toFixed(3));}
- function set(v){owner[param]=clamp(v,spec.min,spec.max);refresh();drawOutput(0)}
+ function set(v){owner[param]=clamp(v,spec.min,spec.max);refresh();if($('sourceRouteStatus'))$('sourceRouteStatus').textContent=routeStatus(visualTracks[selectedVisualTrack]);drawOutput(0)}
  let drag=false,startY=0,startV=0;
  d.addEventListener('pointerdown',e=>{if(e.button!==0)return;drag=true;startY=e.clientY;startV=owner[param];d.setPointerCapture(e.pointerId);d.focus({preventScroll:true});e.preventDefault()});
  d.addEventListener('pointermove',e=>{if(drag)set(startV+(startY-e.clientY)*(spec.max-spec.min)/135)});
@@ -865,7 +869,34 @@ function buildVisualTrackBank(){const col=$('outputTrackColumn');col.replaceChil
  });refreshVisualBank();
 }
 function refreshVisualBank(){for(let i=0;i<6;i++){const row=$('outputTrackColumn').children[i];if(!row)continue;row.classList.toggle('selected',i===selectedVisualTrack);row.querySelector('.synth-track-on').setAttribute('aria-pressed',String(visualTracks[i].on));row.querySelector('.synth-track-on').textContent=visualTracks[i].on?'ON':'OFF';row.querySelector('.synth-track-edit').classList.toggle('selected',i===selectedVisualTrack);row.querySelectorAll('.synth-knob').forEach(k=>k.refresh?.());}}
-function chooseSourceOptions(sel,secondary=false){sel.replaceChildren();if(secondary)sel.add(new Option('NONE','none'));for(const src of srcList)sel.add(new Option(src.name,src.id));}
+function chooseSourceOptions(sel){
+ // Every offered musical source must be switched ON in INPUT CHANNELS.
+ sel.replaceChildren();sel.add(new Option('NONE','none'));
+ for(const src of srcList)if(configs[src.id]?.on)sel.add(new Option(src.name,src.id));
+}
+function reconcileVisualSources(){
+ // Disconnected inputs stay disconnected; never silently reroute to another song feature.
+ for(const tr of visualTracks){
+  for(const k of ['primary','secondary'])if(tr[k]!=='none'&&!configs[tr[k]]?.on)tr[k]='none';
+ }
+}
+function refreshSourceRouting(){
+ reconcileVisualSources();
+ chooseSourceOptions($('visPrimary'));chooseSourceOptions($('visSecondary'));
+ selectVisualTrack(selectedVisualTrack);
+ drawOutput(0);
+}
+function routeStatus(tr){
+ if(!tr.on)return 'Track OFF: switch on its OUTPUT button to show visuals.';
+ if(tr.primary==='none'&&tr.secondary==='none')return 'No input routed. Turn on a channel in INPUT CHANNELS, then select it here.';
+ if(tr.drive<=0||tr.level<=0)return 'Track DRIVE or OUTPUT level is zero; raise it to restore visuals.';
+ const a=tr.primary==='none'?null:configs[tr.primary],b=tr.secondary==='none'?null:configs[tr.secondary];
+ if((!a||a.mute||a.level<=0)&&(!b||b.mute||b.level<=0))return 'Routed inputs have no synth send. Check their MUTE and LEVEL controls.';
+ if(tr.sourceMode==='difference'&&tr.primary===tr.secondary&&tr.secondary!=='none'&&tr.mix>.95)return 'DIFFERENCE is cancelling two identical inputs. Reduce B MIX or change the source.';
+ if(tr.sourceMode==='multiply'&&tr.secondary!=='none'&&tr.mix>.9)return 'MULTIPLY can suppress the output when SECOND INPUT is quiet.';
+ if(trackMix.on&&(trackMix.from===selectedVisualTrack||trackMix.into===selectedVisualTrack)&&trackMix.mode==='mask')return 'MASK may hide both tracks where their shapes do not overlap. Turn Track Combination OFF to compare.';
+ return '';
+}
 function drawSynthKnobGroups(tr){const groups={expressionDials:[['REPEAT','repeat'],['WIDTH','width']],spaceDials:[['SCALE','scale'],['ROTATE','rotate'],['SYMMETRY','symmetry']],motionDials:[['SPEED','speed'],['HISTORY','history'],['PHASE','phase']],shapeDials:[['WARP','warp'],['FOLD','fold']],colourDials:[['CONTRAST','contrast'],['HUE SHIFT','tint']]};
  for(const [gid,entries] of Object.entries(groups)){const el=$(gid);el.replaceChildren();for(const [label,key] of entries)el.append(knobControl(label,tr,key,visualSpec[key]));}}
 function buildDriveFader(tr){const mount=document.querySelector('.synth-fader-mount');mount.replaceChildren();const label=document.createElement('span');label.textContent='DRIVE';
@@ -875,19 +906,27 @@ function buildDriveFader(tr){const mount=document.querySelector('.synth-fader-mo
  fader.addEventListener('input',()=>{tr.drive=+fader.value/100;drawOutput(0)});
  connectFader(well,fader);paintFader(fader);}
 function selectVisualTrack(i){selectedVisualTrack=i;const tr=visualTracks[i];
+ chooseSourceOptions($('visPrimary'));chooseSourceOptions($('visSecondary'));
  $('selectedTrackNum').textContent=String(i+1).padStart(2,'0');$('selectedTrackLabel').textContent=`TRACK ${String(i+1).padStart(2,'0')} · ${metadata[tr.primary]?.name||'SOURCE'}`;
  for(const [id,key] of [['visPrimary','primary'],['visSecondary','secondary'],['visSourceMode','sourceMode']])$(id).value=tr[key];
  document.querySelectorAll('.synth-choices').forEach(g=>{const p=g.dataset.param;g.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b.dataset.v===tr[p]))});
- drawSynthKnobGroups(tr);$('sourceBlendDial').replaceChildren(knobControl('B MIX',tr,'mix',visualSpec.mix));buildDriveFader(tr);refreshVisualBank();}
-function setupSynthEditor(){chooseSourceOptions($('visPrimary'));chooseSourceOptions($('visSecondary'),true);
+ drawSynthKnobGroups(tr);$('sourceBlendDial').replaceChildren(knobControl('B MIX',tr,'mix',visualSpec.mix));buildDriveFader(tr);$('sourceRouteStatus').textContent=routeStatus(tr);refreshVisualBank();}
+function setupSynthEditor(){chooseSourceOptions($('visPrimary'));chooseSourceOptions($('visSecondary'));
  for(const [id,key] of [['visPrimary','primary'],['visSecondary','secondary'],['visSourceMode','sourceMode']])$(id).addEventListener('change',e=>{visualTracks[selectedVisualTrack][key]=e.target.value;selectVisualTrack(selectedVisualTrack);drawOutput(0)});
  document.querySelectorAll('.synth-choices').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;visualTracks[selectedVisualTrack][g.dataset.param]=b.dataset.v;selectVisualTrack(selectedVisualTrack);drawOutput(0)}));
- $('resetVisualTrack').onclick=()=>{const i=selectedVisualTrack;visualTracks[i]=initialVisualTrack(i);buildVisualTrackBank();selectVisualTrack(i);drawOutput(0)};
+ $('resetVisualTrack').onclick=()=>{
+ const i=selectedVisualTrack;visualTracks[i]=initialVisualTrack(i);
+ reconcileVisualSources();
+ if(trackMix.on&&(trackMix.from===i||trackMix.into===i)){
+  trackMix.on=false;$('combineEnable').setAttribute('aria-pressed','false');$('combineEnable').textContent='OFF';
+ }
+ buildVisualTrackBank();selectVisualTrack(i);drawOutput(0);
+};
  $('copyVisualTrack').onclick=()=>{const next=(selectedVisualTrack+1)%6;Object.assign(visualTracks[next],visualTracks[selectedVisualTrack]);visualTracks[next].on=true;selectVisualTrack(next);drawOutput(0)};
  for(const [id,key] of [['combineFrom','from'],['combineInto','into']]){const el=$(id);for(let i=0;i<6;i++)el.add(new Option('OUTPUT '+(i+1),String(i)));el.value=String(trackMix[key]);el.onchange=()=>{trackMix[key]=+el.value;drawOutput(0)}}
- $('combineMode').value=trackMix.mode;$('combineMode').onchange=e=>{trackMix.mode=e.target.value;drawOutput(0)};
+ $('combineMode').value=trackMix.mode;$('combineMode').onchange=e=>{trackMix.mode=e.target.value;$('sourceRouteStatus').textContent=routeStatus(visualTracks[selectedVisualTrack]);drawOutput(0)};
  $('combineAmountMount').append(knobControl('AMOUNT',trackMix,'amount',{min:0,max:1,fmt:v=>Math.round(v*100)+'%'}));
- $('combineEnable').onclick=()=>{trackMix.on=!trackMix.on;$('combineEnable').setAttribute('aria-pressed',String(trackMix.on));$('combineEnable').textContent=trackMix.on?'ON':'OFF';drawOutput(0)};
+ $('combineEnable').onclick=()=>{trackMix.on=!trackMix.on;$('combineEnable').setAttribute('aria-pressed',String(trackMix.on));$('combineEnable').textContent=trackMix.on?'ON':'OFF';$('sourceRouteStatus').textContent=routeStatus(visualTracks[selectedVisualTrack]);drawOutput(0)};
  $('tabInputs').onclick=()=>setWorkbench('input');$('tabSynthesis').onclick=()=>setWorkbench('synth');
 }
 function setWorkbench(which){const isSynth=which==='synth';$('inputWorkbench').hidden=isSynth;$('synthesisWorkbench').hidden=!isSynth;
@@ -1195,7 +1234,7 @@ for(const type of ['pointerup','pointercancel','lostpointercapture'])input.addEv
 audio.onplay=()=>{playing=true;$('play').textContent='Ⅱ'};audio.onpause=()=>{playing=false;$('play').textContent='▶'};audio.onended=()=>{playing=false;$('play').textContent='▶'};
 window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement||e.target instanceof HTMLButtonElement)return;if(e.code==='Space'){e.preventDefault();playpause()}if(e.code==='ArrowLeft'&&audio.duration){audio.currentTime=clamp(audio.currentTime-5,0,audio.duration)}if(e.code==='ArrowRight'&&audio.duration){audio.currentTime=clamp(audio.currentTime+5,0,audio.duration)}});
 window.addEventListener('resize',()=>{setMonitorHeight(outputHeight,false);drawInput();drawOutput(0)});
-createSources();refreshTempoDisplay();updateLive();raf=requestAnimationFrame(loop);
+createSources();refreshSourceRouting();refreshTempoDisplay();updateLive();raf=requestAnimationFrame(loop);
 })();
 </script>
 </body>
