@@ -156,7 +156,10 @@ async function extractMusicalVoices(e,s,n,dt,bassEnergy,upperEnergy){
  postMessage({type:'progress',value:90,detail:'Following bass notes with Essentia YIN…'});
  let bassP,bassC;
  const bassVec=e.arrayToVector(bassSignal);
- try{const r=e.PitchYinProbabilistic(bassVec,2048,hop,.01,false,false,sr);
+ try{
+  let r;
+  try { r=e.PitchYinProbabilistic(bassVec,2048,hop,.01,'zero',false,sr); }
+  catch(err){throw Error('Bass YIN pitch tracker: '+(err?.message||err))}
   bassP=vecToArray(e,r.pitch);bassC=vecToArray(e,r.voicedProbabilities);
  }finally{bassVec.delete?.()}
  if(bassP.length<2)throw Error('Bass pitch tracker produced no frames.');
@@ -172,7 +175,9 @@ async function extractMusicalVoices(e,s,n,dt,bassEnergy,upperEnergy){
   const v=e.arrayToVector(chunk);
   let rows;
   try{
-   const r=e.MultiPitchMelodia(v,10,3,2048,false,.8,hop,1,40,3500,95,165,20,.9,.9,27.5625,55,sr,100);
+   let r;
+   try { r=e.MultiPitchMelodia(v,10,3,2048,false,.8,hop,1,40,3500,95,165,20,.9,.9,27.5625,55,sr,100); }
+   catch(err){throw Error('Melody MultiPitchMelodia at '+coreStart.toFixed(1)+'s: '+(err?.message||err))}
    rows=readPitchRows(r.pitch);
   }finally{v.delete?.()}
   for(let i=0;i<rows.length;i++){

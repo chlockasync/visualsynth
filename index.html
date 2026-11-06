@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Visual Synth | Synthesis v0.1.031</title>
+<title>Visual Synth | Synthesis v0.1.032</title>
 <style>
 :root{color-scheme:dark;--bg:#0d1018;--panel:#171b26;--panel2:#1b2030;--edge:#32394b;--text:#e7ecf5;--muted:#99a4bb;--blue:#74c9f5;--gold:#ffcf83;--green:#9bd9b9;--pink:#ef9bc4;--lav:#aea7fa;--red:#e98b96}
 *{box-sizing:border-box}html{font:14px/1.35 system-ui,-apple-system,'Segoe UI',sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#202a3e 0,transparent 50%),var(--bg);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
@@ -220,7 +220,7 @@ body{background-image:none!important;}
 .mixer-foot{padding:9px 13px;letter-spacing:.012em;font-weight:400;color:#cbd2df;flex-wrap:wrap;border-top:2px solid #151916;}
 .mixer-foot b{color:var(--gold);}
 .mixer-scroll{overflow-x:auto;overscroll-behavior-x:contain;background:#384254;scrollbar-color:#a6b3c5 #151916;}
-.channel-rack{display:grid;grid-template-columns:repeat(13,116px);gap:2px;background:#151916;width:max-content;min-width:max-content;padding:0 0 2px;}
+.channel-rack{display:grid;grid-template-columns:repeat(5,116px);gap:2px;background:#151916;width:max-content;min-width:max-content;padding:0 0 2px;}
 .channel-strip{position:relative;min-width:0;background:#384254;padding:25px 6px 11px;display:flex;flex-direction:column;gap:8px;align-items:stretch;min-height:385px;}
 .channel-strip.monitor-off .channel-power{color:#96a3b7;}
 .channel-strip:focus-within{background:#3c485d;}
@@ -258,7 +258,7 @@ body{background-image:none!important;}
 
 /* v0.1.024: exact-width instrument rack, no stretched empty panel. */
 .brand .app-version{margin-left:0;margin-right:0;color:#f1c784;font-size:11px;}
-.mixer-frame{width:calc(13 * 116px + 12 * 2px + 12px);max-width:100%;padding:24px 0 0;}
+.mixer-frame{width:calc(5 * 116px + 4 * 2px + 12px);max-width:100%;padding:24px 0 0;}
 .mixer-scroll{width:100%;max-width:100%;}
 .channel-rack{min-width:max-content;}
 /* The main timeline is the current zoom, its own bottom edge shows the whole track. */
@@ -383,8 +383,8 @@ body{background-image:none!important;}
 
 
 /* Geometry revision: wider strips, fader-integrated activity, no redundant meter/readout. */
-.channel-rack{grid-template-columns:repeat(13,116px)}
-.mixer-frame{width:calc(13 * 116px + 12 * 2px + 12px)}
+.channel-rack{grid-template-columns:repeat(5,116px)}
+.mixer-frame{width:calc(5 * 116px + 4 * 2px + 12px)}
 .channel-strip{padding-left:9px;padding-right:9px;gap:9px}
 .channel-name{height:21px;font-size:11px;left:4px;right:4px}
 .channel-strip{padding-top:31px}
@@ -464,12 +464,55 @@ body{background-image:none!important;}
 /* Source-routing feedback; no changes to established panel or hardware geometry. */
 .source-route-status{margin:3px 5px 0!important;min-height:12px;color:#edbf76;font-size:10px;line-height:1.35;}
 .source-route-status:empty{display:none;}
+
+/* v0.1.032: one six-pixel boundary between adjacent workbenches.
+   Each panel ends at its own content height; no empty backing below INPUT. */
+.creative-row{
+ display:grid;
+ grid-template-columns:calc(5 * 116px + 4 * 2px + 6px) minmax(0,1fr);
+ gap:0;padding:0;margin-top:10px;
+ background:transparent;border:0;
+ min-width:0;align-items:start;
+}
+.creative-row>.mixer-frame{
+ margin:0;width:100%;max-width:100%;min-width:0;
+ border:6px solid #151916;border-right:0;
+ border-radius:14px 0 0 14px;
+ padding-top:24px;overflow:hidden;
+}
+.creative-row>.mixer-frame .mixer-scroll{overflow:visible;}
+.creative-row>.synth-workbench{
+ margin:0;border:6px solid #151916;
+ border-radius:0 14px 14px 0;
+ grid-template-columns:120px minmax(0,1fr);gap:6px;
+ background:#151916;min-width:0;
+}
+.creative-row .synth-track-bank{border-radius:0;}
+.creative-row .synth-editor{border-radius:0 8px 8px 0;}
+.creative-row .synth-module-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+@media(max-width:1700px){
+ .creative-row .synth-module-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:1250px){
+ .creative-row{grid-template-columns:minmax(0,1fr);gap:6px;}
+ .creative-row>.mixer-frame{
+  width:calc(5 * 116px + 4 * 2px + 12px);max-width:100%;
+  border-right:6px solid #151916;border-radius:14px;
+ }
+ .creative-row>.mixer-frame .mixer-scroll{overflow-x:auto;}
+ .creative-row>.synth-workbench{border-radius:14px;grid-template-columns:120px minmax(0,1fr);}
+ .creative-row .synth-module-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:620px){
+ .creative-row>.synth-workbench{grid-template-columns:90px minmax(0,1fr);}
+ .creative-row .synth-module-grid{grid-template-columns:minmax(0,1fr);}
+}
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="header">
-    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.031</span></div>
+    <div class="brand"><strong>VISUAL SYNTH</strong><span class="brand-rule" aria-hidden="true"></span><span class="brand-tagline">MUSIC-VISUAL SYNTHESIS</span><span class="app-version" aria-label="Application version">v0.1.032</span></div>
     <div class="header-actions" role="group" aria-label="Track and recording">
       
       <label class="filelabel">＋ Load MP3 <input id="file" type="file" accept=".mp3,audio/mpeg"></label>
@@ -502,11 +545,12 @@ body{background-image:none!important;}
     <button class="tab" disabled title="Extended modulation routing is a later stage">MODULATION · LATER</button>
     <button class="tab" disabled title="Video recording is a later stage">RECORDING · LATER</button>
   </nav>
+  <div class="creative-row" id="creativeRow" aria-label="Input channels and visual synthesis controls">
   <section class="mixer-frame" id="inputWorkbench" aria-label="Five musical input channels">
     <h2 class="mixer-heading">03 / MUSICAL INPUTS</h2>
     <div class="mixer-scroll" tabindex="0" aria-label="Input channel mixer; scroll horizontally if required"><div id="channelRack" class="channel-rack"></div></div>
   </section>
-  <section class="synth-workbench" id="synthesisWorkbench" aria-label="Visual synthesis control workbench" hidden>
+  <section class="synth-workbench" id="synthesisWorkbench" aria-label="Visual synthesis control workbench">
     <section class="synth-track-bank" aria-label="Six output track controls">
       <h2 class="synth-notch">01–06 / OUTPUT TRACKS</h2>
       <div id="outputTrackColumn" class="synth-track-column"></div>
@@ -540,6 +584,7 @@ body{background-image:none!important;}
       </div>
     </section>
   </section>
+  </div><!-- /.creative-row -->
 </div>
 <audio id="player" preload="metadata" style="display:none"></audio>
 
@@ -833,7 +878,7 @@ function drawInput(){
 }
 function drawOutput(ms){renderVisualOutput(ms)}
 
-/* VISUAL SYNTHESIS v0.1.031. Six reusable visual tracks. Music signal histories,
+/* VISUAL SYNTHESIS v0.1.032. Six reusable visual tracks. Music signal histories,
    not independent oscillators, supply the evolving pattern values. */
 const visualSpec={
  mix:{min:0,max:1,def:.45,fmt:v=>Math.round(v*100)+'%'},
@@ -952,9 +997,15 @@ function setupSynthEditor(){chooseSourceOptions($('visPrimary'));chooseSourceOpt
  $('combineEnable').onclick=()=>{trackMix.on=!trackMix.on;$('combineEnable').setAttribute('aria-pressed',String(trackMix.on));$('combineEnable').textContent=trackMix.on?'ON':'OFF';$('sourceRouteStatus').textContent=routeStatus(visualTracks[selectedVisualTrack]);drawOutput(0)};
  $('tabInputs').onclick=()=>setWorkbench('input');$('tabSynthesis').onclick=()=>setWorkbench('synth');
 }
-function setWorkbench(which){const isSynth=which==='synth';$('inputWorkbench').hidden=isSynth;$('synthesisWorkbench').hidden=!isSynth;
- $('tabInputs').classList.toggle('active',!isSynth);$('tabSynthesis').classList.toggle('active',isSynth);
- $('tabInputs').setAttribute('aria-selected',String(!isSynth));$('tabSynthesis').setAttribute('aria-selected',String(isSynth));}
+// The two workbenches share the visible panel row. Tabs now jump to a section.
+function setWorkbench(which){
+ const isSynth=which==='synth';
+ $('tabInputs').classList.toggle('active',!isSynth);
+ $('tabSynthesis').classList.toggle('active',isSynth);
+ $('tabInputs').setAttribute('aria-selected',String(!isSynth));
+ $('tabSynthesis').setAttribute('aria-selected',String(isSynth));
+ (isSynth?$('synthesisWorkbench'):$('inputWorkbench')).scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});
+}
 function sampleMusic(id,t){
  if(id==='none'||t<0)return 0;
  // A generated beat-phase clock is still derived from the track, but must not
